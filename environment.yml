@@ -16,5 +16,6 @@ dependencies:
   - scikit-learn   # baseline supervised models before committing to deep learning
   - pyfaidx        # genome FASTA slicing (mm10), shared convention with eCR_predictor
   - pybigwig       # read ATAC/accessibility signal tracks
+  - h5py           # read ChromBERT get_region_emb hdf5 (scripts/hdf5_to_artifact.py)
   - pyyaml
   - tqdm
