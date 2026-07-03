@@ -28,10 +28,18 @@ echo ">> uploading $PEAKS -> mirror:$REMOTE/"
 $SSH "mkdir -p $REMOTE"
 $SCP_BASE "$PEAKS" "${MIRROR_USER}@${MIRROR_IP}:$REMOTE/$base"
 
+# The CLI's mask auto-inference is genome-blind (defaults to hg38's 6391-regulator
+# mask), so mm10 fails with a matmul dim mismatch. Pass the mask explicitly.
+case "$GENOME" in
+  mm10) MASK='$HOME/.cache/chrombert/data/config/mm10_5k_mask_matrix.tsv';;
+  hg38) MASK='$HOME/.cache/chrombert/data/config/hg38_6k_mask_matrix.tsv';;
+  *) echo "unsupported genome $GENOME" >&2; exit 2;;
+esac
+
 echo ">> make_dataset ($GENOME) + get_region_emb on mirror (GPU)"
 mirror_py "cd $REMOTE && \
   python -m chrombert.scripts.chrombert_make_dataset $base -g $GENOME -o dataset.tsv && \
-  python -m chrombert.scripts.chrombert_get_region_emb dataset.tsv -g $GENOME -o emb.hdf5"
+  python -m chrombert.scripts.chrombert_get_region_emb dataset.tsv -g $GENOME --mask $MASK -o emb.hdf5"
 
 echo ">> fetching results"
 mkdir -p "$(dirname "$OUT")"
