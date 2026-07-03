@@ -1,0 +1,20 @@
+# eCR_navigator conda environment.
+# Base scientific stack only — ML/deep-learning deps (e.g. torch, a genomic LM)
+# are intentionally NOT pinned yet: they depend on the modeling approach chosen
+# in CLAUDE.md (supervised time-course vs zero-shot genomic LM vs hybrid). Add
+# them once that decision is made.
+name: ecr_navigator
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn   # baseline supervised models before committing to deep learning
+  - pyfaidx        # genome FASTA slicing (mm10), shared convention with eCR_predictor
+  - pybigwig       # read ATAC/accessibility signal tracks
+  - pyyaml
+  - tqdm

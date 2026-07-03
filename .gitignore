@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+env/
+venv/
+
+# Data & models (kept out of git — large, external)
+*.bed
+*.bw
+*.bigwig
+*.bam
+*.fa
+*.fasta
+*.fai
+*.pkl
+*.h5
+*.pt
+*.ckpt
+data/
+models/
+checkpoints/
+
+# Config / credentials
+config.yaml
+
+# OS
+.DS_Store
+Thumbs.db
