@@ -21,7 +21,8 @@ SCP_BASE="scp -i $MIRROR_KEY -P $MIRROR_PORT"   # note: scp uses -P (uppercase)
 # protobuf/onnx). HF_ENDPOINT points at a reachable mirror for downloads.
 mirror_py () {
   $SSH "source /opt/conda/etc/profile.d/conda.sh; conda activate base; \
-        export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
+        export PATH=/root/bin:\$PATH \
+               PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
                HF_ENDPOINT=${HF_ENDPOINT:-https://hf-mirror.com}; \
         $*"
 }
