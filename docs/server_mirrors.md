@@ -1,5 +1,9 @@
 # Server model mirrors (HPCC) — access & layout
 
+> **Onboarding a new mirror?** Follow the reusable, model-agnostic playbook in
+> [`mirror_onboarding.md`](mirror_onboarding.md). This file holds the persistence
+> details and the per-model specifics (ChromBERT below; add a section per model).
+
 The genomic foundation models (ChromBERT, ChromFound, GET, EpiAgent, …) each run
 in their **own conda env / GPU runtime mirror** on the server. They cannot share
 one Python process, so they hand off **files** (see `embedding_artifact.md`), not

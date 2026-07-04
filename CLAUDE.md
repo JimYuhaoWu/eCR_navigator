@@ -42,6 +42,13 @@ planned. Therefore:
 
 They sit as siblings; dev on Windows/Mac, test on the Linux HPCC.
 
+## Server mirrors (one per model)
+
+Each genomic foundation model runs in its own GPU mirror. To connect to a new one
+(this will recur as more models are added), follow the reusable playbook in
+[`docs/mirror_onboarding.md`](docs/mirror_onboarding.md); per-model runtime details
+and the snapshot policy live in [`docs/server_mirrors.md`](docs/server_mirrors.md).
+
 ## Inputs on hand
 
 - **ATAC differential accessibility** — MEF vs mES MACS peaks, 5-col BED, **mm10**
