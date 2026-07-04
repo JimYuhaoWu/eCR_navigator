@@ -79,9 +79,31 @@ hg38 (5-region smoke test) 2026-07-03.
   align to 1 kb bins → log2 ATAC fold-change label → fine-tune → key-regulator
   attribution + up/unchanged region classification.
 
-### Persistence caveat
+### Persistence & snapshot policy
 
-The mirror does **not** save changes unless you snapshot it. The static
-`/root/bin/bedtools` and the downloaded `~/.cache/chrombert` data (incl. the 8.1 GB
-mm10 hdf5) live under paths that persist *only if snapshotted*. If a restart loses
-them, `scripts/setup_mirror.sh <genome>` re-provisions idempotently.
+The mirror does **not** save changes unless you snapshot it, and snapshotting is
+slow — so snapshot **rarely**. The trick is separating the *persistent environment
+layer* (snapshot once) from *per-run transients* (pushed from this repo at runtime,
+never snapshotted).
+
+**Bake into ONE snapshot (changes ~never):**
+- `~/.cache/chrombert` model/data (mm10 + hg38) — the expensive ~8 GB download
+- `/root/bin/bedtools` (static binary)
+- ChromBERT install (`/opt/conda`, `/root/ChromBERT`)
+- `/root/.ssh/authorized_keys` — **critical**: without it, key auth is lost on every
+  restart and must be re-added by hand (see Access above)
+- `/root/.bashrc` provisioning block (PATH + protobuf/HF env) — added idempotently
+  by `scripts/setup_mirror.sh`
+
+**Never needs snapshotting (transient):** the `scripts/` (live in this repo), and
+all per-run files (peak BEDs, datasets, hdf5, artifacts) — created in `/tmp`,
+fetched back to the local repo.
+
+**Re-snapshot only when the persistent layer grows:** adding a new species/model
+checkpoint, standing up a second model mirror (ChromFound/GET with its own env), or
+pinning a fine-tuned checkpoint to reuse. Routine embedding runs never require it.
+If you produce a fine-tuned checkpoint (~218 MB), prefer scp'ing it back to
+versioned storage over re-snapshotting.
+
+If a restart ever loses the environment layer, `scripts/setup_mirror.sh <genome>`
+re-provisions it idempotently (bashrc + bedtools + data download).
