@@ -24,6 +24,23 @@ export HF_ENDPOINT=https://hf-mirror.com
 # --- end ecr_navigator provisioning ---
 RC'
 
+echo ">> [1b/3] ensuring /root/.bashrc self-heals authorized_keys after boot reset"
+# This platform regenerates /root/.ssh/authorized_keys on every boot (data disk
+# persists, but the SSH key does not — snapshot or not). .bashrc persists, so we
+# re-add our key whenever any shell starts (e.g. when you open the web terminal
+# once after a restart). Silent + idempotent so it never breaks a shell.
+# NOTE: replace the key below with your own automation pubkey if different.
+$SSH 'grep -q "ecr_navigator key auto-add" ~/.bashrc 2>/dev/null || cat >> ~/.bashrc <<'\''RC'\''
+# --- ecr_navigator key auto-add (self-heals authorized_keys after platform reset on boot) ---
+__ek='\''ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDgrjZA4n+pYrj+RIQlCmDuOofS+wfaUU+sAHec6nI1b ecr_navigator@claude'\''
+if [ -n "$__ek" ]; then
+  mkdir -p ~/.ssh 2>/dev/null && chmod 700 ~/.ssh 2>/dev/null
+  grep -qF "$__ek" ~/.ssh/authorized_keys 2>/dev/null || { echo "$__ek" >> ~/.ssh/authorized_keys 2>/dev/null; chmod 600 ~/.ssh/authorized_keys 2>/dev/null; }
+fi
+unset __ek
+# --- end ecr_navigator key auto-add ---
+RC'
+
 echo ">> [2/3] ensuring bedtools (needed by chrombert_make_dataset)"
 if ! $SSH 'source /opt/conda/etc/profile.d/conda.sh; conda activate base; which bedtools' >/dev/null 2>&1; then
   mirror_py "conda install -y -c bioconda -c conda-forge bedtools"

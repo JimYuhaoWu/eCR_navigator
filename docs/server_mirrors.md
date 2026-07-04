@@ -18,18 +18,31 @@ Connect:
 ssh -i ~/.ssh/ecr_navigator -p <PORT> root@<IP>
 ```
 
-### Why key auth (important — restart behavior)
+### Restart behavior (important — the platform wipes the SSH key)
 
-- **The login password rotates on every mirror restart.** Do NOT rely on it.
-- **`/root` persists unchanged across restarts** — so `/root/.ssh/authorized_keys`
-  (and everything under `/root`: the models, checkpoints, envs) survives. Key auth
-  therefore keeps working through password rotations with no re-setup.
-- The **only** thing a restart may change that a new session needs from the user
-  is the **IP and/or port**. Ask for the current `IP:PORT`; the key handles the
-  rest. If key auth ever fails after a restart, re-append the public key once
-  (using that session's password) and it persists again.
+This is a university-built managed GPU platform. Empirically:
 
-Last known endpoint: `root@172.16.78.10 -p 35963` (verify — may have rotated).
+- **The data disk persists** across restarts: `~/.cache/chrombert` (models),
+  `/root/bin`, `/root/.bashrc`, etc. all survive — even the 8 GB mm10 hdf5.
+- **BUT `/root/.ssh/authorized_keys` is regenerated on every boot**, discarding
+  our key — snapshot or not. (Confirmed: saved a snapshot with the key present,
+  restarted, key was gone.) So key auth breaks after every restart unless
+  re-injected.
+- **Self-heal via `.bashrc`:** since `.bashrc` persists but `authorized_keys`
+  doesn't, `setup_mirror.sh` adds a silent, idempotent block to `/root/.bashrc`
+  that re-appends our key whenever a shell starts. `.bashrc` can't fix the *first*
+  SSH login (chicken-and-egg), but the platform's **web terminal** logs in without
+  SSH and sources `.bashrc` — so **after each restart, open the web terminal once**
+  and the key is restored; then automated SSH works for the rest of the session.
+  (If the platform runs a login shell at boot, this becomes fully automatic.)
+- Endpoint: **IP fixed** at `172.16.78.10`; **port may change** — override with
+  `MIRROR_PORT=<port>`. Last known `-p 35963`.
+- A `.bashrc` backup is kept at `~/.bashrc.ecr_bak` in case the block ever needs
+  reverting.
+
+Alternative durable fix: if the platform dashboard ever exposes an SSH-public-key
+or startup-script field, register the key there instead — that removes the
+open-the-terminal-once step.
 
 ## ChromBERT mirror (verified 2026-07-03)
 
