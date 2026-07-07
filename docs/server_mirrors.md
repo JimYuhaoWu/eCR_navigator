@@ -205,3 +205,26 @@ step too**; the demo zarr just ships it precomputed. Only the assembly differs.
   MEF vs mES embeddings differ, so it must be real accessibility, not the MACS score.
 - **Then:** region_motif = [motif | aTPM] → window 200 regions → GET encoder → per-region
   768-d embedding (proven by the probe) → shift MEF vs mES → `.npz` artifact → navigate.py.
+
+## ATACformer mirror (models zoo, env `atacformer`) — scoped 2026-07-07
+
+- **What it is:** databio's **Atacformer** (Nathan LeRoy, biorxiv 2025.11.03.685753),
+  shipped inside **`geniml` 0.8.4** (`geniml.atacformer`) + **`gtars`** tokenizer.
+  ModernBERT-style transformer over ATAC **region tokens** (not coords/motifs). A
+  "cell" = the *set* of accessible regions from a fixed universe of **890,704 regions**.
+  Base-hg38 checkpoint: hidden **192**, 6 layers, 8 heads (config default 384 is NOT
+  the shipped size).
+- **Weights:** `databio/atacformer-base-hg38` on HF (config.json, model.safetensors
+  350 MB, universe.bed.gz). Downloaded via HF mirror (`HF_ENDPOINT=https://hf-mirror.com`)
+  to persistent `/yutiancheng/yuhao/models/atacformer/`.
+- **Species: hg38-ONLY** (the universe is hg38). mm10 MEF/mES data must be
+  **liftOver mm10→hg38** before embedding (chains under `eCR/refs` on the instance).
+- **API (verified):** `tok = Tokenizer.from_bed(universe.bed.gz)`;
+  `tok.tokenize(bed_path)` → universe "chr:s-e" strings snapped to peaks;
+  `tok.encode(strings)` → token ids; `AtacformerModel.from_pretrained(dir)`;
+  `model(input_ids)` → `(B, seq, 192)` per-region embeddings.
+- **`scripts/atac_embed_regions.py`** (runs in `atacformer` env): one state's peaks →
+  per-region 192-d `.npz` (output coords = universe regions, so states align for
+  navigate.py). Validated on a 500-region hg38 smoke test → `(500, 192)`.
+- **Pipeline + interpretation:** see [`atacformer_pipeline.md`](atacformer_pipeline.md).
+  Full MEF/mES run pending the mm10→hg38 liftOver.
