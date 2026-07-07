@@ -59,8 +59,21 @@ GET's aTPM channel). A region open in both states gets a driver score from how i
 landscape; regions exclusive to one state are driver-by-presence (already captured by
 ATAC itself). Report ATACformer alongside GET, don't treat it as a drop-in equal.
 
-## Validated
+**The shift is context-driven, not a positional artifact (validated 2026-07-07).**
+The encoder is effectively permutation-invariant: moving a region within the token
+list while holding its neighbors fixed leaves its embedding *identical* (L2 0.000).
+The embedding changes only when the *set of other accessible regions* changes (same
+position, different neighbors → L2 16.6, cos 0.28). So a shared region's MEF-vs-mES
+shift reflects a genuine difference in the surrounding accessibility landscape, not
+how many peaks happen to precede it. Region identity also contributes but less than
+context (different region, same context → L2 7.6, cos 0.85).
+
+## Validated (2026-07-07)
 
 - Model loads from `databio/atacformer-base-hg38` (hidden **192**, 6 layers); 500-region
-  hg38 smoke test → `(500, 192)` artifact, distinct per-region, `.npz` contract
-  matches (2026-07-07). Full MEF/mES run pending liftOver.
+  hg38 smoke test → `(500, 192)` artifact, distinct per-region, `.npz` contract matches.
+- **Context-sensitivity** confirmed (position-invariant; neighbor-driven — see note above).
+- **End-to-end**: two overlapping states → `atac_embed_regions.py` ×2 → the real
+  `navigate.py` → contract TSV (2,500 shared regions, `driver_score ∈ [0,1]`, rank-norm).
+- Throughput ~ hundreds of regions/s on one A100 (GPU); a full ~100k-region state is minutes.
+- **Pending:** the actual MEF/mES driver track (needs the mm10→hg38 liftOver of the peaks).
