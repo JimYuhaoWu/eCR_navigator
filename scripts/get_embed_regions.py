@@ -98,6 +98,9 @@ def main() -> None:
     ap.add_argument("--atpm-tsv", required=True, help="chrom,start,end,atpm_<state>... table")
     ap.add_argument("--state", required=True, help="cell-state name; uses column atpm_<state>")
     ap.add_argument("--motif-names", required=True, help="canonical 282 motif names, one/line")
+    ap.add_argument("--motif-file", default=None,
+                    help="local tabix-indexed {assembly}.archetype_motifs.v1.0.bed.gz "
+                         "(strongly recommended for full runs; default = slow remote URL)")
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--get-repo", default="/yutiancheng/yuhao/get_model")
     ap.add_argument("--window", type=int, default=200)
@@ -113,7 +116,8 @@ def main() -> None:
 
     # 1. motif matrix (raw summed scores), then per-column max-normalize (motif_scaler=1)
     with tempfile.TemporaryDirectory() as wd:
-        _, motif = build_matrix(args.peaks, args.assembly, motif_names, wd)
+        _, motif = build_matrix(args.peaks, args.assembly, motif_names, wd,
+                                motif_file=args.motif_file)
     col_max = motif.max(axis=0)
     col_max[col_max == 0] = 1.0
     motif_norm = (motif / col_max).astype(np.float32)

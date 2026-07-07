@@ -14,7 +14,7 @@ objects. This doc records how to reach them and what persists.
 | Mirror | Endpoint | conda base | Models | Notes |
 |---|---|---|---|---|
 | ChromBERT | `172.16.78.10:35963` | `/opt/conda` | ChromBERT (hg38+mm10) | A100-80GB; verified working |
-| Models zoo | `172.16.78.10:35364` | `/yutiancheng/yuhao/miniconda3` | GET, EpiAgent, atacformer, alphagenome, scDIFF, SPG, BindCraft | key onboarded; `source /yutiancheng/yuhao/yuhao.sh` |
+| Models zoo | `172.16.78.10:38524` | `/yutiancheng/yuhao/miniconda3` | GET, EpiAgent, atacformer, alphagenome, scDIFF, SPG, BindCraft | key onboarded; `source /yutiancheng/yuhao/yuhao.sh` |
 
 Same IP, different ports and host keys per instance → `mirror_env.sh` disables
 host-key pinning. Port may change on restart (`MIRROR_PORT=<port>`).
@@ -50,7 +50,7 @@ This is a university-built managed GPU platform. Empirically:
   and the key is restored; then automated SSH works for the rest of the session.
   (If the platform runs a login shell at boot, this becomes fully automatic.)
 - Endpoint: **IP fixed** at `172.16.78.10`; **port may change** — override with
-  `MIRROR_PORT=<port>`. Last known `-p 35963`.
+  `MIRROR_PORT=<port>`. Last known `-p 38524`.
 - A `.bashrc` backup is kept at `~/.bashrc.ecr_bak` in case the block ever needs
   reverting.
 
@@ -135,7 +135,7 @@ versioned storage over re-snapshotting.
 If a restart ever loses the environment layer, `scripts/setup_mirror.sh <genome>`
 re-provisions it idempotently (bashrc + bedtools + data download).
 
-## GET mirror (models zoo, port 35364) — scoped 2026-07-04
+## GET mirror (models zoo, port 38524) — scoped 2026-07-04
 
 - Env `get` (conda at `/yutiancheng/yuhao/miniconda3`): py3.12, torch 2.6,
   **`get_model` v0.1.0** (GET-Foundation), scanpy/anndata/zarr. Repo at

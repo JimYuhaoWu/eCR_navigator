@@ -46,16 +46,23 @@ def run(cmd: str) -> None:
 
 
 def build_matrix(peaks_bed: str, assembly: str, motif_names: list[str],
-                 workdir: str) -> tuple[pd.DataFrame, np.ndarray]:
-    """Return (peaks df[chrom,start,end], matrix [n_peaks x 282]) in canonical order."""
+                 workdir: str, motif_file: str | None = None) -> tuple[pd.DataFrame, np.ndarray]:
+    """Return (peaks df[chrom,start,end], matrix [n_peaks x 282]) in canonical order.
+
+    motif_file: local path to a tabix-indexed {assembly}.archetype_motifs.v1.0.bed.gz
+    (its .tbi must sit alongside). If None, the remote URL is queried — fine for a
+    few peaks, far too slow for many scattered peaks (per-peak HTTP range requests),
+    so download the file once for full runs.
+    """
     peaks = pd.read_csv(peaks_bed, sep="\t", header=None,
                         usecols=[0, 1, 2], names=["chrom", "start", "end"])
     peaks3 = os.path.join(workdir, "peaks3.bed")
     peaks.to_csv(peaks3, sep="\t", header=False, index=False)
 
-    # 1. remote tabix: motif hits overlapping the peaks
+    # 1. tabix: motif hits overlapping the peaks (local file if given, else remote URL)
+    source = motif_file if motif_file else motif_url(assembly)
     hits = os.path.join(workdir, "hits.bed")
-    run(f'tabix "{motif_url(assembly)}" -R "{peaks3}" > "{hits}"')
+    run(f'tabix "{source}" -R "{peaks3}" > "{hits}"')
 
     # 2. intersect peaks x hits, keep (peak chrom/start/end, archetype col4, score col5),
     #    sum score per (peak, archetype)
@@ -86,12 +93,16 @@ def main() -> None:
     ap.add_argument("--assembly", required=True, choices=["hg38", "mm10"])
     ap.add_argument("--motif-names", required=True,
                     help="text file, one of the 282 canonical motif names per line")
+    ap.add_argument("--motif-file", default=None,
+                    help="local tabix-indexed {assembly}.archetype_motifs.v1.0.bed.gz "
+                         "(recommended for full runs; default = slow remote URL)")
     ap.add_argument("--out", required=True, help="output .npz (chrom,start,end,motif[NxM],motif_names)")
     args = ap.parse_args()
 
     motif_names = [l.strip() for l in open(args.motif_names) if l.strip()]
     with tempfile.TemporaryDirectory() as wd:
-        peaks, mat = build_matrix(args.peaks, args.assembly, motif_names, wd)
+        peaks, mat = build_matrix(args.peaks, args.assembly, motif_names, wd,
+                                  motif_file=args.motif_file)
     np.savez_compressed(
         args.out, chrom=peaks["chrom"].to_numpy(),
         start=peaks["start"].to_numpy(), end=peaks["end"].to_numpy(),
