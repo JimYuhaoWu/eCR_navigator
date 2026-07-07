@@ -183,3 +183,25 @@ re-provisions it idempotently (bashrc + bedtools + data download).
 - **Next:** run inference on the present `pbmc10k_multiome.zarr` demo to see real
   outputs, then pick the readout. AWS CLI is set up locally (`python -m awscli`,
   creds in `~/.aws`) for any further GET data (motif clustering / interpretation).
+
+### GET RegionMotif prep (mm10 + hg38) — 2026-07-07
+
+GET's input is `region_motif = [282 motif-archetype scores | 1 ATAC (aTPM)] = 283`.
+The 282-motif matrix must be built for ANY new peak set — **human needs this exact
+step too**; the demo zarr just ships it precomputed. Only the assembly differs.
+
+- **Motif source:** Vierstra archetype motifs, pre-scanned genome-wide, tabix-indexed:
+  `https://resources.altius.org/~jvierstra/projects/motif-clustering/releases/v1.0/{assembly}.archetype_motifs.v1.0.bed.gz`
+  (hg38 12 GB, **mm10 9.5 GB** — both exist). We query REMOTELY (`tabix -R`), fetching
+  only blocks over the peaks → no full download.
+- **`scripts/get_regionmotif_matrix.py`** (runs in the `get` env; needs tabix+bedtools):
+  peaks + `--assembly {hg38,mm10}` + canonical 282 `motif_names.txt` → per-peak
+  282-motif `.npz`. Validated on tiny mm10 peaks (2×282, sensible top motifs).
+  Canonical motif order = the pbmc zarr's `motif_names` (alphabetical, AHR…ZSCAN4).
+- **Remaining input gap — aTPM (the 283rd channel):** normalized ATAC per peak per
+  cell state (MEF, mES). `add_atpm` reads a BED with `Name` + `aTPM` columns. We have
+  MACS peaks (score = -log10 q, NOT aTPM) → need ATAC counts/CPM per peak from the
+  fragment/signal data to compute true aTPM. This is the cell-state channel that makes
+  MEF vs mES embeddings differ, so it must be real accessibility, not the MACS score.
+- **Then:** region_motif = [motif | aTPM] → window 200 regions → GET encoder → per-region
+  768-d embedding (proven by the probe) → shift MEF vs mES → `.npz` artifact → navigate.py.
