@@ -21,8 +21,13 @@ driver result for human and a **reference** that corroborates the native-mm10 tr
 | | Human (hg38) | Mouse (mm10) |
 |---|---|---|
 | **Bridge** | none — native | liftOver mm10→hg38 (and back) |
-| **Coverage** | full | ~42% of the union survives liftOver (coordinate-based → no universe loss on top) |
-| **Role** | **primary** driver result | **reference / corroboration** |
+| **Coverage** | full | ~42% of the union embeds in hg38; the mm10 back-lift round-trips at **99.8%** (87,615 regions) — near-full, because it's our own peaks, not a foreign universe |
+| **Role** | **primary** driver result | **reference** (human-trained model on lifted mouse) — but usably dense, unlike ATACformer |
+
+Note the contrast with ATACformer: ChromFound is coordinate-based, so lifting our own
+peaks out to hg38 and the scores back to mm10 loses almost nothing on the return trip
+(99.8% vs ATACformer's ~12%). The "reference for mouse" call is about the model being
+human-*trained*, not about sparse coverage.
 
 ## Steps
 
@@ -68,7 +73,8 @@ python navigate.py --emb-a chromfound.MEF.hg38.npz --emb-b chromfound.mES.hg38.n
 ```
 
 Stable contract `chrom,start,end,driver_score∈[0,1]`. To carry to mm10 for the mouse
-pipeline, liftOver the TSV hg38→mm10 (reference-grade; conserved subset).
+pipeline, liftOver the TSV hg38→mm10 (round-trips at ~99.8% since these are the
+original peaks).
 
 ## Validated (2026-07-07)
 
@@ -77,4 +83,8 @@ pipeline, liftOver the TSV hg38→mm10 (reference-grade; conserved subset).
 - Per-OCR embeddings `(87,779, 128)`, distinct per region; MEF-vs-mES shift nonzero
   across all regions (median 0.556).
 - `navigate.py` → `chromfound_driver_scores.hg38.tsv` (87,779 regions, `[0,1]`).
-- Artifacts staged at `/yutiancheng/yuhao/eCR/artifacts/`.
+- **mm10 back-lift**: 87,779 → **87,615 (99.8%)** → `chromfound_driver_scores.mm10.tsv`.
+- **Sanity vs accessibility change**: driver_score strongly tracks |ΔaTPM| —
+  corr **0.87**, mean score **0.92** for |ΔaTPM|>0.3 vs **0.42** for stable regions.
+  (Tighter than GET, whose score is deliberately decoupled from raw ΔaTPM.)
+- Artifacts staged at `/yutiancheng/yuhao/eCR/artifacts/` (hg38 + mm10 TSVs, both npz).
