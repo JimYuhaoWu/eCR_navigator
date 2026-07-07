@@ -10,6 +10,20 @@ GET/ChromBERT.
 Runs on the `atacformer` conda env of the model-zoo mirror. Model + universe live at
 `/yutiancheng/yuhao/models/atacformer/` (see [`server_mirrors.md`](server_mirrors.md)).
 
+## Role at a glance — reference for mouse, primary for human
+
+The model is native hg38, so its standing in eCR_navigator depends on the species:
+
+| | Human (hg38) | Mouse (mm10) |
+|---|---|---|
+| **Bridge** | none — native | liftOver mm10→hg38 (and back) |
+| **Coverage** | full | ~1% survives the double liftOver (conserved core) |
+| **Role** | **primary** driver result | **reference / corroboration** on conserved loci |
+| **Primary track instead** | — | GET / ChromBERT (native mm10) |
+
+So: treat ATACformer's output as a **primary result when working in human**, and as a
+**reference** that backs up the native-mm10 tracks (GET/ChromBERT) when working in mouse.
+
 ## Species — hg38 only, mm10 must be lifted
 
 The pretrained model `databio/atacformer-base-hg38` and its 890k-region universe are
