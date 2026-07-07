@@ -27,13 +27,13 @@ Usage (on the mirror, get env):
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 
 import numpy as np
 import torch
 
 from get_regionmotif_matrix import build_matrix   # same scripts/ dir
+from embedding_artifact import write_embedding_artifact
 
 
 def load_get_model(checkpoint: str, get_repo: str):
@@ -95,7 +95,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--peaks", default=None, help="region BED (the state-shared union); "
                     "required unless --motif-npz supplies the regions")
-    ap.add_argument("--assembly", required=True, choices=["hg38", "mm10"])
+    ap.add_argument("--assembly", required=True,
+                    help="genome assembly label (e.g. hg38, mm10); recorded in meta")
     ap.add_argument("--atpm-tsv", required=True, help="chrom,start,end,atpm_<state>... table")
     ap.add_argument("--state", required=True, help="cell-state name; uses column atpm_<state>")
     ap.add_argument("--motif-names", required=True, help="canonical 282 motif names, one/line")
@@ -154,15 +155,11 @@ def main() -> None:
     model = load_get_model(args.checkpoint, args.get_repo)
     emb = embed(model, region_motif, args.window, args.device)
 
-    meta = json.dumps({"model": "get", "cell_state": args.state,
-                       "assembly": args.assembly, "dim": int(emb.shape[1]),
-                       "source": "get_embed_regions.py"})
-    np.savez_compressed(args.out, chrom=peaks["chrom"].astype(str).to_numpy(),
-                        start=peaks["start"].astype(np.int64).to_numpy(),
-                        end=peaks["end"].astype(np.int64).to_numpy(),
-                        embedding=emb, meta=np.array(meta))
-    print(f"wrote {args.out}: {emb.shape[0]} regions x {emb.shape[1]} dims "
-          f"({args.state}, {args.assembly})")
+    n, d = write_embedding_artifact(
+        args.out, peaks["chrom"], peaks["start"], peaks["end"], emb,
+        model="get", cell_state=args.state, assembly=args.assembly,
+        source="get_embed_regions.py")
+    print(f"wrote {args.out}: {n} regions x {d} dims ({args.state}, {args.assembly})")
 
 
 if __name__ == "__main__":

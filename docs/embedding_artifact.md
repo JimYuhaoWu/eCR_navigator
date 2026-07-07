@@ -20,7 +20,7 @@ One artifact per **(model, cell_state)**. numpy-only so it loads in both the
 mirror env and the light navigator env — no pyarrow/parquet dependency.
 
 Filename convention: `{model}.{cell_state}.{assembly}.npz`
-e.g. `chrombert.MEF.mm10.npz`, `chrombert.mES.mm10.npz`.
+e.g. `chrombert.MEF.mm10.npz`, `get.MEF.mm10.npz`, `chromfound.MEF.hg38.npz`.
 
 Arrays inside:
 
@@ -32,14 +32,24 @@ Arrays inside:
 | `embedding` | `float32` | `(N, D)` | per-region model embedding |
 | `meta` | `<U…` (0-d) | `()` | JSON: `{model, cell_state, assembly, dim, source}` |
 
+**The dtypes are load-critical.** The navigator reads with `allow_pickle=False`
+(fast, and it refuses to unpickle arbitrary objects), so `chrom` must be a unicode
+string array and `meta` a 0-d unicode-string array — an object array (e.g. a bare
+`pandas.Series.to_numpy()`) fails to load. **Do not hand-roll the `np.savez`.** Every
+model writes through the one shared helper `scripts/embedding_artifact.py`
+(`write_embedding_artifact`), which coerces these dtypes so no model can drift; add a
+new model by calling it, not by copying another model's save block.
+
 ## Alignment rule
 
 Regions are aligned across cell states by the **`(chrom, start, end)` key**, not
 by row order. A driver score is computed only for regions present in *both* cell
-states' artifacts; the region set should be (at least) eCR_predictor's mm10 peak
-union so every off-target region gets a weight.
+states' artifacts; the region set should be (at least) the peak union of the run's
+assembly so every off-target region gets a weight.
 
 ## Assembly
 
-Must be **mm10**, matching the ATAC peaks and the genome FASTA eCR_predictor
-uses. Recorded in `meta` and enforced on load.
+Per-run, single-assembly — whatever the peaks/genome for *that* run use (e.g. **mm10**
+for the MEF→mES mouse work, **hg38** for human, or a lifted assembly). Recorded in
+`meta`; the loader enforces that the *two artifacts being diffed share an assembly*
+(it does not pin a specific one). See CLAUDE.md "Multi-species requirement".

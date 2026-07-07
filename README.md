@@ -29,11 +29,19 @@ targeting with an engineered chromatin regulator.
 ## Output contract (what eCR_predictor consumes)
 
 A TSV of scored regions — `chrom  start  end  driver_score` (driver_score in
-[0, 1], higher = more driver-like) — on the **same genome assembly as the peaks
-(mm10)**. See [docs/region_weight_contract.md](docs/region_weight_contract.md).
-This contract is the stable interface; the model behind it can evolve freely.
+[0, 1], higher = more driver-like) — on the **same genome assembly as the peaks**
+for that run (mm10 for the mouse work, hg38 for human). See
+[docs/region_weight_contract.md](docs/region_weight_contract.md). This contract is
+the stable interface; the model behind it can evolve freely.
 
 ## Status
 
-**Scaffold only (2026-07).** The core modeling approach is the first open design
-decision — see [CLAUDE.md](CLAUDE.md).
+**Zero-shot driver scoring working across multiple foundation models (2026-07).**
+Each model runs in its own GPU mirror and emits a per-region embedding artifact
+([docs/embedding_artifact.md](docs/embedding_artifact.md)); `navigate.py` diffs two
+cell states into the driver-score contract. Integrated so far: ChromBERT, GET,
+ATACformer, ChromFound — all behind the *same* artifact contract, so adding the next
+model is a new embed script, not a new pipeline. Species: hg38 + mm10 are
+first-class; hg38-only models are bridged by liftOver (see the per-model docs and
+CLAUDE.md). A supervised/fine-tuned head is the planned next axis once time-course
+data is in hand.

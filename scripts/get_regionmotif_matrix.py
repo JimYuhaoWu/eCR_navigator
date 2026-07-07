@@ -90,7 +90,11 @@ def build_matrix(peaks_bed: str, assembly: str, motif_names: list[str],
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--peaks", required=True, help="peak BED (>=3 col), assembly-matched")
-    ap.add_argument("--assembly", required=True, choices=["hg38", "mm10"])
+    ap.add_argument("--assembly", required=True,
+                    help="assembly whose Vierstra archetype file to query "
+                         "(any assembly published under the motif-clustering release; "
+                         "hg38/mm10 are what we use). Only used to pick the remote URL "
+                         "when --motif-file is not given.")
     ap.add_argument("--motif-names", required=True,
                     help="text file, one of the 282 canonical motif names per line")
     ap.add_argument("--motif-file", default=None,

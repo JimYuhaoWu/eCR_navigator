@@ -57,7 +57,7 @@ python atac_embed_regions.py --peaks mES.hg38.bed --state mES --assembly hg38 \
 ## Diff into driver scores
 
 ```bash
-python navigate.py --a atac.MEF.hg38.npz --b atac.mES.hg38.npz \
+python navigate.py --emb-a atac.MEF.hg38.npz --emb-b atac.mES.hg38.npz \
     --out atac_driver_scores.hg38.tsv
 ```
 

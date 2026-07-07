@@ -13,10 +13,11 @@ Runs anywhere with numpy + h5py (no torch) — locally or on the mirror.
 from __future__ import annotations
 
 import argparse
-import json
 
 import h5py
 import numpy as np
+
+from embedding_artifact import write_embedding_artifact
 
 
 def load_tsv_index(path: str) -> dict[int, tuple[str, int, int]]:
@@ -52,20 +53,12 @@ def main() -> None:
         c, s, e = tsv[int(bri)]
         chrom.append(c); start.append(s); end.append(e)
 
-    meta = json.dumps({
-        "model": "chrombert",
-        "cell_state": args.cell_state,
-        "assembly": args.genome,
-        "dim": int(emb.shape[1]),
-        "source": "chrombert_get_region_emb -> hdf5_to_artifact.py",
-    })
-    np.savez_compressed(
-        args.out,
-        chrom=np.array(chrom), start=np.array(start, dtype=np.int64),
-        end=np.array(end, dtype=np.int64), embedding=emb, meta=np.array(meta),
-    )
+    n, d = write_embedding_artifact(
+        args.out, chrom, start, end, emb,
+        model="chrombert", cell_state=args.cell_state, assembly=args.genome,
+        source="chrombert_get_region_emb -> hdf5_to_artifact.py")
     print("wrote %s : %d regions x %d dims (%s, %s)"
-          % (args.out, emb.shape[0], emb.shape[1], args.cell_state, args.genome))
+          % (args.out, n, d, args.cell_state, args.genome))
 
 
 if __name__ == "__main__":

@@ -43,8 +43,9 @@ def embedding_shift(a: EmbeddingArtifact, b: EmbeddingArtifact):
     Align two artifacts by region key and return (chrom, start, end, shift) for
     the regions present in both. `shift` = L2 norm of (emb_b - emb_a) per region.
 
-    Drivers reorganize their regulatory-network embedding most between states;
-    passengers move little. Assemblies must match.
+    Drivers reorganize their embedding most between states; passengers move little
+    (model-agnostic — whatever foundation model produced the artifacts). Assemblies
+    must match.
     """
     if a.meta.get("assembly") != b.meta.get("assembly"):
         raise ValueError("assembly mismatch: %s vs %s"

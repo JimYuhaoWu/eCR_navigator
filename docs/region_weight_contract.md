@@ -10,7 +10,7 @@ A tab-separated file, one row per scored region:
 
 | Column | Type | Meaning |
 |---|---|---|
-| `chrom` | str | Chromosome, matching the genome assembly of the peaks (**mm10**) |
+| `chrom` | str | Chromosome, matching the genome assembly of the peaks (mm10 for the mouse work, hg38 for human) |
 | `start` | int | 0-based start (BED convention) |
 | `end` | int | Exclusive end |
 | `driver_score` | float | Driver importance in **[0, 1]** — higher = more driver-like |
@@ -24,7 +24,8 @@ chr1	3119611	3119740	0.12
 ## Contract rules
 
 - **Assembly must match** the ATAC peaks and the genome FASTA used by
-  eCR_predictor (mm10). Mismatched coordinates silently corrupt the weighting.
+  eCR_predictor for that run (currently mm10 for the mouse pipeline; hg38 for human).
+  Mismatched coordinates silently corrupt the weighting.
 - `driver_score` is normalized to `[0, 1]`. eCR_predictor multiplies each
   off-target site's strength by the score of the region it falls in.
 - Regions should cover (at least) the union of accessibility peaks eCR_predictor

@@ -25,12 +25,13 @@ Usage (chromfound env, on the mirror):
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 
 import numpy as np
 import torch
+
+from embedding_artifact import write_embedding_artifact
 
 
 def main() -> None:
@@ -92,13 +93,12 @@ def main() -> None:
             if e.shape[0] != n_ocr and e.shape[1] == n_ocr:         # orient to (n_OCR, dim)
                 e = e.T
             emb = e[:n_ocr]                                          # (n_OCR, 128)
-            meta = json.dumps({"model": "chromfound", "cell_state": st,
-                               "assembly": args.assembly, "dim": int(emb.shape[1]),
-                               "source": "chromfound_embed_regions.py"})
             outp = os.path.join(args.out_dir, f"chromfound.{st}.{args.assembly}.npz")
-            np.savez_compressed(outp, chrom=chrom, start=start, end=end,
-                                embedding=emb, meta=np.array(meta))
-            print(f"wrote {outp}: {emb.shape[0]} OCRs x {emb.shape[1]} dims ({st})")
+            n, d = write_embedding_artifact(
+                outp, chrom, start, end, emb,
+                model="chromfound", cell_state=st, assembly=args.assembly,
+                source="chromfound_embed_regions.py")
+            print(f"wrote {outp}: {n} OCRs x {d} dims ({st})")
 
 
 if __name__ == "__main__":

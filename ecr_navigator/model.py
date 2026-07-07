@@ -3,8 +3,10 @@ Zero-shot driver scorer: turn per-region embedding shift into a driver_score in
 [0, 1] for the region-weight contract.
 
 Two-point (MEF vs mES) regime — no time-course, so no supervised head. The score
-is a normalization of the ChromBERT TRN-embedding shift. When time-course data
-arrives, a supervised/hybrid head slots in here behind the same output contract.
+is a normalization of the model's per-region embedding shift between the two cell
+states (model-agnostic: ChromBERT, GET, ATACformer, ChromFound, … all feed the same
+shift through here). When time-course data arrives, a supervised/hybrid head slots
+in here behind the same output contract.
 """
 from __future__ import annotations
 

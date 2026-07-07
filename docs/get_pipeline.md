@@ -69,7 +69,7 @@ GPU instance, and there run `get_embed_regions.py --motif-npz MEF_mES.motif.mm10
 ### 4. Diff the two states into driver scores
 
 ```bash
-python navigate.py --a get.MEF.mm10.npz --b get.mES.mm10.npz \
+python navigate.py --emb-a get.MEF.mm10.npz --emb-b get.mES.mm10.npz \
     --out get_driver_scores.mm10.tsv
 ```
 

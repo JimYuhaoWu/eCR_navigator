@@ -78,7 +78,8 @@ Pick based on what time-course data is actually in hand. Everything downstream
 ## Output contract (STABLE — eCR_predictor depends on it)
 
 TSV: `chrom, start, end, driver_score` with `driver_score ∈ [0, 1]`, same assembly
-as the peaks (**mm10**). See `docs/region_weight_contract.md` and
+as the peaks for that run (mm10 for the mouse work, hg38 for human). See
+`docs/region_weight_contract.md` and
 `ecr_navigator/weights.py`. eCR_predictor's off-target Tier-2 maps its union
 regions onto this table via a `weight_fn(region)`.
 
@@ -92,18 +93,31 @@ ecr_navigator/
   io.py         # load ATAC / RNA / peaks                                     (todo)
 navigate.py     # entrypoint: two artifacts -> driver-weight contract TSV     ✔
 scripts/        # server-mirror workflow — kept in-repo (mirror isn't persistent)
-  mirror_env.sh                  # SSH/conda/env settings (IP fixed, PORT via env)
-  setup_mirror.sh <genome>       # idempotent: bedtools + prepare_env download
-  run_chrombert_region_emb.sh    # peaks+genome+state -> ChromBERT .npz artifact
-  hdf5_to_artifact.py            # get_region_emb hdf5 -> embedding artifact
+  embedding_artifact.py          # SHARED .npz writer — every model emits through this
+  mirror_env.sh / setup_mirror.sh   # SSH/conda/env + idempotent mirror setup
+  <model>_embed_regions.py       # ONE per model: state peaks -> per-region .npz
+                                 #   (get_, atac_, chromfound_; ChromBERT via
+                                 #    run_chrombert_region_emb.sh + hdf5_to_artifact.py)
+  get_regionmotif_matrix.py      # GET-specific input prep (motif matrix)
+  chromfound_build_input.py      # ChromFound-specific input prep (h5ad)
+  compute_atpm.sh                # aTPM (accessibility channel) from bigWigs
 docs/
   region_weight_contract.md      # STABLE output contract (navigator -> predictor)
   embedding_artifact.md          # internal .npz contract (mirror -> navigator)
-  server_mirrors.md              # mirror access + ChromBERT workflow
+  server_mirrors.md              # mirror access + per-model runtime notes
+  {get,atacformer,chromfound}_pipeline.md   # per-model run + species notes
+  mirror_onboarding.md           # reusable playbook for the next model
 ```
 
-**Current backbone (2026-07-03):** ChromBERT region embeddings. The `scripts/`
-chain produces one `.npz` per cell state; `navigate.py` diffs them.
+**Pattern (model-agnostic).** Each foundation model runs in its own GPU mirror and
+emits one `.npz` embedding artifact per cell state through the *shared*
+`scripts/embedding_artifact.py` writer; `navigate.py` diffs two states into the
+driver-score contract. Adding a model = a new `<model>_embed_regions.py` (+ any input
+prep) that calls the shared writer — **not** a new pipeline, and never a copied save
+block. Integrated so far: ChromBERT, GET, ATACformer, ChromFound (see the per-model
+`docs/*_pipeline.md`). Native-mm10 (ChromBERT, GET) are primary for mouse; hg38-only
+scATAC models (ATACformer, ChromFound) are primary for human and a liftOver-bridged
+reference for mouse.
 
 **Driver-score readout — keep BOTH scores (decided 2026-07-03):**
 - **Zero-shot** — embedding-shift between cell states. Always available; needs no

@@ -25,10 +25,11 @@ Usage (on the atacformer mirror, atacformer env):
 from __future__ import annotations
 
 import argparse
-import json
 
 import numpy as np
 import torch
+
+from embedding_artifact import write_embedding_artifact
 
 
 def load(model_dir: str):
@@ -100,18 +101,16 @@ def main() -> None:
                          f"(is the BED hg38? mm10 must be lifted first)")
     emb = embed(model, ids, args.window, args.device)
 
-    coords = np.array([parse_region(r) for r in regs], dtype=object)
-    chrom = coords[:, 0].astype(str)
-    start = coords[:, 1].astype(np.int64)
-    end = coords[:, 2].astype(np.int64)
+    coords = [parse_region(r) for r in regs]
+    chrom = [c for c, _, _ in coords]
+    start = [s for _, s, _ in coords]
+    end = [e for _, _, e in coords]
 
-    meta = json.dumps({"model": "atacformer", "cell_state": args.state,
-                       "assembly": args.assembly, "dim": int(emb.shape[1]),
-                       "source": "atac_embed_regions.py"})
-    np.savez_compressed(args.out, chrom=chrom, start=start, end=end,
-                        embedding=emb, meta=np.array(meta))
-    print(f"wrote {args.out}: {emb.shape[0]} regions x {emb.shape[1]} dims "
-          f"({args.state}, {args.assembly})")
+    n, d = write_embedding_artifact(
+        args.out, chrom, start, end, emb,
+        model="atacformer", cell_state=args.state, assembly=args.assembly,
+        source="atac_embed_regions.py")
+    print(f"wrote {args.out}: {n} regions x {d} dims ({args.state}, {args.assembly})")
 
 
 if __name__ == "__main__":
