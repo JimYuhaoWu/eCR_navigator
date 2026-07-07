@@ -9,6 +9,16 @@ in their **own conda env / GPU runtime mirror** on the server. They cannot share
 one Python process, so they hand off **files** (see `embedding_artifact.md`), not
 objects. This doc records how to reach them and what persists.
 
+## Mirrors index
+
+| Mirror | Endpoint | conda base | Models | Notes |
+|---|---|---|---|---|
+| ChromBERT | `172.16.78.10:35963` | `/opt/conda` | ChromBERT (hg38+mm10) | A100-80GB; verified working |
+| Models zoo | `172.16.78.10:35364` | `/yutiancheng/yuhao/miniconda3` | GET, EpiAgent, atacformer, alphagenome, scDIFF, SPG, BindCraft | key onboarded; `source /yutiancheng/yuhao/yuhao.sh` |
+
+Same IP, different ports and host keys per instance → `mirror_env.sh` disables
+host-key pinning. Port may change on restart (`MIRROR_PORT=<port>`).
+
 ## Access — use the SSH key, not a password
 
 A dedicated keypair was installed for automated access:
@@ -124,3 +134,29 @@ versioned storage over re-snapshotting.
 
 If a restart ever loses the environment layer, `scripts/setup_mirror.sh <genome>`
 re-provisions it idempotently (bashrc + bedtools + data download).
+
+## GET mirror (models zoo, port 35364) — scoped 2026-07-04
+
+- Env `get` (conda at `/yutiancheng/yuhao/miniconda3`): py3.12, torch 2.6,
+  **`get_model` v0.1.0** (GET-Foundation), scanpy/anndata/zarr. Repo at
+  `/yutiancheng/yuhao/get_model` (tutorials for prepare/finetune/infer).
+- **Multi-species: mm10 IS supported** — `zarr_dataset.py` maps `mm10 -> M36`
+  (GENCODE); dataloader takes an `assembly` param (`hg38`/`mm10`). GET operates on
+  per-region **motif-score matrices (RegionMotif)** + ATAC, not raw coordinates, so
+  cross-species transfer is more natural than for sequence models.
+- Framework: **hydra config + Lightning**. Inference via `RegionMotifDataset` /
+  `InferenceRegionMotifDataset` + a config yaml; not a one-line CLI like ChromBERT.
+- Input is a **zarr** (regions x motif features + ATAC). Demo `pbmc10k_multiome.zarr`
+  (254 MB) is already on the instance; tutorial data also on Zenodo
+  (astrocyte / pbmc `.zarr.tar`).
+- **BLOCKER — pretrained weights:** checkpoints live ONLY in a **Requester-Pays S3
+  bucket** `s3://2023-get-xf2217/get_demo/` (prefixes
+  `pretrain_human_bingren_shendure_apr2023/fetal_adult/`,
+  `Interpretation_all_hg38_allembed_v4_natac/`). No public HTTPS/Zenodo/HF mirror
+  exists (checked). Needs AWS credentials (`aws s3 cp --request-payer requester …`)
+  or an author-provided copy (Xi Fu, xf2217@cumc.columbia.edu / GET-Foundation
+  GitHub). `get_model/utils.py` also accepts an `https://` checkpoint URL if a
+  mirror is found.
+- **Status:** integration scoped; blocked on obtaining pretrained weights. Once a
+  checkpoint lands: inspect per-region outputs (embedding vs TF-importance) → map to
+  the `.npz` embedding-artifact contract → same `navigate.py` path as ChromBERT.
