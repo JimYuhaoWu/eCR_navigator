@@ -160,3 +160,26 @@ re-provisions it idempotently (bashrc + bedtools + data download).
 - **Status:** integration scoped; blocked on obtaining pretrained weights. Once a
   checkpoint lands: inspect per-region outputs (embedding vs TF-importance) → map to
   the `.npz` embedding-artifact contract → same `navigate.py` path as ChromBERT.
+
+### GET checkpoint provisioned (2026-07-07)
+
+- **Pretrained foundation weights on the instance:**
+  `/yutiancheng/yuhao/models/get/pretrain_fetal_adult/checkpoint-799.pth`
+  (978 MB, `/yutiancheng` = persistent shared storage → no snapshot needed).
+- **Sourcing:** checkpoints are in the Requester-Pays S3 bucket
+  `s3://2023-get-xf2217/get_demo/checkpoints/regulatory_inference_checkpoint_fetal_adult/pretrain_fetal_adult/checkpoint-799.pth`.
+  S3 egress to the HPCC is throttled (~74 KiB/s) so we downloaded to the local PC
+  (`aws s3 cp --request-payer requester`, ~178 KiB/s) then sftp-resumed
+  (`put -a`) up to the instance. Verified: exact size 1025979643 bytes; loads via
+  torch (model/optimizer/epoch/args; 85.5M params).
+- **Architecture (from ckpt args):** `model=pretrain_geneformer_base`,
+  `input_dim=283` (282 motif clusters + 1 ATAC channel), `num_region_per_sample=200`,
+  `use_natac=True`. Layers for interpretation: `region_embed`, `encoder.blocks.0..11`,
+  `encoder.norm`.
+- **Per-region readouts available (for driver scoring):** (1) per-region embedding
+  (region_embed / encoder block) → shift MEF vs mES [parallels ChromBERT, same .npz
+  artifact path]; (2) predicted regulatory-activity shift; (3) in-silico region
+  perturbation importance (zero a region's input, measure output change — most causal).
+- **Next:** run inference on the present `pbmc10k_multiome.zarr` demo to see real
+  outputs, then pick the readout. AWS CLI is set up locally (`python -m awscli`,
+  creds in `~/.aws`) for any further GET data (motif clustering / interpretation).
