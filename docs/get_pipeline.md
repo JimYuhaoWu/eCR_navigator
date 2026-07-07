@@ -57,7 +57,14 @@ python get_embed_regions.py --peaks union_named.bed --assembly hg38 \
 remote URL, which is fine for a handful of peaks but far too slow for a full peak
 set (per-peak HTTP range requests). Download once from
 `resources.altius.org/~jvierstra/projects/motif-clustering/releases/v1.0/`
-(mm10 ~9.5 GB, hg38 ~12 GB) to persistent storage.
+(mm10 8.9 GB, hg38 11.3 GB) to persistent storage.
+
+**Split compute (GPU instances have time limits).** The motif build (heavy tabix over
+the 8.9/11.3 GB file) runs on the always-on data server (peilab2); the GPU instance
+only does the model forward. So in practice: on peilab2 run `get_regionmotif_matrix.py
+--motif-file … --out MEF_mES.motif.mm10.npz`, copy that small (~27 MB) matrix to the
+GPU instance, and there run `get_embed_regions.py --motif-npz MEF_mES.motif.mm10.npz …`
+(skips the tabix build — no big file needed on the GPU side).
 
 ### 4. Diff the two states into driver scores
 
@@ -74,3 +81,16 @@ eCR_predictor.
 
 - 2-peak mm10 smoke test: checkpoint loads `missing=0 unexpected=0`, produces a
   `(2, 768)` artifact with distinct per-region vectors (2026-07-07).
+- **Full native-mm10 MEF→mES run done (2026-07-07):** motif matrix over the
+  **206,313** MEF∪mES peaks built on peilab2 (100% with ≥1 motif hit); both states
+  embedded (206,313 × 768, checkpoint `missing=0`); `navigate.py` → full-coverage
+  driver track `get_driver_scores.mm10.tsv` (206,313 regions, `driver_score ∈ [0,1]`).
+  Staged at `/yutiancheng/yuhao/eCR/artifacts/` on the instance.
+- Because the 282 motif columns are sequence-derived (identical for both states), the
+  MEF-vs-mES shift is driven by the aTPM channel — i.e. GET's **nonlinear,
+  regulatory-context** readout of the accessibility change, not a restatement of it.
+  Sanity check: high-|ΔaTPM| regions score higher on average (0.545 vs 0.491);
+  the raw linear corr is intentionally low (0.08) — the model adds context beyond ΔaTPM.
+- **Full-coverage native mm10** (no liftOver) → this is the **primary mouse driver
+  track** (contrast ATACformer, which is hg38-native and only a reference for mouse;
+  see [`atacformer_pipeline.md`](atacformer_pipeline.md)).

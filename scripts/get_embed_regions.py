@@ -93,7 +93,8 @@ def load_peaks(bed: str):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--peaks", required=True, help="region BED (the state-shared union)")
+    ap.add_argument("--peaks", default=None, help="region BED (the state-shared union); "
+                    "required unless --motif-npz supplies the regions")
     ap.add_argument("--assembly", required=True, choices=["hg38", "mm10"])
     ap.add_argument("--atpm-tsv", required=True, help="chrom,start,end,atpm_<state>... table")
     ap.add_argument("--state", required=True, help="cell-state name; uses column atpm_<state>")
@@ -101,6 +102,10 @@ def main() -> None:
     ap.add_argument("--motif-file", default=None,
                     help="local tabix-indexed {assembly}.archetype_motifs.v1.0.bed.gz "
                          "(strongly recommended for full runs; default = slow remote URL)")
+    ap.add_argument("--motif-npz", default=None,
+                    help="prebuilt get_regionmotif_matrix.py .npz (chrom,start,end,motif). "
+                         "Skips the tabix build entirely — use to keep the heavy motif work "
+                         "off the GPU instance; --peaks is then ignored (coords come from it).")
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--get-repo", default="/yutiancheng/yuhao/get_model")
     ap.add_argument("--window", type=int, default=200)
@@ -111,13 +116,23 @@ def main() -> None:
     import pandas as pd
     import tempfile
 
+    if not args.motif_npz and not args.peaks:
+        raise SystemExit("provide --peaks (to build the motif matrix) or --motif-npz (prebuilt)")
     motif_names = [l.strip() for l in open(args.motif_names) if l.strip()]
-    peaks = load_peaks(args.peaks)
 
-    # 1. motif matrix (raw summed scores), then per-column max-normalize (motif_scaler=1)
-    with tempfile.TemporaryDirectory() as wd:
-        _, motif = build_matrix(args.peaks, args.assembly, motif_names, wd,
-                                motif_file=args.motif_file)
+    # 1. motif matrix (raw summed scores): prebuilt npz, or build via tabix here
+    if args.motif_npz:
+        mz = np.load(args.motif_npz, allow_pickle=True)
+        peaks = pd.DataFrame({"chrom": mz["chrom"], "start": mz["start"], "end": mz["end"]})
+        motif = mz["motif"].astype(np.float32)
+        if list(mz["motif_names"]) != motif_names:
+            raise SystemExit("--motif-npz motif_names differ from --motif-names order")
+    else:
+        peaks = load_peaks(args.peaks)
+        with tempfile.TemporaryDirectory() as wd:
+            _, motif = build_matrix(args.peaks, args.assembly, motif_names, wd,
+                                    motif_file=args.motif_file)
+    # per-column max-normalize (motif_scaler=1)
     col_max = motif.max(axis=0)
     col_max[col_max == 0] = 1.0
     motif_norm = (motif / col_max).astype(np.float32)
@@ -142,8 +157,9 @@ def main() -> None:
     meta = json.dumps({"model": "get", "cell_state": args.state,
                        "assembly": args.assembly, "dim": int(emb.shape[1]),
                        "source": "get_embed_regions.py"})
-    np.savez_compressed(args.out, chrom=peaks["chrom"].to_numpy(),
-                        start=peaks["start"].to_numpy(), end=peaks["end"].to_numpy(),
+    np.savez_compressed(args.out, chrom=peaks["chrom"].astype(str).to_numpy(),
+                        start=peaks["start"].astype(np.int64).to_numpy(),
+                        end=peaks["end"].astype(np.int64).to_numpy(),
                         embedding=emb, meta=np.array(meta))
     print(f"wrote {args.out}: {emb.shape[0]} regions x {emb.shape[1]} dims "
           f"({args.state}, {args.assembly})")
