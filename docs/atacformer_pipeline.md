@@ -76,4 +76,28 @@ context (different region, same context → L2 7.6, cos 0.85).
 - **End-to-end**: two overlapping states → `atac_embed_regions.py` ×2 → the real
   `navigate.py` → contract TSV (2,500 shared regions, `driver_score ∈ [0,1]`, rank-norm).
 - Throughput ~ hundreds of regions/s on one A100 (GPU); a full ~100k-region state is minutes.
-- **Pending:** the actual MEF/mES driver track (needs the mm10→hg38 liftOver of the peaks).
+- **Real MEF/mES run done (2026-07-07):** MEF/mES e7 peaks lifted mm10→hg38, embedded,
+  diffed → **11,059 shared hg38 driver regions** (`artifacts/atacformer_driver_scores.hg38.tsv`
+  on the instance). Valid, and the right native deliverable for a *human* run.
+
+## Cross-species coverage is the real limit (mouse)
+
+Because Atacformer is hg38-only, the mouse track pays two liftOvers, and both are
+lossy for regulatory regions (non-conserved enhancers don't map):
+
+| step | MEF | mES |
+|------|-----|-----|
+| mm10 e7 peaks | 125,467 | 128,790 |
+| → hg38 (liftOver) | 50,813 (40%) | 32,017 (25%) |
+| shared hg38 driver regions | \multicolumn{2}{c}{11,059} | |
+| → mm10 (liftOver back) | \multicolumn{2}{c}{**1,334 (12%)**} | |
+
+Net: ~206k mm10 union peaks → **1,334 mm10 driver scores (<1%)**, and the survivors are
+the *conserved core* — the regions least likely to be state-specific drivers. So for the
+**mouse** MEF→mES task, ATACformer is a sparse, conservation-biased signal: use it only
+as corroboration on conserved loci, and rely on **GET / ChromBERT (native mm10)** for the
+primary mouse driver track. ATACformer comes into its own for the **planned human
+transdifferentiation**, where it is native hg38 and keeps full coverage (the 11k-region
+hg38 track above is the shape of that deliverable). Do not liftOver the mouse track back
+to mm10 for production use — report the hg38 track and treat the mm10 back-projection as a
+conserved-subset sanity check only.
