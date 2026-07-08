@@ -13,13 +13,27 @@ A tab-separated file, one row per scored region:
 | `chrom` | str | Chromosome, matching the genome assembly of the peaks (mm10 for the mouse work, hg38 for human) |
 | `start` | int | 0-based start (BED convention) |
 | `end` | int | Exclusive end |
-| `driver_score` | float | Driver importance in **[0, 1]** — higher = more driver-like |
+| `driver_score` | float | Driver **importance** in **[0, 1]** — higher = more driver-like |
+| `direction` | float | *(optional)* signed change in **[-1, 1]** — **+1 = should open, -1 = should close**; omitted entirely for models that resolve importance but not direction |
 
 ```
 chrom	start	end	driver_score
 chr1	3062469	3062724	0.81
 chr1	3119611	3119740	0.12
 ```
+
+Direction-capable models (e.g. EpiAgent's signed predicted-accessibility difference
+between cell states) add the fifth column; the two scores are **separate systems** —
+`driver_score` is magnitude/importance, `direction` is open-vs-close:
+
+```
+chrom	start	end	driver_score	direction
+chr1	3062469	3062724	0.81	0.74
+chr1	3119611	3119740	0.12	-0.55
+```
+
+The `direction` column is only present when at least one row has it, so the
+4-column form stays byte-compatible for consumers that read `driver_score` alone.
 
 ## Contract rules
 
