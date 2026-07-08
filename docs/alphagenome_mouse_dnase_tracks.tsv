@@ -1,0 +1,68 @@
+	name	strand	Assay title	ontology_curie	biosample_name	biosample_type	biosample_life_stage	data_source	endedness	genetically_modified	nonzero_mean
+0	CL:0000084 DNase-seq	.	DNase-seq	CL:0000084	T-cell	primary_cell	adult	encode	paired	False	0.4297094941139221
+1	CL:0000136 DNase-seq	.	DNase-seq	CL:0000136	adipocyte	in_vitro_differentiated_cells	unknown	encode	paired	False	0.3338734805583954
+2	CL:0000236 DNase-seq	.	DNase-seq	CL:0000236	B cell	primary_cell	adult	encode	paired	False	0.21763484179973602
+3	CL:0000492 DNase-seq	.	DNase-seq	CL:0000492	CD4-positive helper T cell	primary_cell	adult	encode	paired	False	0.7056819200515747
+4	CL:0000576 DNase-seq	.	DNase-seq	CL:0000576	monocyte	primary_cell	adult	encode	paired	False	0.4642353951931
+5	CL:0000623 DNase-seq	.	DNase-seq	CL:0000623	natural killer cell	primary_cell	adult	encode	paired	False	0.26085010170936584
+6	CL:0000792 DNase-seq	.	DNase-seq	CL:0000792	CD4-positive, CD25-positive, alpha-beta regulatory T cell	primary_cell	adult	encode	single	False	0.5080257654190063
+7	CL:0000895 DNase-seq	.	DNase-seq	CL:0000895	naive thymus-derived CD4-positive, alpha-beta T cell	primary_cell	adult	encode	single	False	0.30812910199165344
+8	CL:0000902 DNase-seq	.	DNase-seq	CL:0000902	induced T-regulatory cell	primary_cell	adult	encode	paired	False	0.5111070871353149
+9	CL:0002553 DNase-seq	.	DNase-seq	CL:0002553	fibroblast of lung	primary_cell	adult	encode	single	False	2.513117551803589
+10	CL:0011107 DNase-seq	.	DNase-seq	CL:0011107	Muller cell	primary_cell	postnatal	encode	paired	False	0.3314204514026642
+11	EFO:0001084 DNase-seq	.	DNase-seq	EFO:0001084	3T3-L1	cell_line	unknown	encode	paired	False	0.42155882716178894
+12	EFO:0001222 DNase-seq	.	DNase-seq	EFO:0001222	NIH3T3	cell_line	unknown	encode	paired	False	0.5078992247581482
+13	EFO:0002034 DNase-seq	.	DNase-seq	EFO:0002034	G1E	cell_line	postnatal	encode	single	False	2.0705857276916504
+14	EFO:0002076 DNase-seq	.	DNase-seq	EFO:0002076	R1	cell_line	embryonic	encode	paired	False	0.5156181454658508
+15	EFO:0003971 DNase-seq	.	DNase-seq	EFO:0003971	MEL	cell_line	unknown	encode	single	False	0.4856484830379486
+16	EFO:0005233 DNase-seq	.	DNase-seq	EFO:0005233	CH12.LX	cell_line	unknown	encode	single	False	1.6485543251037598
+17	EFO:0005285 DNase-seq	.	DNase-seq	EFO:0005285	A20	cell_line	unknown	encode	paired	False	0.602607786655426
+18	EFO:0005480 DNase-seq	.	DNase-seq	EFO:0005480	MEL-GATA-1-ER	cell_line	unknown	encode	single	False	2.6093313694000244
+19	EFO:0005481 DNase-seq	.	DNase-seq	EFO:0005481	Patski	cell_line	unknown	encode	single	False	2.567396640777588
+20	EFO:0005482 DNase-seq	.	DNase-seq	EFO:0005482	416B	cell_line	unknown	encode	single	False	0.7608211040496826
+21	EFO:0005914 DNase-seq	.	DNase-seq	EFO:0005914	ZHBTc4	cell_line	embryonic	encode	paired	False	0.6752030253410339
+22	EFO:0005915 DNase-seq	.	DNase-seq	EFO:0005915	WW6	cell_line	embryonic	encode	single	False	2.4886972904205322
+23	EFO:0005916 DNase-seq	.	DNase-seq	EFO:0005916	ES-CJ7	cell_line	embryonic	encode	paired	False	0.5751593708992004
+24	EFO:0007069 DNase-seq	.	DNase-seq	EFO:0007069	3134	cell_line	unknown	encode	single	False	1.270757794380188
+25	EFO:0007075 DNase-seq	.	DNase-seq	EFO:0007075	ES-E14	cell_line	embryonic	encode	single	False	2.0887601375579834
+26	EFO:0007601 DNase-seq	.	DNase-seq	EFO:0007601	MN1	cell_line	unknown	encode	paired	False	0.5485283732414246
+27	NTR:0000501 DNase-seq	.	DNase-seq	NTR:0000501	CD8-positive naive resting alpha-beta T cell	primary_cell	adult	encode	paired	False	0.39080116152763367
+28	NTR:0000646 DNase-seq	.	DNase-seq	NTR:0000646	left cerebral cortex	tissue	postnatal	encode	paired	False	1.4155155420303345
+29	NTR:0000647 DNase-seq	.	DNase-seq	NTR:0000647	right cerebral cortex	tissue	postnatal	encode	paired	False	0.47884970903396606
+30	NTR:0000719 DNase-seq	.	DNase-seq	NTR:0000719	c-Kit-negative CD71-positive TER-119-positive erythroid progenitor cells	primary_cell	embryonic	encode	single	False	2.9859304428100586
+31	NTR:0000720 DNase-seq	.	DNase-seq	NTR:0000720	c-Kit-positive CD71-negative TER-119-negative erythroid progenitor cells	primary_cell	embryonic	encode	single	False	4.3982720375061035
+32	NTR:0000721 DNase-seq	.	DNase-seq	NTR:0000721	c-Kit-positive CD71-positive TER-119-negative erythroid progenitor cells	primary_cell	embryonic	encode	single	False	4.5782976150512695
+33	NTR:0000722 DNase-seq	.	DNase-seq	NTR:0000722	c-Kit-positive CD71-positive TER-119-positive erythroid progenitor cells	primary_cell	embryonic	encode	single	False	2.427802085876465
+34	NTR:0000741 DNase-seq	.	DNase-seq	NTR:0000741	splenic B cell	primary_cell	adult	encode	single	False	0.50323885679245
+35	UBERON:0000059 DNase-seq	.	DNase-seq	UBERON:0000059	large intestine	tissue	adult	encode	single	False	1.8389191627502441
+36	UBERON:0000160 DNase-seq	.	DNase-seq	UBERON:0000160	intestine	tissue	embryonic	encode	paired	False	0.5361310839653015
+37	UBERON:0000473 DNase-seq	.	DNase-seq	UBERON:0000473	testis	tissue	postnatal	encode	paired	False	0.21937195956707
+38	UBERON:0000922 DNase-seq	.	DNase-seq	UBERON:0000922	embryo	tissue	embryonic	encode	paired	False	0.44665560126304626
+39	UBERON:0000926 DNase-seq	.	DNase-seq	UBERON:0000926	mesoderm	tissue	embryonic	encode	single	False	0.9649790525436401
+40	UBERON:0000945 DNase-seq	.	DNase-seq	UBERON:0000945	stomach	tissue	postnatal	encode	paired	False	0.4099912643432617
+41	UBERON:0000948 DNase-seq	.	DNase-seq	UBERON:0000948	heart	tissue	adult	encode	paired	False	0.19543588161468506
+42	UBERON:0000955 DNase-seq	.	DNase-seq	UBERON:0000955	brain	tissue	adult	encode	single	False	0.5228232741355896
+43	UBERON:0000966 DNase-seq	.	DNase-seq	UBERON:0000966	retina	tissue	postnatal	encode	paired	False	0.4834502339363098
+44	UBERON:0000992 DNase-seq	.	DNase-seq	UBERON:0000992	ovary	tissue	adult	encode	paired	False	0.681581437587738
+45	UBERON:0001040 DNase-seq	.	DNase-seq	UBERON:0001040	yolk sac	tissue	embryonic	encode	paired	False	0.8231430649757385
+46	UBERON:0001049 DNase-seq	.	DNase-seq	UBERON:0001049	neural tube	tissue	embryonic	encode	paired	False	0.5476569533348083
+47	UBERON:0001134 DNase-seq	.	DNase-seq	UBERON:0001134	skeletal muscle tissue	tissue	adult	encode	single	False	1.0815083980560303
+48	UBERON:0001255 DNase-seq	.	DNase-seq	UBERON:0001255	urinary bladder	tissue	adult	encode	paired	False	0.3648577928543091
+49	UBERON:0001388 DNase-seq	.	DNase-seq	UBERON:0001388	gastrocnemius	tissue	adult	encode	paired	False	0.7483967542648315
+50	UBERON:0001870 DNase-seq	.	DNase-seq	UBERON:0001870	frontal cortex	tissue	adult	encode	paired	False	0.5896672010421753
+51	UBERON:0001890 DNase-seq	.	DNase-seq	UBERON:0001890	forebrain	tissue	postnatal	encode	paired	False	0.9486343264579773
+52	UBERON:0001891 DNase-seq	.	DNase-seq	UBERON:0001891	midbrain	tissue	embryonic	encode	paired	False	0.5710846185684204
+53	UBERON:0001893 DNase-seq	.	DNase-seq	UBERON:0001893	telencephalon	tissue	adult	encode	single	False	1.3528001308441162
+54	UBERON:0002028 DNase-seq	.	DNase-seq	UBERON:0002028	hindbrain	tissue	embryonic	encode	paired	False	0.18086715042591095
+55	UBERON:0002037 DNase-seq	.	DNase-seq	UBERON:0002037	cerebellum	tissue	adult	encode	paired	False	0.1435227394104004
+56	UBERON:0002048 DNase-seq	.	DNase-seq	UBERON:0002048	lung	tissue	adult	encode	paired	False	0.9709494709968567
+57	UBERON:0002101 DNase-seq	.	DNase-seq	UBERON:0002101	limb	tissue	embryonic	encode	paired	False	0.2130107283592224
+58	UBERON:0002106 DNase-seq	.	DNase-seq	UBERON:0002106	spleen	tissue	adult	encode	paired	False	0.30319905281066895
+59	UBERON:0002107 DNase-seq	.	DNase-seq	UBERON:0002107	liver	tissue	embryonic	encode	paired	False	1.6738125085830688
+60	UBERON:0002113 DNase-seq	.	DNase-seq	UBERON:0002113	kidney	tissue	adult	encode	paired	False	0.15981295704841614
+61	UBERON:0002305 DNase-seq	.	DNase-seq	UBERON:0002305	layer of hippocampus	tissue	adult	encode	paired	False	1.1905014514923096
+62	UBERON:0002369 DNase-seq	.	DNase-seq	UBERON:0002369	adrenal gland	tissue	adult	encode	paired	False	0.5837206244468689
+63	UBERON:0002370 DNase-seq	.	DNase-seq	UBERON:0002370	thymus	tissue	adult	encode	paired	False	0.608004093170166
+64	UBERON:0003428 DNase-seq	.	DNase-seq	UBERON:0003428	gonadal fat pad	tissue	adult	encode	single	False	4.503448009490967
+65	UBERON:0005417 DNase-seq	.	DNase-seq	UBERON:0005417	forelimb bud	tissue	embryonic	encode	single	False	0.9968886971473694
+66	UBERON:0012314 DNase-seq	.	DNase-seq	UBERON:0012314	embryonic facial prominence	tissue	embryonic	encode	paired	False	0.22518065571784973

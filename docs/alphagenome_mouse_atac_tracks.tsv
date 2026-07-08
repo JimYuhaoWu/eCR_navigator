@@ -1,0 +1,19 @@
+	name	strand	Assay title	ontology_curie	biosample_name	biosample_type	biosample_life_stage	data_source	endedness	genetically_modified	nonzero_mean
+0	CL:0000553 ATAC-seq	.	ATAC-seq	CL:0000553	megakaryocyte progenitor cell	primary_cell	adult	encode	single	False	2.0059075355529785
+1	CL:0000557 ATAC-seq	.	ATAC-seq	CL:0000557	granulocyte monocyte progenitor cell	primary_cell	adult	encode	single	False	1.801482081413269
+2	CL:0000792 ATAC-seq	.	ATAC-seq	CL:0000792	CD4-positive, CD25-positive, alpha-beta regulatory T cell	primary_cell	adult	encode	paired	False	3.149848461151123
+3	EFO:0005481 ATAC-seq	.	ATAC-seq	EFO:0005481	Patski	cell_line	unknown	encode	paired	False	2.537327289581299
+4	NTR:0004148 ATAC-seq	.	ATAC-seq	NTR:0004148	activated CD4-positive, CD25-positive, alpha-beta regulatory T cell	primary_cell	adult	encode	paired	False	5.302504539489746
+5	NTR:0004218 ATAC-seq	.	ATAC-seq	NTR:0004218	inflammation-experienced regulatory T-cells	primary_cell	adult	encode	paired	False	3.569328546524048
+6	UBERON:0000160 ATAC-seq	.	ATAC-seq	UBERON:0000160	intestine	tissue	embryonic	encode	paired	False	0.506289541721344
+7	UBERON:0000945 ATAC-seq	.	ATAC-seq	UBERON:0000945	stomach	tissue	embryonic	encode	paired	False	0.7633903622627258
+8	UBERON:0000948 ATAC-seq	.	ATAC-seq	UBERON:0000948	heart	tissue	postnatal	encode	paired	False	1.6121877431869507
+9	UBERON:0001049 ATAC-seq	.	ATAC-seq	UBERON:0001049	neural tube	tissue	embryonic	encode	paired	False	0.6336625814437866
+10	UBERON:0001890 ATAC-seq	.	ATAC-seq	UBERON:0001890	forebrain	tissue	embryonic	encode	paired	False	0.9003087878227234
+11	UBERON:0001891 ATAC-seq	.	ATAC-seq	UBERON:0001891	midbrain	tissue	embryonic	encode	paired	False	0.3919551372528076
+12	UBERON:0002028 ATAC-seq	.	ATAC-seq	UBERON:0002028	hindbrain	tissue	embryonic	encode	paired	False	0.9220703840255737
+13	UBERON:0002048 ATAC-seq	.	ATAC-seq	UBERON:0002048	lung	tissue	embryonic	encode	paired	False	1.0387475490570068
+14	UBERON:0002101 ATAC-seq	.	ATAC-seq	UBERON:0002101	limb	tissue	embryonic	encode	paired	False	0.7174459099769592
+15	UBERON:0002107 ATAC-seq	.	ATAC-seq	UBERON:0002107	liver	tissue	embryonic	encode	paired	False	0.5489131808280945
+16	UBERON:0002113 ATAC-seq	.	ATAC-seq	UBERON:0002113	kidney	tissue	embryonic	encode	paired	False	1.0087496042251587
+17	UBERON:0012314 ATAC-seq	.	ATAC-seq	UBERON:0012314	embryonic facial prominence	tissue	embryonic	encode	paired	False	1.3096507787704468
