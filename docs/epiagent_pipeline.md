@@ -106,6 +106,26 @@ hg38→mm10 back-lift, the mouse driver set is small and conservation-biased —
 with it, don't rely on it. EpiAgent comes into its own for the **planned human
 transdifferentiation** (real scATAC, native hg38, full coverage).
 
+## Validated — real MEF→mES run (2026-07-08)
+
+End-to-end with the real `pretrained_EpiAgent.pth` (5.8 GB; loads into
+`use_flash_attn=False`, 0 missing keys) on a V100. The coverage funnel shows why the
+mouse track is a sparse reference, not a primary result:
+
+| step | MEF | mES |
+|------|-----|-----|
+| mm10 e7 peaks | 125,467 | 128,790 |
+| → hg38 (liftOver) | 36,202 (28.9%) | 25,136 (19.5%) |
+| → accessible cCREs | 227,354 | 191,734 |
+| → embedded (rank cap 8190) | 8,190 | 8,190 |
+| shared hg38 driver regions | 2,285 | |
+
+`navigate.py` produced **2,285** shared hg38 driver regions
+(`artifacts/epiagent_driver_scores.hg38.tsv`, `driver_score ∈ [0,1]`, rank-norm) — the
+right *human*-shaped deliverable, sparse for mouse. The 8190-cCRE rank cap makes it
+sparser than ATACformer's 11k. Report the hg38 track; treat the mm10 back-projection as
+a conserved-subset sanity check only.
+
 ## Readout choice (per-cCRE embedding shift vs predicted accessibility)
 
 This pipeline uses the **per-cCRE contextual embedding shift** (like the other
