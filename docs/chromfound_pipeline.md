@@ -88,3 +88,15 @@ original peaks).
   corr **0.87**, mean score **0.92** for |ΔaTPM|>0.3 vs **0.42** for stable regions.
   (Tighter than GET, whose score is deliberately decoupled from raw ΔaTPM.)
 - Artifacts staged at `/yutiancheng/yuhao/eCR/artifacts/` (hg38 + mm10 TSVs, both npz).
+
+## Validated — native-hg38 human run (2026-07-09), kidney vs pancreas
+
+The primary (native) case on the ChromFound A800 mirror (port 38824), `--no-lift`:
+
+- Input built: 167,488 union peaks → **167,488** OCRs (100% kept — coordinate-based,
+  so native hg38 loses nothing, unlike the mouse liftOver's 42.5%).
+- Per-OCR embeddings `(167,488, 128)` per state; `navigate.py` → **167,488** shared
+  driver regions (`chromfound_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`, all 24
+  chroms, top drivers autosomal chr1/chr10). Staged at `/yutiancheng/yuhao/eCR/artifacts/`.
+- Confirms the "primary for human" call: full coverage (167k, on par with GET) vs the
+  mouse liftOver's 87k — the coordinate-based encoder is genuinely species-portable.

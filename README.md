@@ -41,15 +41,17 @@ model runs in its own GPU mirror and emits a per-region embedding artifact
 ([docs/embedding_artifact.md](docs/embedding_artifact.md)); `navigate.py` diffs two
 cell states into the driver-score contract — all behind the *same* artifact contract,
 so adding a model is a new embed script, not a new pipeline. Full MEF→mES (mm10) runs
-are done for all five; the human (hg38) path is validated end-to-end on **ChromBERT**
-(kidney vs pancreas → 42,305-region driver track,
-[docs/chrombert_pipeline.md](docs/chrombert_pipeline.md)), **GET** (same pair →
-full 167,488-region track, [docs/get_pipeline.md](docs/get_pipeline.md)), and
-**ATACformer** (native-hg38 → 40,753-region track,
-[docs/atacformer_pipeline.md](docs/atacformer_pipeline.md)), and **EpiAgent**
-(native-hg38, runs clean but sparse — 415 regions, hit by the 8,190-cCRE rank cap,
-[docs/epiagent_pipeline.md](docs/epiagent_pipeline.md)). ChromFound is pending its
-mirror.
+are done for all five, and **all five are now validated end-to-end on human (hg38)**
+too — kidney vs pancreas (ENCODE): **ChromBERT** 42,305 regions
+([docs/chrombert_pipeline.md](docs/chrombert_pipeline.md)), **GET** full 167,488
+([docs/get_pipeline.md](docs/get_pipeline.md)), **ChromFound** full 167,488
+([docs/chromfound_pipeline.md](docs/chromfound_pipeline.md)), **ATACformer** 40,753
+([docs/atacformer_pipeline.md](docs/atacformer_pipeline.md)), and **EpiAgent** 415
+(runs clean but sparse — the 8,190-cCRE rank cap,
+[docs/epiagent_pipeline.md](docs/epiagent_pipeline.md)). Coverage on human tracks the
+model's design: coordinate/motif models (GET, ChromFound) keep every peak; the
+fixed-universe token models (ChromBERT grid, ATACformer, EpiAgent) subset to their
+vocabulary.
 
 ### Model matrix
 
