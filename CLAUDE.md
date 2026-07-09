@@ -59,21 +59,52 @@ and the snapshot policy live in [`docs/server_mirrors.md`](docs/server_mirrors.m
   early/causally, passengers late/downstream — temporal ordering is signal).
 - `atac_embed.pkl` — an ATAC embedding of unknown provenance; confirm before use.
 
-## Open design decision — DECIDE THIS FIRST (new session)
+## Endpoint-only principle (FIRST-CLASS design constraint)
 
-How to score driver vs passenger:
+The navigator exists to design engineered chromatin regulators (eCRs) that *create*
+a cell-fate transition. For a **novel** transition, the intermediate trajectory does
+not exist — producing it is the entire point. Therefore:
 
-- **Supervised on the reprogramming trajectory.** Use ATAC/RNA time-course:
-  drivers change *early and causally*, passengers *late*. Needs temporal (or
-  perturbation) data with enough resolution to order events.
-- **Zero-shot / pretrained genomic LM** (Enformer / Borzoi-style). Predict a
-  region's regulatory impact from sequence; no training data, but not
-  reprogramming-specific.
-- **Hybrid** — LM embeddings as features + a light supervised head on the
-  time-course.
+> **At inference, the navigator has only the START state and the END state
+> (bulk or reference accessibility ± expression). It never has the trajectory
+> between them.**
 
-Pick based on what time-course data is actually in hand. Everything downstream
-(`model.py`) sits behind the stable output contract, so this choice is swappable.
+This is the governing filter for every method choice:
+
+- **Any method that requires trajectory / time-course / single-cell-along-the-
+  transition data *at inference* is disqualified.** This retires the old
+  "supervised on the reprogramming trajectory (drivers change early, passengers
+  late)" idea — temporal ordering is signal we will never have at deploy time. It
+  is also why ChromFound's shipped fine-tune (a single-cell cell-type classifier)
+  and scDIFF (trajectory HMM) do not fit: they violate endpoint-only.
+- **Zero-shot is the correct default, not a fallback.** The embedding-shift between
+  two endpoint states is endpoint-only *by construction*; its power is the
+  pretrained foundation-model prior (regulatory logic learned from millions of
+  cells), which distinguishes upstream/regulatory changes (drivers) from
+  downstream/consequential ones (passengers) without the path between them.
+
+### The three regimes (differ only by *training*-time supervision; inference is always endpoint-only)
+
+1. **Known completed transition exists → fine-tune, deploy on a new path**
+   (cross-transition transfer). The asset a completed transition (e.g. MEF→iPSC via
+   OSKM) provides is the **validated driver labels** (the master TFs and their target
+   regions), not the trajectory per se. Train across *many* completed transitions to
+   learn general driver principles; transfer is strongest for biologically related
+   paths. Needs a driver-labeled corpus (the open data-assembly problem).
+2. **No known path → zero-shot** (the common case for novel eCR design). Pretrained
+   prior + endpoint shift. Implemented (`features.py` + `model.py`), validated on
+   five models, both species.
+3. **Wet-lab feedback → fine-tune (design-build-test-learn loop).** Each experiment
+   yields new supervision for *this* system — outcome data (partial trajectory) or,
+   best, **perturbation data** (target region X, measure effect = direct causal
+   driver labels). Over iterations this converts a regime-2 problem into a regime-1
+   one.
+
+Unifying rule: **inference is always endpoint-only; fine-tune iff driver-relevant
+supervision exists (regime 1 or 3), else zero-shot (regime 2).** Zero-shot and
+fine-tuned are not rivals — the fine-tuned model is the same pretrained backbone with
+supervision added; regimes 1/3 build on regime 2's prior. Everything downstream
+(`model.py`) sits behind the stable output contract, so the regime is swappable.
 
 ## Output contract (STABLE — eCR_predictor depends on it)
 
@@ -114,22 +145,30 @@ emits one `.npz` embedding artifact per cell state through the *shared*
 `scripts/embedding_artifact.py` writer; `navigate.py` diffs two states into the
 driver-score contract. Adding a model = a new `<model>_embed_regions.py` (+ any input
 prep) that calls the shared writer — **not** a new pipeline, and never a copied save
-block. Integrated so far: ChromBERT, GET, ATACformer, ChromFound (see the per-model
+block. Integrated so far: ChromBERT, GET, ATACformer, ChromFound, EpiAgent (see the per-model
 `docs/*_pipeline.md`). Native-mm10 (ChromBERT, GET) are primary for mouse; hg38-only
-scATAC models (ATACformer, ChromFound) are primary for human and a liftOver-bridged
-reference for mouse.
+scATAC models (ATACformer, ChromFound, EpiAgent) are primary for human and a
+liftOver-bridged reference for mouse. All five are validated end-to-end on both mm10
+(MEF→mES) and hg38 (kidney vs pancreas).
 
-**Driver-score readout — keep BOTH scores (decided 2026-07-03):**
-- **Zero-shot** — embedding-shift between cell states. Always available; needs no
-  labels. Implemented (`features.py` + `model.py`).
-- **Fine-tuned** — the native transdifferentiation recipe (fine-tune on ATAC
-  log2FC → regulator attribution / region score). Only when fine-tuning data
-  exists (not always). NOT yet built.
+**Driver-score readout — keep BOTH scores (decided 2026-07-03; reframed 2026-07-09):**
+- **Zero-shot** — embedding-shift between endpoint states. Always available; needs no
+  labels; endpoint-only. The default (regime 2 above). Implemented (`features.py` +
+  `model.py`).
+- **Fine-tuned** — the same pretrained backbone with **driver supervision** added,
+  where that supervision comes from **regime 1** (validated drivers of *completed*
+  transitions, trained across a corpus, deployed on new endpoint pairs) or **regime 3**
+  (wet-lab feedback, ideally perturbation = causal driver labels). NOT trajectory
+  supervision (retired — see the endpoint-only principle). Inference stays
+  endpoint-only. NOT yet built; gated on assembling a driver-labeled corpus.
 
-Rationale: fine-tuning data is available for some transitions but not others, so
-the zero-shot score is the universal fallback and the fine-tuned score is the
-sharper signal when trainable. Report both per region; do not collapse them
-prematurely. This means the output will carry two scores — extend the region-weight
-contract with an optional second column (or a `method` tag) rather than
-overwriting `driver_score`. Keep `driver_score` as the primary/default so
-eCR_predictor's existing consumption never breaks.
+Rationale: driver supervision exists for some transitions but not others, so the
+zero-shot score is the universal fallback and the fine-tuned score is the sharper
+signal when trainable. Report both per region; do not collapse them prematurely. The
+output carries two scores — extend the region-weight contract with an optional second
+column (or a `method` tag) rather than overwriting `driver_score`. Keep `driver_score`
+as the primary/default so eCR_predictor's existing consumption never breaks.
+
+**Do NOT pursue** fine-tunes that need trajectory / single-cell-along-the-transition
+data at inference (ChromFound's shipped cell-type classifier, scDIFF) — they violate
+the endpoint-only principle.
