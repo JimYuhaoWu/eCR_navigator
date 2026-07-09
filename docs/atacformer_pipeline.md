@@ -93,6 +93,13 @@ context (different region, same context → L2 7.6, cos 0.85).
 - **Real MEF/mES run done (2026-07-07):** MEF/mES e7 peaks lifted mm10→hg38, embedded,
   diffed → **11,059 shared hg38 driver regions** (`artifacts/atacformer_driver_scores.hg38.tsv`
   on the instance). Valid, and the right native deliverable for a *human* run.
+- **Native-hg38 human run done (2026-07-09) — kidney vs pancreas** (the primary case):
+  per-state peaks embedded directly, no liftOver. kidney 87,522 peaks → **66,573** universe
+  regions (76%); pancreas 129,874 → **108,868** (84%); `navigate.py` → **40,753** shared
+  driver regions (`atacformer_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`, all 24
+  chroms, top drivers autosomal chr18/chr19). This is the coverage ATACformer was built
+  for — dense (40,753) vs the mouse liftOver's 1,334 — confirming "primary for human."
+  Staged at `/yutiancheng/yuhao/eCR/artifacts/`.
 
 ## Cross-species coverage is the real limit (mouse)
 

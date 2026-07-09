@@ -43,8 +43,10 @@ cell states into the driver-score contract — all behind the *same* artifact co
 so adding a model is a new embed script, not a new pipeline. Full MEF→mES (mm10) runs
 are done for all five; the human (hg38) path is validated end-to-end on **ChromBERT**
 (kidney vs pancreas → 42,305-region driver track,
-[docs/chrombert_pipeline.md](docs/chrombert_pipeline.md)) and **GET** (same pair →
-full 167,488-region track, [docs/get_pipeline.md](docs/get_pipeline.md)).
+[docs/chrombert_pipeline.md](docs/chrombert_pipeline.md)), **GET** (same pair →
+full 167,488-region track, [docs/get_pipeline.md](docs/get_pipeline.md)), and
+**ATACformer** (native-hg38 → 40,753-region track,
+[docs/atacformer_pipeline.md](docs/atacformer_pipeline.md)).
 
 ### Model matrix
 
