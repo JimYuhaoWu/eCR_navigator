@@ -75,15 +75,26 @@ Scoped / candidate (not integrated — see the per-model docs):
 
 ### Two-axis roadmap: zero-shot vs fine-tuned
 
-The **Fine-tuned** column above is the planned second axis. Today every score is
-**zero-shot** (an embedding shift between two cell states — needs no labels). Once
-transdifferentiation **time-course** data is in hand we will **fine-tune** the
-native-transdiff-capable models (ChromBERT/GET first) on ATAC log2FC → regulator/region
-attribution and report *both* scores per region. The output contract keeps
-`driver_score` as the zero-shot default and carries the fine-tuned score in an optional
-second column / `method` tag, so eCR_predictor's consumption never breaks (see
-[CLAUDE.md](CLAUDE.md) "keep BOTH scores"). This README table is the scoreboard for that
-zero-shot-vs-fine-tuned comparison as it fills in.
+The **Fine-tuned** column above is the planned second axis. The governing constraint is
+**endpoint-only**: to design an eCR for a *novel* transition, the navigator has only the
+**start and end** states — never the trajectory between them (creating it is the point).
+So *inference is always endpoint-only*, and the two axes differ only in **training-time
+supervision** (see [CLAUDE.md](CLAUDE.md) "Endpoint-only principle"):
+
+- **Zero-shot** (today, every score) — endpoint embedding-shift, no labels. The default,
+  and the *only* option when no driver supervision exists.
+- **Fine-tuned** (not yet built) — the same pretrained backbone with **driver
+  supervision** added, from either **completed transitions** (validated drivers of e.g.
+  MEF→iPSC, trained across a corpus and deployed on new endpoint pairs) or **wet-lab
+  feedback** (perturbation = causal driver labels). This is **not** trajectory
+  supervision (retired — it would violate endpoint-only). Gated on assembling a
+  driver-labeled corpus.
+
+The output contract keeps `driver_score` as the zero-shot default and carries the
+fine-tuned score in an optional second column / `method` tag, so eCR_predictor's
+consumption never breaks. This README table is the scoreboard for that comparison as it
+fills in. (Fine-tunes that need trajectory / single-cell-at-inference data — ChromFound's
+shipped cell-type classifier, scDIFF — are out of scope by the endpoint-only principle.)
 
 Species: hg38 + mm10 are first-class; hg38-only models are bridged by liftOver (see the
 per-model docs and CLAUDE.md).
