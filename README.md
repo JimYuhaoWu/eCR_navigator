@@ -41,8 +41,9 @@ model runs in its own GPU mirror and emits a per-region embedding artifact
 ([docs/embedding_artifact.md](docs/embedding_artifact.md)); `navigate.py` diffs two
 cell states into the driver-score contract — all behind the *same* artifact contract,
 so adding a model is a new embed script, not a new pipeline. Full MEF→mES (mm10) runs
-are done for all five; the human (hg38) path is now under test on kidney/pancreas
-peak sets.
+are done for all five; the human (hg38) path is validated end-to-end on ChromBERT
+(kidney vs pancreas → 42,305-region driver track, see
+[docs/chrombert_pipeline.md](docs/chrombert_pipeline.md)).
 
 ### Model matrix
 
