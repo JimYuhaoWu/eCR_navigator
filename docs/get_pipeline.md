@@ -94,3 +94,15 @@ eCR_predictor.
 - **Full-coverage native mm10** (no liftOver) → this is the **primary mouse driver
   track** (contrast ATACformer, which is hg38-native and only a reference for mouse;
   see [`atacformer_pipeline.md`](atacformer_pipeline.md)).
+- **Full native-hg38 run done (2026-07-09) — kidney vs pancreas:** same split-compute
+  (aTPM + motif matrix on peilab2 from the two ENCODE bigWigs; forward on the A800).
+  Union **167,488** peaks, aTPM has 33,291 regions differing >0.3; motif matrix
+  167,488 × 282 (100% with ≥1 hit); both states embedded 167,488 × 768 (`missing=0`);
+  `navigate.py` → `get_driver_scores.kidney_pancreas.hg38.tsv` (167,488 regions,
+  full coverage, `[0,1]`). Staged at `/yutiancheng/yuhao/eCR/artifacts/`. Confirms the
+  pipeline is genuinely species-parameterized — only `--assembly` and the motif file
+  differ. Unlike ChromBERT on this pair, GET's top drivers are **autosomal** (chr1,
+  chr11), because the state signal is the aTPM accessibility-change channel rather than
+  a whole-chromosome (chrY donor-sex) embedding effect — though the chrX/chrY donor-sex
+  caveat from [`chrombert_pipeline.md`](chrombert_pipeline.md) still applies to any
+  biological reading of this test pair.
