@@ -126,6 +126,27 @@ right *human*-shaped deliverable, sparse for mouse. The 8190-cCRE rank cap makes
 sparser than ATACformer's 11k. Report the hg38 track; treat the mm10 back-projection as
 a conserved-subset sanity check only.
 
+### Native-hg38 human run (2026-07-09) — kidney vs pancreas
+
+The primary (native) case, `--no-lift`, on the A800:
+
+| step | kidney | pancreas |
+|------|--------|----------|
+| hg38 peaks | 87,522 | 129,874 |
+| → accessible cCREs | 89,147 | 151,874 |
+| → embedded (rank cap 8190) | 8,190 | 8,190 |
+
+`navigate.py` → **only 415** shared driver regions
+(`epiagent_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`, all 24 chroms). The pipeline
+is mechanically flawless, but this exposes that **the 8190 rank cap — not liftOver — is
+EpiAgent's real coverage limiter, even natively**: each state has ~90–150k accessible
+cCREs but only its top-8190 by TF-IDF are embedded, and for *dissimilar* states (kidney
+vs pancreas) those two top-8190 sets barely overlap (415/8190 ≈ 5%). So the shared driver
+set shrinks as the two states diverge — the opposite of what you want. EpiAgent is best
+reserved for **similar** state pairs (e.g. two points along one transdifferentiation
+trajectory, where the accessible-cCRE ranking is more stable), or used via its
+full-coverage `signal_decoder` path (below) rather than the rank-capped token embedding.
+
 ## Readout choice (per-cCRE embedding shift vs predicted accessibility)
 
 This pipeline uses the **per-cCRE contextual embedding shift** (like the other

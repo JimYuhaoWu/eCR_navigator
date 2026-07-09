@@ -46,7 +46,10 @@ are done for all five; the human (hg38) path is validated end-to-end on **ChromB
 [docs/chrombert_pipeline.md](docs/chrombert_pipeline.md)), **GET** (same pair →
 full 167,488-region track, [docs/get_pipeline.md](docs/get_pipeline.md)), and
 **ATACformer** (native-hg38 → 40,753-region track,
-[docs/atacformer_pipeline.md](docs/atacformer_pipeline.md)).
+[docs/atacformer_pipeline.md](docs/atacformer_pipeline.md)), and **EpiAgent**
+(native-hg38, runs clean but sparse — 415 regions, hit by the 8,190-cCRE rank cap,
+[docs/epiagent_pipeline.md](docs/epiagent_pipeline.md)). ChromFound is pending its
+mirror.
 
 ### Model matrix
 
