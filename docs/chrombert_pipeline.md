@@ -80,3 +80,26 @@ is genuinely species-agnostic.
 
 Artifacts staged at `/yutiancheng/yuhao/eCR/artifacts/` (both npz + the driver TSV),
 same as the mouse runs.
+
+## Direction (external-attach) — validated 2026-07-10
+
+ChromBERT has no accessibility head (its state signal is peak *presence* → TRN
+context), so like ATACformer it gets an **external-attach** direction: overlap GET's
+aTPM onto its regions with the fixed `scripts/attach_measured_signal.py`, then
+`navigate.py --direction auto --direction-norm raw`. Ran both hg38 states from the
+existing base artifacts (no re-embed needed — direction is a CPU attach step):
+aTPM covered **100.0%** of both (kidney 79,936/79,936; pancreas 129,190/129,190 — the
+aTPM union spans ChromBERT's per-state peak sets fully), so **0 unmeasured**. The
+42,305-region shared contract splits **open 17,499 / close 24,706 / flat 100** over
+`[-1, +0.977]`. Provenance: external-attach tier (see [`direction.md`](direction.md));
+same donor-sex caveat as above applies to any biological reading.
+
+> **Separate finding — the STAGED `chrombert_driver_scores.kidney_pancreas.hg38.tsv`
+> magnitude is stale.** Recomputing `driver_score` from the current `.npz` with current
+> `navigate.py` (rank-norm, identical 42,305 regions) is **anti-correlated** with the
+> staged TSV (Pearson **r = −0.60**, mean abs diff 0.5), while attaching a signal leaves
+> the magnitude byte-identical to the base artifact (max Δ 0.0). So the staged contract
+> pre-dates a change to the embeddings or the shift metric and is no longer reproducible.
+> This is **orthogonal to the direction channel** and was NOT introduced here; the
+> canonical TSV was left untouched and the directioned run written to a `.sig.tsv`
+> sibling pending a separate fix (re-embed ChromBERT and/or reconcile the metric).
