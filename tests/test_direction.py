@@ -67,6 +67,16 @@ def test_attach_direction_signed_rank():
     assert got == [round(-1 / 3, 6), round(2 / 3, 6), -1.0, 0.0]
 
 
+def test_attach_direction_nan_delta_left_unset_and_excluded_from_scale():
+    """A NaN delta (unmeasured region) -> direction None, and it must NOT enter the
+    maxabs scale, so the finite regions still scale by their own max |delta|."""
+    rows = driver_scores(["chr1"] * 3, [0, 1, 2], [1, 2, 3], [1, 1, 1])
+    attach_direction(rows, [0.3, float("nan"), -0.6], method="maxabs")  # scale = 0.6
+    assert abs(rows[0].direction - 0.5) < 1e-9   # 0.3 / 0.6
+    assert rows[1].direction is None          # unmeasured, left unset
+    assert rows[2].direction == -1.0          # finite max, unaffected by the NaN
+
+
 def test_attach_direction_all_zero_delta_no_div0():
     rows = driver_scores(["chr1"] * 3, [0, 1, 2], [1, 2, 3], [1, 1, 1])
     attach_direction(rows, [0.0, 0.0, 0.0], method="maxabs")
@@ -97,6 +107,15 @@ def test_signed_delta_none_when_a_signal_missing():
     a = _art([100, 200], [[0, 0], [1, 1]], signal=None)
     b = _art([100, 200], [[0, 0], [1, 1]], signal=[0.2, 0.3])
     assert signed_delta(a, b) is None
+
+
+def test_signed_delta_propagates_nan_from_unmeasured_state():
+    """A region measured in A but NaN (unmeasured) in B diffs to NaN, so it can be
+    left out of direction rather than scored as a spurious open/close."""
+    a = _art([100, 200], [[0, 0], [1, 1]], signal=[0.7, 0.4])
+    b = _art([100, 200], [[0, 0], [1, 1]], signal=[float("nan"), 0.9])
+    delta = signed_delta(a, b)
+    assert np.isnan(delta[0]) and abs(delta[1] - 0.5) < 1e-6   # float32 signal
 
 
 # --- the alignment invariant (most important) ------------------------------
@@ -158,6 +177,22 @@ def test_contract_direction_absent_without_signal():
         with open(path) as fh:
             header = next(csv.reader(fh, delimiter="\t"))
     assert header == ["chrom", "start", "end", "driver_score"]
+
+
+def test_contract_none_direction_is_empty_field_not_zero():
+    """In a directioned file, an unmeasured (None) row is an EMPTY field, distinct
+    from a measured flat (0.0), and round-trips back to None."""
+    rows = [RegionWeight("chr1", 100, 150, 0.5, direction=0.0),   # measured flat
+            RegionWeight("chr1", 200, 250, 0.5, direction=None)]  # unmeasured
+    with tempfile.TemporaryDirectory() as td:
+        path = os.path.join(td, "out.tsv")
+        write_region_weights(rows, path)
+        lines = [ln.rstrip("\n") for ln in open(path)]
+        assert lines[0].split("\t") == ["chrom", "start", "end", "driver_score", "direction"]
+        assert lines[1].endswith("\t0.0")   # measured flat -> 0.0
+        assert lines[2].endswith("\t")      # unmeasured -> empty trailing field
+        back = read_region_weights(path)
+    assert back[0].direction == 0.0 and back[1].direction is None
 
 
 def test_contract_write_clamps_out_of_range_direction():

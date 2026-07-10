@@ -45,6 +45,10 @@ the output contract — the open/close instruction. Rules:
 - `signal[i]` corresponds to `embedding[i]` (same region, same order).
 - Omit it (`signal=None`) and the direction column is simply absent — 4-column
   output, byte-compatible with existing consumers. `meta.has_signal` records which.
+- A per-region `NaN` means **unmeasured** (the measured-external path could not cover
+  that region in this state), which is kept distinct from a measured `0.0`. `navigate.py`
+  differences the two states, and any region NaN in either state gets **no** `direction`
+  (an empty field in the contract), never a fabricated open/close.
 - **Two ways to fill it:**
   - *Model-native* — **EpiAgent**'s Signal-Reconstruction head
     (`sigmoid(signal_decoder(cell_embedding))`, a predicted-accessibility probability in

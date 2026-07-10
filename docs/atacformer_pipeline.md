@@ -101,6 +101,13 @@ python navigate.py --emb-a atacformer.kidney.hg38.sig.npz \
 kidney/pancreas BEDs are 3-column — measured direction needs an accessibility track in the
 artifact's assembly; aTPM happened to exist for the human states via GET.)
 
+> **Regenerate — counts predate the unmeasured-NaN fix.** This run was scored before
+> `map_signal` distinguished *unmeasured* (NaN) from a measured `0.0`, so regions
+> covered in one state but not the other (~4–5% here) were folded into the open/close
+> tallies above. Re-run to get the corrected split with an explicit `unmeasured` bucket
+> (`navigate.py` now prints it); the open/close direction of *covered* regions is
+> unchanged.
+
 ## Interpretation note
 
 The state signal is region *presence*, not a per-region accessibility value (unlike

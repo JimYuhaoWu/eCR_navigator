@@ -66,10 +66,16 @@ def read_intensity(path, value_col, has_header):
 
 
 def map_signal(chrom, start, end, by_chrom):
-    """Per artifact region: max intensity value over all overlapping intervals (0 if none)."""
+    """Per artifact region: max intensity value over all overlapping intervals.
+
+    A region with NO overlapping interval is left as NaN ("unmeasured"), NOT 0.0 —
+    a measured zero and a missing measurement are different, and collapsing them makes
+    a region covered in one state but not the other diff to a spurious open/close
+    direction. navigate.py leaves `direction` unset wherever a state's signal is NaN.
+    """
     # bound the backward scan by the longest interval so no overlap is missed
     max_len = max((int((e - s).max()) for s, e, _ in by_chrom.values() if len(s)), default=0)
-    out = np.zeros(len(chrom), dtype=np.float64)
+    out = np.full(len(chrom), np.nan, dtype=np.float64)
     for i in range(len(chrom)):
         c = chrom[i]
         rec = by_chrom.get(c)
@@ -103,7 +109,7 @@ def main() -> None:
 
     by_chrom = read_intensity(args.intensity, args.value_col, not args.no_header)
     signal = map_signal(chrom, start, end, by_chrom)
-    covered = int((signal != 0).sum())
+    covered = int(np.isfinite(signal).sum())   # NaN = unmeasured, excluded from direction
 
     n, d = write_embedding_artifact(
         args.out, chrom, start, end, z["embedding"],
