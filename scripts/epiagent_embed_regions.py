@@ -10,6 +10,12 @@ per-cCRE contextual rows — one embedding artifact per state, in the same .npz
 contract as GET/ChromBERT/ATACformer/ChromFound, so navigate.py diffs two states
 (MEF vs mES) into driver scores unchanged.
 
+We also emit a per-cCRE `signal` array: sigmoid(signal_decoder(CLS)), EpiAgent's
+Signal-Reconstruction predicted accessibility (probability in [0,1]) sampled at the
+emitted cCREs. navigate.py differences the two states' signals into the contract's
+signed `direction` column (open/close) — a model-native readout, not a synthesized
+one. Embedding drives magnitude; signal drives direction (decoupled channels).
+
 Token layout (epiagent.dataset.CellDataset): input_ids = [CLS=1] + sentence[:L] +
 [SEP=2], where each cCRE token id = (cCRE row index in cCRE.bed) + 4, and the
 sentence is TF-IDF-sorted. So transformer_outputs[0, 1:1+L, :] are the per-cCRE
@@ -104,6 +110,12 @@ def main() -> None:
     input_ids = torch.tensor([[CLS] + tokens + [SEP]], dtype=torch.long, device=args.device)
     with torch.no_grad(), torch.cuda.amp.autocast():
         out = model(input_ids, return_transformer_output=True)
+        cls = out["transformer_outputs"][:, 0, :]           # (1, 512) cell embedding
+        # signal_decoder: cell embedding -> accessibility logit for EVERY cCRE in the
+        # universe (output col j == var row j == token j+4). This is EpiAgent's own
+        # Signal-Reconstruction head, so it's a model-native accessibility readout,
+        # not a navigator-invented direction. sigmoid -> P(accessible) in [0,1].
+        signal_all = torch.sigmoid(model.signal_decoder(cls.float()))[0].cpu().numpy()
     # positions 1..L are the cCRE tokens (0 is CLS, L+1 is SEP)
     emb = out["transformer_outputs"][0, 1:1 + len(tokens), :].float().cpu().numpy()
 
@@ -113,12 +125,14 @@ def main() -> None:
     chrom = [c for c, _, _ in coords]
     start = [s for _, s, _ in coords]
     end = [e for _, _, e in coords]
+    signal = signal_all[rows]           # predicted accessibility per emitted cCRE
 
     n, d = write_embedding_artifact(
         args.out, chrom, start, end, emb,
         model="epiagent", cell_state=args.state, assembly=args.assembly,
-        source="epiagent_embed_regions.py")
-    print(f"wrote {args.out}: {n} cCREs x {d} dims ({args.state}, {args.assembly})")
+        source="epiagent_embed_regions.py", signal=signal)
+    print(f"wrote {args.out}: {n} cCREs x {d} dims ({args.state}, {args.assembly}); "
+          f"signal range [{signal.min():.3f}, {signal.max():.3f}]")
 
 
 if __name__ == "__main__":

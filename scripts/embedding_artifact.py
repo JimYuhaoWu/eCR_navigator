@@ -26,12 +26,19 @@ import numpy as np
 
 def write_embedding_artifact(out, chrom, start, end, embedding, *,
                              model: str, cell_state: str, assembly: str,
-                             source: str) -> tuple[int, int]:
+                             source: str, signal=None) -> tuple[int, int]:
     """Write one embedding artifact, enforcing the contract dtypes.
 
     chrom/start/end/embedding may be any array-like (list, pandas Series, ndarray);
     they are coerced to the contract dtypes here so no caller can get them wrong.
     Returns (n_regions, dim).
+
+    signal (optional): a per-region SCALAR accessibility value for this state (one
+    float per region, same order as `embedding`). Only models with a scalar
+    per-state readout supply it — e.g. EpiAgent's signal-decoder predicted
+    accessibility. navigate.py differences the two states' signals into the signed
+    `direction` column of the contract; embedding-only models pass signal=None and
+    the direction column is simply absent. See docs/embedding_artifact.md.
     """
     chrom = np.asarray(chrom).astype(str)          # -> '<U' unicode, never object
     start = np.asarray(start).astype(np.int64)
@@ -41,8 +48,14 @@ def write_embedding_artifact(out, chrom, start, end, embedding, *,
     if not (len(chrom) == len(start) == len(end) == n):
         raise ValueError(f"length mismatch: chrom {len(chrom)} start {len(start)} "
                          f"end {len(end)} embedding {n}")
+    arrays = dict(chrom=chrom, start=start, end=end, embedding=embedding)
+    if signal is not None:
+        signal = np.asarray(signal).astype(np.float32)
+        if len(signal) != n:
+            raise ValueError(f"signal length {len(signal)} != {n} regions")
+        arrays["signal"] = signal
     meta = json.dumps({"model": model, "cell_state": cell_state,
-                       "assembly": assembly, "dim": int(d), "source": source})
-    np.savez_compressed(out, chrom=chrom, start=start, end=end,
-                        embedding=embedding, meta=np.array(meta))
+                       "assembly": assembly, "dim": int(d), "source": source,
+                       "has_signal": signal is not None})
+    np.savez_compressed(out, meta=np.array(meta), **arrays)
     return n, d

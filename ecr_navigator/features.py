@@ -16,11 +16,13 @@ import numpy as np
 
 @dataclass
 class EmbeddingArtifact:
-    chrom: np.ndarray      # (N,) str
-    start: np.ndarray      # (N,) int64
-    end: np.ndarray        # (N,) int64
-    embedding: np.ndarray  # (N, D) float32
+    chrom: np.ndarray            # (N,) str
+    start: np.ndarray            # (N,) int64
+    end: np.ndarray              # (N,) int64
+    embedding: np.ndarray        # (N, D) float32
     meta: dict
+    signal: np.ndarray | None = None  # (N,) float32 per-region scalar accessibility,
+    #                                   present only for direction-capable models
 
     @property
     def keys(self) -> np.ndarray:
@@ -32,10 +34,25 @@ class EmbeddingArtifact:
 def load_artifact(path: str | Path) -> EmbeddingArtifact:
     z = np.load(path, allow_pickle=False)
     meta = json.loads(str(z["meta"]))
+    signal = z["signal"].astype(np.float32) if "signal" in z.files else None
     return EmbeddingArtifact(
         chrom=z["chrom"], start=z["start"], end=z["end"],
-        embedding=z["embedding"].astype(np.float32), meta=meta,
+        embedding=z["embedding"].astype(np.float32), meta=meta, signal=signal,
     )
+
+
+def _aligned_rows(a: EmbeddingArtifact, b: EmbeddingArtifact):
+    """Row indices of the regions shared by both artifacts, aligned by region key."""
+    idx_b = {k: i for i, k in enumerate(b.keys)}
+    rows_a, rows_b = [], []
+    for i, k in enumerate(a.keys):
+        j = idx_b.get(k)
+        if j is not None:
+            rows_a.append(i)
+            rows_b.append(j)
+    if not rows_a:
+        raise ValueError("no shared regions between the two artifacts")
+    return np.array(rows_a), np.array(rows_b)
 
 
 def embedding_shift(a: EmbeddingArtifact, b: EmbeddingArtifact):
@@ -54,18 +71,23 @@ def embedding_shift(a: EmbeddingArtifact, b: EmbeddingArtifact):
         raise ValueError("embedding dim mismatch: %d vs %d"
                          % (a.embedding.shape[1], b.embedding.shape[1]))
 
-    idx_b = {k: i for i, k in enumerate(b.keys)}
-    rows_a, rows_b = [], []
-    for i, k in enumerate(a.keys):
-        j = idx_b.get(k)
-        if j is not None:
-            rows_a.append(i)
-            rows_b.append(j)
-    if not rows_a:
-        raise ValueError("no shared regions between the two artifacts")
-
-    rows_a = np.array(rows_a)
-    rows_b = np.array(rows_b)
+    rows_a, rows_b = _aligned_rows(a, b)
     diff = b.embedding[rows_b] - a.embedding[rows_a]
     shift = np.linalg.norm(diff, axis=1)
     return (a.chrom[rows_a], a.start[rows_a], a.end[rows_a], shift)
+
+
+def signed_delta(a: EmbeddingArtifact, b: EmbeddingArtifact):
+    """
+    Per-region signed change in the scalar accessibility signal, state A -> B,
+    aligned to the SAME shared regions (same order) as `embedding_shift`.
+
+    Returns `delta = signal_b - signal_a` (>0 opens, <0 closes) or None if either
+    artifact lacks a signal. This feeds the contract's `direction` column; the
+    magnitude driver_score still comes from `embedding_shift`. The two are decoupled
+    channels and are joined by navigate.py on the identical shared-region order.
+    """
+    if a.signal is None or b.signal is None:
+        return None
+    rows_a, rows_b = _aligned_rows(a, b)
+    return b.signal[rows_b] - a.signal[rows_a]

@@ -30,7 +30,30 @@ Arrays inside:
 | `start` | `int64` | `(N,)` | 0-based BED start |
 | `end` | `int64` | `(N,)` | exclusive BED end |
 | `embedding` | `float32` | `(N, D)` | per-region model embedding |
-| `meta` | `<U…` (0-d) | `()` | JSON: `{model, cell_state, assembly, dim, source}` |
+| `signal` | `float32` | `(N,)` | **optional** per-region *scalar* accessibility for this state; present only for direction-capable models |
+| `meta` | `<U…` (0-d) | `()` | JSON: `{model, cell_state, assembly, dim, source, has_signal}` |
+
+### The optional `signal` array (direction channel)
+
+Most models emit only `embedding`; the driver score is the L2 shift between two
+states' embeddings — a **magnitude** (unsigned by construction; a norm cannot tell
+"opens" from "closes"). A model that additionally has a **scalar per-state readout**
+(one accessibility value per region) writes it as `signal`. navigate.py differences
+the two states (`signal_b − signal_a`) into the signed `direction ∈ [-1, 1]` column of
+the output contract — the open/close instruction. Rules:
+
+- `signal[i]` corresponds to `embedding[i]` (same region, same order).
+- Omit it (`signal=None`) and the direction column is simply absent — 4-column
+  output, byte-compatible with existing consumers. `meta.has_signal` records which.
+- **EpiAgent** fills it from its Signal-Reconstruction head
+  (`sigmoid(signal_decoder(cell_embedding))`, a model-native predicted-accessibility
+  probability in `[0,1]`). See `docs/epiagent_pipeline.md`.
+- **Caveat (per model):** for a model *designed* to predict accessibility (EpiAgent's
+  SR head, AlphaGenome's DNase head) the direction is principled. For a model with **no
+  scalar accessibility readout**, any direction we synthesize (e.g. projecting the
+  embedding shift, or borrowing a measured-peak Δ) is a **navigator-side modification,
+  not validated** — mark it as such wherever it's produced (see
+  `region_weight_contract.md`).
 
 **The dtypes are load-critical.** The navigator reads with `allow_pickle=False`
 (fast, and it refuses to unpickle arbitrary objects), so `chrom` must be a unicode
