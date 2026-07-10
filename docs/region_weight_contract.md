@@ -14,7 +14,7 @@ A tab-separated file, one row per scored region:
 | `start` | int | 0-based start (BED convention) |
 | `end` | int | Exclusive end |
 | `driver_score` | float | Driver **importance** in **[0, 1]** — higher = more driver-like |
-| `direction` | float | *(optional)* signed change in **[-1, 1]** — **+1 = should open, -1 = should close**; omitted entirely for models that resolve importance but not direction |
+| `direction` | float | *(optional)* signed change in **[-1, 1]** — **+1 = should open, -1 = should close**; omitted entirely for models that resolve importance but not direction. In a directioned file an **empty** field means *unmeasured* for that region (distinct from a measured `0.0` = flat) |
 
 ```
 chrom	start	end	driver_score
@@ -34,6 +34,10 @@ chr1	3119611	3119740	0.12	-0.55
 
 The `direction` column is only present when at least one row has it, so the
 4-column form stays byte-compatible for consumers that read `driver_score` alone.
+Within a directioned file, a row may still leave `direction` **empty** — that region
+is *unmeasured* (e.g. a measured accessibility track did not cover it in one of the two
+states), which is deliberately kept distinct from a measured `0.0` (accessible-but-flat)
+so a missing measurement is never reported as an open/close.
 
 > **Validity caveat — read before trusting `direction`.** Direction is only as
 > principled as its source. It is trustworthy when it comes from a **model designed to

@@ -51,6 +51,11 @@ def attach_direction(rows: list[RegionWeight], delta, method: str = "maxabs") ->
     alignment). This is the direction CHANNEL — orthogonal to the magnitude
     driver_score, which is untouched.
 
+    A NaN `delta` marks an UNMEASURED region (e.g. a measured-signal track that did
+    not cover it in one state — see scripts/attach_measured_signal.py). Those rows are
+    left with `direction = None` (the column is simply absent for them) and are excluded
+    from the scaling statistics, so a missing measurement is never scored as open/close.
+
     method (magnitude scaling only; the SIGN is always the sign of delta):
       'maxabs' — delta / max(|delta|); preserves relative magnitudes, bounds to
                  [-1,1]. Default; works for any signal scale.
@@ -61,19 +66,24 @@ def attach_direction(rows: list[RegionWeight], delta, method: str = "maxabs") ->
                  mirrors the 'rank' magnitude normalization.
     """
     delta = np.asarray(delta, dtype=float)
+    if len(delta) != len(rows):
+        raise ValueError("direction length %d != %d rows" % (len(delta), len(rows)))
+
+    finite = np.isfinite(delta)
+    direction = np.full(len(delta), np.nan)
+    d = delta[finite]
     if method == "maxabs":
-        scale = np.abs(delta).max()
-        direction = delta / scale if scale > 0 else np.zeros_like(delta)
+        scale = np.abs(d).max() if d.size else 0.0
+        direction[finite] = d / scale if scale > 0 else np.zeros_like(d)
     elif method == "raw":
-        direction = np.clip(delta, -1.0, 1.0)
+        direction[finite] = np.clip(d, -1.0, 1.0)
     elif method == "signed-rank":
-        mag = np.abs(delta)
+        mag = np.abs(d)
         rank = mag.argsort().argsort() / max(len(mag) - 1, 1)
-        direction = np.sign(delta) * rank
+        direction[finite] = np.sign(d) * rank
     else:
         raise ValueError("unknown direction method %r "
                          "(use 'maxabs', 'raw', or 'signed-rank')" % method)
-    if len(direction) != len(rows):
-        raise ValueError("direction length %d != %d rows" % (len(direction), len(rows)))
-    for r, d in zip(rows, direction):
-        r.direction = float(d)
+
+    for r, val, f in zip(rows, direction, finite):
+        r.direction = float(val) if f else None

@@ -33,6 +33,11 @@ def write_region_weights(rows: list[RegionWeight], path: str | Path) -> None:
     ONLY when at least one row carries a direction — direction-capable models
     (e.g. EpiAgent's signed predicted-accessibility) fill it; region-only models
     omit it, keeping the 4-column form byte-compatible with existing consumers.
+
+    A row whose `direction is None` in a directioned file (an unmeasured region in an
+    otherwise direction-capable run) is written as an EMPTY field, not 0.0 — so
+    "unmeasured" stays distinct from a measured "flat" (0.0). read_region_weights maps
+    the empty field back to None.
     """
     has_dir = any(r.direction is not None for r in rows)
     header = CONTRACT_HEADER + ([DIRECTION_COL] if has_dir else [])
@@ -43,8 +48,9 @@ def write_region_weights(rows: list[RegionWeight], path: str | Path) -> None:
             score = max(0.0, min(1.0, float(r.driver_score)))  # clamp to [0,1]
             out = [r.chrom, int(r.start), int(r.end), round(score, 4)]
             if has_dir:
-                d = 0.0 if r.direction is None else max(-1.0, min(1.0, float(r.direction)))
-                out.append(round(d, 4))
+                d = ("" if r.direction is None
+                     else round(max(-1.0, min(1.0, float(r.direction))), 4))
+                out.append(d)
             w.writerow(out)
 
 

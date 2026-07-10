@@ -43,6 +43,7 @@ def main() -> None:
     rows = driver_scores(chrom, start, end, shift, method=args.norm)
 
     n_dir = 0
+    n_unmeasured = 0
     if args.direction != "off":
         delta = signed_delta(a, b)
         if delta is None:
@@ -50,12 +51,13 @@ def main() -> None:
                 raise SystemExit("--direction on: an artifact has no scalar signal")
         else:
             attach_direction(rows, delta, method=args.direction_norm)
-            n_dir = len(rows)
+            n_dir = sum(1 for r in rows if r.direction is not None)
+            n_unmeasured = len(rows) - n_dir   # NaN signal in a state -> direction unset
 
     write_region_weights(rows, args.out)
-    print("wrote %s : %d regions (%s vs %s, norm=%s, direction=%d)"
+    print("wrote %s : %d regions (%s vs %s, norm=%s, direction=%d, unmeasured=%d)"
           % (args.out, len(rows), a.meta.get("cell_state"),
-             b.meta.get("cell_state"), args.norm, n_dir))
+             b.meta.get("cell_state"), args.norm, n_dir, n_unmeasured))
 
 
 if __name__ == "__main__":
