@@ -145,8 +145,9 @@ The primary (native) case, `--no-lift`, on the A800:
 | → accessible cCREs | 89,147 | 151,874 |
 | → embedded (rank cap 8190) | 8,190 | 8,190 |
 
-`navigate.py` → **only 415** shared driver regions
-(`epiagent_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`, all 24 chroms). The pipeline
+`navigate.py --direction on` → **only 415** shared driver regions, now 5-column
+(`epiagent_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`; `direction ∈ [-1,+0.83]`,
+**144 open / 271 close**, from the SR head). The pipeline
 is mechanically flawless, but this exposes that **the 8190 rank cap — not liftOver — is
 EpiAgent's real coverage limiter, even natively**: each state has ~90–150k accessible
 cCREs but only its top-8190 by TF-IDF are embedded, and for *dissimilar* states (kidney
