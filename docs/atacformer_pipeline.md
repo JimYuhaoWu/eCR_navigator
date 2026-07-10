@@ -94,19 +94,19 @@ python navigate.py --emb-a atacformer.kidney.hg38.sig.npz \
     --out atacformer_driver_scores.kidney_pancreas.hg38.tsv
 ```
 
-**Measured directional human run (2026-07-10).** aTPM overlapped **95.0%** of kidney and
-**96.4%** of pancreas ATACformer regions; the 40,753-region contract now carries
-`direction ∈ [-1,+0.98]`, **15,971 open / 24,683 close / 99 flat**. (No direction for the
-*mouse* MEF→mES run: its scored peaks are mm10 while the artifact is hg38, and the human
+**Measured directional human run — re-verified 2026-07-10 with the unmeasured-NaN fix.**
+Re-attached both states from the base artifacts with the fixed `attach_measured_signal.py`
+against the current `get_human_kp/atpm_union.tsv`: aTPM overlapped **100.0%** of kidney
+(66,573/66,573) and **100.0%** of pancreas (108,868/108,868) ATACformer regions — i.e. the
+union aTPM table fully covers ATACformer's universe, so there are **no unmeasured regions**
+here and nothing to fabricate. The 40,753-region shared contract carries
+`direction ∈ [-1,+0.977]`, **15,971 open / 24,683 close / 99 flat / 0 unmeasured**
+(the 99 flats and the exact-zero signals are genuine *measured* zeros). The fix leaves this
+pair's split unchanged precisely because coverage is total; it only diverges when an
+accessibility track is sparser than the model's regions. (No direction for the *mouse*
+MEF→mES run: its scored peaks are mm10 while the artifact is hg38, and the human
 kidney/pancreas BEDs are 3-column — measured direction needs an accessibility track in the
 artifact's assembly; aTPM happened to exist for the human states via GET.)
-
-> **Regenerate — counts predate the unmeasured-NaN fix.** This run was scored before
-> `map_signal` distinguished *unmeasured* (NaN) from a measured `0.0`, so regions
-> covered in one state but not the other (~4–5% here) were folded into the open/close
-> tallies above. Re-run to get the corrected split with an explicit `unmeasured` bucket
-> (`navigate.py` now prints it); the open/close direction of *covered* regions is
-> unchanged.
 
 ## Interpretation note
 
