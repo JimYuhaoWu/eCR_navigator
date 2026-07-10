@@ -16,7 +16,7 @@ signal comes from**, and that provenance is exactly what determines how much to 
 
 | Tier | Models | `signal` source | Trust |
 |---|---|---|---|
-| **input-measured** | GET, ChromFound | the **measured accessibility the model conditioned on** (aTPM / continuous accessibility), emitted straight from the input, aligned to the embedding by construction | highest — real measured data, native resolution, no overlap mapping |
+| **input-measured** | GET *(validated 2026-07-10)*, ChromFound *(code ready; run pending its mirror)* | the **measured accessibility the model conditioned on** (aTPM / continuous accessibility), emitted straight from the input, aligned to the embedding by construction | highest — real measured data, native resolution, no overlap mapping |
 | **predicted-model-native** | EpiAgent | the model's **own accessibility head** (`sigmoid(signal_decoder(cell_embedding))`, a predicted P(accessible)) | principled (a head *trained* to reconstruct accessibility) but **zero-shot, unvalidated** against measured Δ |
 | **external-attach** | ATACformer, ChromBERT | a measured accessibility track (GET's aTPM) **overlapped onto** the model's regions post hoc by `scripts/attach_measured_signal.py` — the model itself has no accessibility readout | real data, but bolted on by coordinate overlap (coverage gaps → unmeasured) |
 
