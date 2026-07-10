@@ -59,11 +59,15 @@ Integrated (zero-shot embedding-shift → `driver_score ∈ [0,1]`, rank/minmax-
 
 | Model | Input data | Species (native / bridged) | Zero-shot output | Fine-tuned |
 |---|---|---|---|---|
-| **ChromBERT** | ATAC peaks → TRN (regulator) context | **hg38 + mm10 both native** (`-g`) | 768-d TRN-embedding shift | ⬜ planned |
-| **GET** | 282 Vierstra motif scores **+ aTPM** accessibility | **hg38 + mm10 both native** | 768-d embedding shift | ⬜ planned |
-| **ATACformer** | scATAC region **tokens** (fixed 890k-region hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 192-d embedding shift **+ measured `direction`** (aTPM-Δ, external — not model-native) | ⬜ |
-| **ChromFound** | scATAC OCRs, coordinate-based **+ continuous accessibility** | hg38 native · mm10 via liftOver (~99.8%) | 128-d embedding shift | ⬜ |
-| **EpiAgent** | scATAC **cCRE tokens** (fixed 1.35M-cCRE hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 512-d embedding shift **+ signed `direction`** (SR head) | ⬜ |
+| **ChromBERT** | ATAC peaks → TRN (regulator) context | **hg38 + mm10 both native** (`-g`) | 768-d TRN-embedding shift **+ measured `direction`** (aTPM-Δ, external attach) | ⬜ planned |
+| **GET** | 282 Vierstra motif scores **+ aTPM** accessibility | **hg38 + mm10 both native** | 768-d embedding shift **+ input-measured `direction`** (aTPM-Δ, native input channel) | ⬜ planned |
+| **ATACformer** | scATAC region **tokens** (fixed 890k-region hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 192-d embedding shift **+ measured `direction`** (aTPM-Δ, external attach) | ⬜ |
+| **ChromFound** | scATAC OCRs, coordinate-based **+ continuous accessibility** | hg38 native · mm10 via liftOver (~99.8%) | 128-d embedding shift **+ input-measured `direction`** (accessibility-Δ, native input channel) | ⬜ |
+| **EpiAgent** | scATAC **cCRE tokens** (fixed 1.35M-cCRE hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 512-d embedding shift **+ predicted `direction`** (SR head, model-native) | ⬜ |
+
+All five now feed the contract's optional signed `direction` column; the three provenance
+tiers (input-measured, predicted-model-native, external-attach) and their trust caveats are
+in [`docs/direction.md`](docs/direction.md).
 
 Scoped / candidate (not integrated — see the per-model docs):
 

@@ -93,11 +93,18 @@ def main() -> None:
             if e.shape[0] != n_ocr and e.shape[1] == n_ocr:         # orient to (n_OCR, dim)
                 e = e.T
             emb = e[:n_ocr]                                          # (n_OCR, 128)
+            # ChromFound's per-OCR INPUT accessibility is its input-measured DIRECTION
+            # signal (aligned to var row i, same order as emb). Emit it so navigate.py
+            # differences two states into `direction`. NOTE: build_input 0-fills OCRs
+            # absent from a state's peak set, so absence reads here as measured-low
+            # (~closed), NOT unmeasured — defensible for peak-union accessibility. See
+            # docs/direction.md.
+            signal = np.asarray(value.detach().cpu()).reshape(-1)[:n_ocr]
             outp = os.path.join(args.out_dir, f"chromfound.{st}.{args.assembly}.npz")
             n, d = write_embedding_artifact(
                 outp, chrom, start, end, emb,
                 model="chromfound", cell_state=st, assembly=args.assembly,
-                source="chromfound_embed_regions.py")
+                source="chromfound_embed_regions.py", signal=signal)
             print(f"wrote {outp}: {n} OCRs x {d} dims ({st})")
 
 
