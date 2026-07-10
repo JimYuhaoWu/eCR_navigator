@@ -61,7 +61,7 @@ Integrated (zero-shot embedding-shift → `driver_score ∈ [0,1]`, rank/minmax-
 |---|---|---|---|---|
 | **ChromBERT** | ATAC peaks → TRN (regulator) context | **hg38 + mm10 both native** (`-g`) | 768-d TRN-embedding shift | ⬜ planned |
 | **GET** | 282 Vierstra motif scores **+ aTPM** accessibility | **hg38 + mm10 both native** | 768-d embedding shift | ⬜ planned |
-| **ATACformer** | scATAC region **tokens** (fixed 890k-region hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 192-d embedding shift | ⬜ |
+| **ATACformer** | scATAC region **tokens** (fixed 890k-region hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 192-d embedding shift **+ measured `direction`** (aTPM-Δ, external — not model-native) | ⬜ |
 | **ChromFound** | scATAC OCRs, coordinate-based **+ continuous accessibility** | hg38 native · mm10 via liftOver (~99.8%) | 128-d embedding shift | ⬜ |
 | **EpiAgent** | scATAC **cCRE tokens** (fixed 1.35M-cCRE hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 512-d embedding shift **+ signed `direction`** (SR head) | ⬜ |
 

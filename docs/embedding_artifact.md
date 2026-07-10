@@ -45,15 +45,19 @@ the output contract — the open/close instruction. Rules:
 - `signal[i]` corresponds to `embedding[i]` (same region, same order).
 - Omit it (`signal=None`) and the direction column is simply absent — 4-column
   output, byte-compatible with existing consumers. `meta.has_signal` records which.
-- **EpiAgent** fills it from its Signal-Reconstruction head
-  (`sigmoid(signal_decoder(cell_embedding))`, a model-native predicted-accessibility
-  probability in `[0,1]`). See `docs/epiagent_pipeline.md`.
-- **Caveat (per model):** for a model *designed* to predict accessibility (EpiAgent's
-  SR head, AlphaGenome's DNase head) the direction is principled. For a model with **no
-  scalar accessibility readout**, any direction we synthesize (e.g. projecting the
-  embedding shift, or borrowing a measured-peak Δ) is a **navigator-side modification,
-  not validated** — mark it as such wherever it's produced (see
-  `region_weight_contract.md`).
+- **Two ways to fill it:**
+  - *Model-native* — **EpiAgent**'s Signal-Reconstruction head
+    (`sigmoid(signal_decoder(cell_embedding))`, a predicted-accessibility probability in
+    `[0,1]`); AlphaGenome's DNase head. The model's own accessibility output.
+  - *Measured (external)* — `scripts/attach_measured_signal.py` maps a real
+    accessibility track (e.g. GET's aTPM) onto an artifact's regions by overlap. Used
+    for models with **no** accessibility head (ATACformer, GET, ChromBERT, ChromFound);
+    the model gives magnitude, the track gives direction.
+- **Caveat (per model):** direction is principled from a model *designed* to predict
+  accessibility (EpiAgent SR, AlphaGenome DNase) or from *measured* data (aTPM Δ — the
+  trusted external case). A direction **synthesized from the embedding itself** (e.g.
+  projecting the shift) for a non-directional model is a **navigator-side modification,
+  not validated** — mark it as such wherever produced (see `region_weight_contract.md`).
 
 **The dtypes are load-critical.** The navigator reads with `allow_pickle=False`
 (fast, and it refuses to unpickle arbitrary objects), so `chrom` must be a unicode
