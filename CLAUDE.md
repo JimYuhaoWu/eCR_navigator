@@ -132,6 +132,9 @@ scripts/        # server-mirror workflow — kept in-repo (mirror isn't persiste
   get_regionmotif_matrix.py      # GET-specific input prep (motif matrix)
   chromfound_build_input.py      # ChromFound-specific input prep (h5ad)
   compute_atpm.sh                # aTPM (accessibility channel) from bigWigs
+  attach_measured_signal.py      # attach MEASURED accessibility (e.g. aTPM) as the
+                                 #   artifact `signal` -> direction, for models with no
+                                 #   accessibility head (ATACformer/GET/ChromBERT/ChromFound)
 docs/
   region_weight_contract.md      # STABLE output contract (navigator -> predictor)
   embedding_artifact.md          # internal .npz contract (mirror -> navigator)

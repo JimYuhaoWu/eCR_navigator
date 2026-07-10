@@ -61,15 +61,15 @@ Integrated (zero-shot embedding-shift → `driver_score ∈ [0,1]`, rank/minmax-
 |---|---|---|---|---|
 | **ChromBERT** | ATAC peaks → TRN (regulator) context | **hg38 + mm10 both native** (`-g`) | 768-d TRN-embedding shift | ⬜ planned |
 | **GET** | 282 Vierstra motif scores **+ aTPM** accessibility | **hg38 + mm10 both native** | 768-d embedding shift | ⬜ planned |
-| **ATACformer** | scATAC region **tokens** (fixed 890k-region hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 192-d embedding shift | ⬜ |
+| **ATACformer** | scATAC region **tokens** (fixed 890k-region hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 192-d embedding shift **+ measured `direction`** (aTPM-Δ, external — not model-native) | ⬜ |
 | **ChromFound** | scATAC OCRs, coordinate-based **+ continuous accessibility** | hg38 native · mm10 via liftOver (~99.8%) | 128-d embedding shift | ⬜ |
-| **EpiAgent** | scATAC **cCRE tokens** (fixed 1.35M-cCRE hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 512-d embedding shift | ⬜ |
+| **EpiAgent** | scATAC **cCRE tokens** (fixed 1.35M-cCRE hg38 universe) | hg38 native · mm10 via liftOver (sparse) | 512-d embedding shift **+ signed `direction`** (SR head) | ⬜ |
 
 Scoped / candidate (not integrated — see the per-model docs):
 
 | Model | Input data | Species | Output score type | Status |
 |---|---|---|---|---|
-| **AlphaGenome** | DNA sequence → predicted DNase/ATAC tracks | **hg38 + mm10 both native** | predicted-accessibility Δ **+ signed direction** | scoping — next to build |
+| **AlphaGenome** | DNA sequence → predicted DNase/ATAC tracks | **hg38 + mm10 both native** | predicted-accessibility Δ **+ signed direction** | scoping — **deprioritized** (its two-state direction is dominated by measured peak-Δ and by EpiAgent's SR head; revisit as an in-silico-mutagenesis / endpoint-generalization track) |
 | **scDIFF** | scATAC (cells×peaks) + DNA seq + histone marks | mouse-native (seq generic) | cell-type annotation; repurposable = CACNN accessibility-shift | paused (needs single-cell MEF→mES) |
 | **Evo2** | raw DNA sequence **only** | any (hg38 + mm10 native) | sequence-intrinsic constraint/importance **prior** (not a two-state score) | scope-only (needs A100) |
 

@@ -72,6 +72,13 @@ loss is *asymmetric*, which biases a MEF-vs-mES differential. Quantify it per ru
 rows. cCRE token `t` maps to universe row `t-4`, whose coordinate is `var_names[t-4]`,
 so both states share coordinates and `navigate.py` aligns them with no extra work.
 
+It also emits an optional per-cCRE **`signal`** array (the direction channel):
+`sigmoid(signal_decoder(cell_embedding))` — EpiAgent's own Signal-Reconstruction head,
+a predicted accessibility probability in `[0,1]` — sampled at the same emitted cCRE
+rows. Because this is a head **trained to reconstruct accessibility**, its state-to-
+state difference is a *principled* open/close signal (not a navigator-synthesized one),
+which is why EpiAgent fills `direction` where the embedding-only models do not.
+
 ```bash
 python epiagent_embed_regions.py --h5ad artifacts/epiagent.MEF.h5ad --state MEF \
     --ckpt /yutiancheng/yuhao/models/EpiAgent/pretrained_EpiAgent.pth \
@@ -91,7 +98,9 @@ python navigate.py --emb-a artifacts/epiagent.MEF.hg38.npz \
     --emb-b artifacts/epiagent.mES.hg38.npz --out artifacts/epiagent_driver_scores.hg38.tsv
 ```
 
-Produces the stable `chrom,start,end,driver_score∈[0,1]` contract
+Produces the `chrom,start,end,driver_score∈[0,1]` contract, **plus a signed
+`direction∈[-1,1]` column** because the artifacts carry `signal` (navigate.py's
+`--direction auto` adds it when present; `direction=+1` open, `-1` close). See
 ([`region_weight_contract.md`](region_weight_contract.md)). To carry scores back to
 mm10 for the mouse pipeline, liftOver the output TSV hg38→mm10 (chain in `eCR/refs`);
 expect heavy additional loss (conserved core only), same as ATACformer.
@@ -136,8 +145,9 @@ The primary (native) case, `--no-lift`, on the A800:
 | → accessible cCREs | 89,147 | 151,874 |
 | → embedded (rank cap 8190) | 8,190 | 8,190 |
 
-`navigate.py` → **only 415** shared driver regions
-(`epiagent_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`, all 24 chroms). The pipeline
+`navigate.py --direction on` → **only 415** shared driver regions, now 5-column
+(`epiagent_driver_scores.kidney_pancreas.hg38.tsv`, `[0,1]`; `direction ∈ [-1,+0.83]`,
+**144 open / 271 close**, from the SR head). The pipeline
 is mechanically flawless, but this exposes that **the 8190 rank cap — not liftOver — is
 EpiAgent's real coverage limiter, even natively**: each state has ~90–150k accessible
 cCREs but only its top-8190 by TF-IDF are embedded, and for *dissimilar* states (kidney
@@ -147,14 +157,30 @@ reserved for **similar** state pairs (e.g. two points along one transdifferentia
 trajectory, where the accessible-cCRE ranking is more stable), or used via its
 full-coverage `signal_decoder` path (below) rather than the rank-capped token embedding.
 
-## Readout choice (per-cCRE embedding shift vs predicted accessibility)
+## Two readouts, two channels (magnitude vs direction)
 
-This pipeline uses the **per-cCRE contextual embedding shift** (like the other
-models). EpiAgent also exposes `signal_decoder(cell_embedding)` — a predicted
-accessibility over *all* 1.35M cCREs from a single forward, which would give full
-coverage and a signed open/close direction (the `direction` column of the contract).
-That is a natural alternative for the human/primary case; it is not wired here to keep
-EpiAgent consistent with the shared embedding-shift path.
+EpiAgent now feeds **both** channels of the contract, from two different heads:
+
+| Channel | Head | What it is | Coverage |
+|---|---|---|---|
+| `driver_score` [0,1] | per-cCRE contextual **embedding shift** (as all models) | magnitude/importance (unsigned) | top-8190 rank cap |
+| `direction` [-1,1] | **`signal_decoder`** (Signal-Reconstruction) | signed predicted-accessibility Δ = open/close | genome-wide head, sampled at the emitted cCREs |
+
+The `signal_decoder(cell_embedding)` head predicts accessibility over *all* 1.35M cCREs
+from a single forward. We sample it at the emitted cCREs so direction aligns row-for-row
+with the magnitude; because that head is *genome-wide*, the same path could later drive a
+**full-coverage** EpiAgent readout that sidesteps the 8190 rank cap entirely (noted
+above as the fix for dissimilar-state pairs). For now the region set is still the
+embedding shift's shared top-8190.
+
+**Real directional MEF→mES run (2026-07-10).** `--direction on` over the 2,285 shared
+regions: `direction ∈ [-0.45, +1.0]`, **1,727 open / 550 close / 8 flat** — a mixed,
+sensible split (not all one sign), and the top-magnitude drivers carry clear signs
+(e.g. a top driver at chr1:148,888,056 scores to **close**, chr1:147,104,610 to
+**open**). Staged as `artifacts/epiagent_driver_scores.hg38.tsv` (now 5-column).
+Direction here is model-native (SR head), so it is *principled* but still **zero-shot
+and not validated against measured MEF/mES accessibility** — treat magnitudes as
+provisional pending a systematic check.
 
 **Caveat to validate (unlike ATACformer):** EpiAgent adds a **rank** embedding, so a
 cCRE's contextual vector depends on its TF-IDF rank position, which differs between

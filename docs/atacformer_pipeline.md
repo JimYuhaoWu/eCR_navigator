@@ -65,6 +65,42 @@ Produces the stable `chrom,start,end,driver_score∈[0,1]` contract (see
 [`region_weight_contract.md`](region_weight_contract.md)). To carry scores back to
 mm10 for the mouse pipeline, liftOver the output TSV hg38→mm10.
 
+## Direction — MEASURED aTPM-Δ, not a model output (flagged)
+
+ATACformer has **no accessibility-prediction head** (unlike EpiAgent's Signal-
+Reconstruction `signal_decoder`): its input is binary region *presence*, its embed
+returns hidden states only, and its `...ForMaskedLM` head predicts over the 890k-region
+*vocabulary*, not a per-region accessibility scalar — so it cannot produce a principled
+*model-native* direction. Its `driver_score` is an **unsigned** embedding-shift
+magnitude.
+
+To still give downstream an open/close instruction, we attach a **measured** signal:
+`scripts/attach_measured_signal.py` maps GET's per-state **aTPM** accessibility
+(`get_human_kp/atpm_union.tsv`, hg38, same states) onto each ATACformer region by max
+overlap, writing the artifact's optional `signal`. navigate.py then differences the two
+states into `direction` (aTPM ∈ [0,1] → use `--direction-norm raw`, i.e.
+`direction = ΔaTPM`). This is the **trusted** end of the direction caveat
+([`region_weight_contract.md`](region_weight_contract.md)) — *real measured data*, not a
+value synthesized from the embedding — **but it is NOT ATACformer's own output**:
+ATACformer supplies magnitude, the accessibility track supplies direction. Report it as
+such; it is not validated as ATACformer "knowing" direction.
+
+```bash
+python attach_measured_signal.py --artifact atacformer.kidney.hg38.npz \
+    --intensity get_human_kp/atpm_union.tsv --value-col atpm_kidney \
+    --out atacformer.kidney.hg38.sig.npz          # repeat with atpm_pancreas
+python navigate.py --emb-a atacformer.kidney.hg38.sig.npz \
+    --emb-b atacformer.pancreas.hg38.sig.npz --direction on --direction-norm raw \
+    --out atacformer_driver_scores.kidney_pancreas.hg38.tsv
+```
+
+**Measured directional human run (2026-07-10).** aTPM overlapped **95.0%** of kidney and
+**96.4%** of pancreas ATACformer regions; the 40,753-region contract now carries
+`direction ∈ [-1,+0.98]`, **15,971 open / 24,683 close / 99 flat**. (No direction for the
+*mouse* MEF→mES run: its scored peaks are mm10 while the artifact is hg38, and the human
+kidney/pancreas BEDs are 3-column — measured direction needs an accessibility track in the
+artifact's assembly; aTPM happened to exist for the human states via GET.)
+
 ## Interpretation note
 
 The state signal is region *presence*, not a per-region accessibility value (unlike

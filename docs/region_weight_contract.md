@@ -35,6 +35,17 @@ chr1	3119611	3119740	0.12	-0.55
 The `direction` column is only present when at least one row has it, so the
 4-column form stays byte-compatible for consumers that read `driver_score` alone.
 
+> **Validity caveat — read before trusting `direction`.** Direction is only as
+> principled as its source. It is trustworthy when it comes from a **model designed to
+> predict accessibility** (EpiAgent's Signal-Reconstruction head; AlphaGenome's DNase
+> head) or from a **measured** two-state accessibility Δ. For any model that has **no
+> scalar accessibility readout** (ChromBERT, GET, ATACformer, ChromFound — their score
+> is an *unsigned* embedding-shift magnitude), a direction is **not something the model
+> produces**: any value there would be a **navigator-side synthesis that has NOT been
+> systematically validated** and may be wrong. Such columns must be flagged in the
+> producing model's `docs/*_pipeline.md` and should carry a `method`/provenance tag.
+> `driver_score` (magnitude) is unaffected by this caveat.
+
 ## Contract rules
 
 - **Assembly must match** the ATAC peaks and the genome FASTA used by
