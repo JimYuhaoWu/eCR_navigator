@@ -100,3 +100,19 @@ The primary (native) case on the ChromFound A800 mirror (port 38824), `--no-lift
   chroms, top drivers autosomal chr1/chr10). Staged at `/yutiancheng/yuhao/eCR/artifacts/`.
 - Confirms the "primary for human" call: full coverage (167k, on par with GET) vs the
   mouse liftOver's 87k — the coordinate-based encoder is genuinely species-portable.
+- **Input-measured `direction` added + validated (2026-07-10):** `chromfound_embed_regions.py`
+  now emits the per-OCR input accessibility (`value`) as the artifact `signal`, so
+  `navigate.py --direction auto --direction-norm raw` fills the signed `direction` column.
+  Re-ran both states (167,488 × 128); the 5-column
+  `chromfound_driver_scores.kidney_pancreas.hg38.tsv` splits **open 78,086 / close 83,200 /
+  flat 6,202 / unmeasured 0** over `[-1,1]`, and `driver_score` is unchanged vs the
+  pre-direction run (max |Δ| 1e-4 = 4-dp rounding). `signal` range [0,1], `nan=0`; the
+  **43,492** exact-zeros are OCRs low/absent in that state — **measured-low, not unmeasured**
+  (ChromFound's build 0-fills the peak union; documented in [`direction.md`](direction.md)).
+  **Cross-model check:** the split is byte-identical to GET's on the same union
+  ([`get_pipeline.md`](get_pipeline.md)) — two independent encoders fed the same measured
+  accessibility agree on every sign. Provenance: **input-measured** tier. NOTE: unlike GET
+  (magnitude↔ΔaTPM corr 0.08), ChromFound's magnitude already tracks |ΔaTPM| tightly (corr
+  0.87 above), so here `direction` is *less* independent of `driver_score` — report the sign,
+  but don't treat the two channels as independent evidence for this model. Promoted to
+  `/yutiancheng/yuhao/eCR/artifacts/`.

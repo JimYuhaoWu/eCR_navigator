@@ -146,10 +146,20 @@ def main() -> None:
     if col not in atpm.columns:
         raise SystemExit(f"{col} not in {args.atpm_tsv} (have {list(atpm.columns)})")
     amap = dict(zip(akey, atpm[col]))
-    atpm_vec = np.array([amap.get(k, 0.0) for k in key], dtype=np.float32).reshape(-1, 1)
+    atpm_vals = np.array([amap.get(k, 0.0) for k in key], dtype=np.float32)
+    atpm_vec = atpm_vals.reshape(-1, 1)
 
     region_motif = np.concatenate([motif_norm, atpm_vec], axis=1)   # (N, 283)
     assert region_motif.shape[1] == len(motif_names) + 1
+
+    # aTPM is also GET's input-measured DIRECTION signal: emit it so navigate.py can
+    # difference two states into `direction`. Model input stays 0.0-filled above, but a
+    # region absent from the aTPM table is UNMEASURED for direction (GET's region set is
+    # the motif matrix, independent of the aTPM table) -> NaN, so it is never scored as
+    # a spurious open/close. See docs/direction.md.
+    present = np.array([k in amap for k in key])
+    signal = atpm_vals.copy()
+    signal[~present] = np.nan
 
     # 3. embed
     model = load_get_model(args.checkpoint, args.get_repo)
@@ -158,7 +168,7 @@ def main() -> None:
     n, d = write_embedding_artifact(
         args.out, peaks["chrom"], peaks["start"], peaks["end"], emb,
         model="get", cell_state=args.state, assembly=args.assembly,
-        source="get_embed_regions.py")
+        source="get_embed_regions.py", signal=signal)
     print(f"wrote {args.out}: {n} regions x {d} dims ({args.state}, {args.assembly})")
 
 

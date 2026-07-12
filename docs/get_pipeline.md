@@ -106,3 +106,17 @@ eCR_predictor.
   a whole-chromosome (chrY donor-sex) embedding effect — though the chrX/chrY donor-sex
   caveat from [`chrombert_pipeline.md`](chrombert_pipeline.md) still applies to any
   biological reading of this test pair.
+- **Input-measured `direction` added + validated (2026-07-10) — kidney vs pancreas:**
+  `get_embed_regions.py` now emits the aTPM input as the artifact `signal`, so
+  `navigate.py --direction auto --direction-norm raw` fills the contract's signed
+  `direction` column (= ΔaTPM, +open/−close). Re-ran both states (167,488 × 768,
+  `missing=0`); the 5-column `get_driver_scores.kidney_pancreas.hg38.tsv` splits
+  **open 78,086 / close 83,200 / flat 6,202 / unmeasured 0** over `[-1, 1]` (no
+  unmeasured — the aTPM union covers every GET region). Two checks: the emitted
+  `signal` equals `atpm_kidney` exactly (max |Δ| 3e-8, float32), and `driver_score`
+  is byte-identical to the pre-direction run (max |Δ| 1e-4 = the 4-dp rounding) — the
+  magnitude channel is untouched. Because GET's magnitude↔ΔaTPM linear corr is only
+  0.08 (above), `direction` here is genuinely orthogonal information, not a restatement
+  of the magnitude. Provenance: **input-measured** tier (see
+  [`direction.md`](direction.md)) — real aTPM, native resolution, no attach step.
+  Promoted to `/yutiancheng/yuhao/eCR/artifacts/`.
