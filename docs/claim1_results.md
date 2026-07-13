@@ -105,7 +105,7 @@ Encouraging enough to justify obtaining a clean MEF→mESC/iPSC dataset and re-t
 ## Clean-endpoint re-run (GSE201577 — verified concordant: 3 MEF + 3 mESC clones)
 
 Full re-embed of both endpoints on the clean dataset (new 86,956-peak mm10 union, per-state
-aTPM from the count matrix). GET and ChromFound done; ChromBERT pending its mirror.
+aTPM from the count matrix). All three models complete.
 
 | Model | metric | uncurated | curated | **clean** | top-5% (clean) |
 |---|---|---:|---:|---:|---:|
@@ -113,6 +113,8 @@ aTPM from the count matrix). GET and ChromFound done; ChromBERT pending its mirr
 | GET | opening-only | 0.512 | — | 0.536 | 1.09× |
 | ChromFound | all-regions | 0.586 | 0.440 | 0.521 | 1.39× |
 | ChromFound | opening-only | **0.664** | — | **0.643** | 1.62× |
+| ChromBERT | all-regions | 0.497 | 0.492 | 0.500 | 0.97× |
+| ChromBERT | opening-only | 0.501 | — | 0.495 | 0.96× |
 
 **Two robust signals emerge on clean data:**
 - **GET all-regions rescued to 0.581** (CI [0.577, 0.585]) — GET was at chance on the
@@ -124,7 +126,10 @@ aTPM from the count matrix). GET and ChromFound done; ChromBERT pending its mirr
 Effect sizes are **moderate** (AUROC 0.58–0.64), not strong — driver_score is *weakly-to-
 moderately* informative, model- and framing-dependent, not a universal driver detector.
 ChromFound's all-regions signal is NOT robust (0.586→0.521); only its opening-only is.
-ChromBERT clean run pending (mirror `:35963` down at run time).
+**ChromBERT is null everywhere** (clean 0.500 / 0.495; CI includes 0.5) — robustly
+uninformative across all conditions, consistent with its known magnitude issue. So 2 of 3
+models carry a moderate driver signal on clean endpoints (GET all-regions, ChromFound
+opening-only); ChromBERT does not.
 
 ## Caveats / next steps (do not over-read this first pass)
 

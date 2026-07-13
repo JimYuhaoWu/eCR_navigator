@@ -23,17 +23,18 @@ master-TF ChIP binding as ground truth. (Claim 2 = direction; not started.)
   (SRR29564556/557), 1 is low quality (SRR30151579). Plus a strong batch axis. So the
   driver_score results rest on a weak endpoint.
 
-## STATUS 2026-07-14: clean-endpoint re-run mostly DONE
+## STATUS 2026-07-14: clean-endpoint re-run COMPLETE (all 3 models)
 
-GET + ChromFound re-embedded on GSE201577 clean endpoints and enriched (see
+All three models re-embedded on GSE201577 clean endpoints and enriched (see
 `claim1_results.md`): **GET all-regions rescued to 0.581** (was at chance on contaminated
-endpoints), **ChromFound opening-only holds at 0.643** (robust). Moderate effect sizes.
-**ChromBERT clean run still PENDING** — its mirror `:35963` was down; when it returns,
-run the ChromBERT clean embed (per-state peaks `MEF.peaks.bed`/`mES.peaks.bed` in
-`/yutiancheng/yuhao/eCR/clean201577/`) → navigate → enrich (all + opening-only). Clean
-inputs are staged at `/yutiancheng/yuhao/eCR/clean201577/` (shared) and
-`/mnt3/wuyuhao/GSE201577_clean/`. Clean contracts: `*_driver_scores.mm10.clean.tsv` in
-mirror `artifacts/` and `/mnt3/wuyuhao/claim1_work/`. Confounds: `union_confound.clean.tsv`.
+endpoints), **ChromFound opening-only holds at 0.643** (robust), **ChromBERT null
+everywhere** (0.500/0.495). Bottom line: on clean endpoints driver_score is *moderately*
+informative for 2 of 3 models (GET all-regions; ChromFound opening-only) — the earlier
+flat null was substantially an endpoint-quality artifact. Clean inputs staged at
+`/yutiancheng/yuhao/eCR/clean201577/` (shared) and `/mnt3/wuyuhao/GSE201577_clean/`;
+clean contracts `*_driver_scores.mm10.clean.tsv` in mirror `artifacts/` +
+`/mnt3/wuyuhao/claim1_work/`. Claim 1 clean-endpoint test DONE. Claim 2 (direction) not
+started (deprioritized).
 
 ## Original clean-endpoint plan on GSE201577
 
