@@ -7,3 +7,4 @@ model	positives	matched_neg	auroc_matched	ci_lo	ci_hi	auroc_random	confound_gap	
 ChromFound	22366	58383	0.586	0.582	0.591	0.583	-0.003	1.49
 GET	60418	145635	0.507	0.504	0.510	0.507	-0.000	1.01
 ChromBERT	20340	19610	0.497	0.491	0.503	0.497	0.000	0.98
+ChromBERT_curated_mES	21503	39139	0.492	0.487	0.497	0.492	-0.000	0.93

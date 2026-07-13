@@ -46,6 +46,36 @@ for GET/ChromFound (e.g. GET p≈1e-3) **only because n≈200k makes a 0.507 AUR
   do not recover a shared biological ground truth, their mutual disagreement (Spearman ≈ 0)
   is expected.
 
+## Endpoint curation (Step 0) — replicate QC + ChromBERT re-run
+
+Joint clustering of all 13 ATAC libraries (genome-bin `SignalAcrossGenome`, common basis
+across folders 1 & 2) pinpoints the contamination **entirely in the mES endpoint**:
+
+- **Coherent mESC = 2 libraries only:** `SRR29564546` + `SRR29564555` (r = 0.90).
+- `SRR29564556`, `SRR29564557` (labelled mESC) **cluster with MEF** (across-state corr >
+  within-state) — MEF-like, dropped.
+- `SRR30151579` (lone folder-1 mESC) is low quality (r ≈ 0.24 to the good pair) — dropped.
+- The 8 MEF libraries are broadly consistent.
+
+**Controlled re-run (isolate the mES fix):** MEF endpoint held fixed (reused
+`chrombert.MEF.mm10.npz`); mES re-built from the 2 coherent libraries only
+(`mES.curated.bed`, 150,177 peaks), re-embedded, re-navigated →
+`chrombert_driver_scores.mm10.curated.tsv` (62,044 regions). Confound rebuilt from the
+curated per-state means.
+
+| ChromBERT | positives | AUROC (matched) | 95% CI | top-5% fold |
+|---|---:|---:|---:|---:|
+| uncurated | 20,340 | 0.497 | [0.491, 0.503] | 0.98× |
+| **curated mES** | 21,503 | **0.492** | [0.487, 0.497] | 0.93× |
+
+**Curation did not move ChromBERT off chance.** For ChromBERT this argues *against*
+endpoint-noise (explanation 1) and *toward* the magnitude being intrinsically
+uninformative here (explanation 2) — but ChromBERT was already null and carries a known
+magnitude issue ([task_7727d992]; `cross_model_consistency.md`), so it is a **weak** test
+of the general question. The decisive test is a curated re-run of **ChromFound** (the one
+model with signal, 0.586) and **GET** — both blocked on their mirrors (`:38524`, `:38824`
+down at time of writing).
+
 ## Caveats / next steps (do not over-read this first pass)
 
 1. **Uncurated endpoints.** These runs use the existing merged MEF/mES pseudobulks, which
