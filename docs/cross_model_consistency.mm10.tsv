@@ -1,0 +1,9 @@
+# Cross-model driver_score (magnitude) consistency, mm10 MEF->mES, 2026-07-13
+# driver_score is rank-normalized; Spearman is invariant to rank-norm (monotonic).
+# join=exact where coord basis shared; join=overlap (max-overlap interval) for ChromBERT 1kb grid.
+# scores re-ranked within paired subset before correlating. shuffled-control Spearman ~ -0.0004.
+model_a	model_b	join	paired_regions	spearman	top10_fold	top5_fold	top1_fold
+ChromFound	GET	exact	86630	0.0528	1.20	1.34	1.62
+ChromFound	GET	overlap	87030	0.0524	1.20	NA	NA
+ChromBERT	GET	overlap	39950	0.0017	1.13	NA	NA
+ChromBERT	ChromFound	overlap	20696	-0.0213	0.94	NA	NA
