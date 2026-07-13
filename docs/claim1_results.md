@@ -57,24 +57,31 @@ across folders 1 & 2) pinpoints the contamination **entirely in the mES endpoint
 - `SRR30151579` (lone folder-1 mESC) is low quality (r ≈ 0.24 to the good pair) — dropped.
 - The 8 MEF libraries are broadly consistent.
 
-**Controlled re-run (isolate the mES fix):** MEF endpoint held fixed (reused
-`chrombert.MEF.mm10.npz`); mES re-built from the 2 coherent libraries only
-(`mES.curated.bed`, 150,177 peaks), re-embedded, re-navigated →
-`chrombert_driver_scores.mm10.curated.tsv` (62,044 regions). Confound rebuilt from the
-curated per-state means.
+**Controlled re-run (isolate the mES fix), all three models:** MEF endpoint held fixed
+(reused each model's original MEF embedding); mES rebuilt from the 2 coherent libraries
+only, re-embedded, re-navigated. ChromBERT from `mES.curated.bed` (150,177 peaks); GET
+and ChromFound from curated mES aTPM on the union (`atpm_union.curated_mES.tsv`,
+99th-pct [0,1]). Confound = curated `|ΔaTPM|` from the coherent-replicate means.
 
-| ChromBERT | positives | AUROC (matched) | 95% CI | top-5% fold |
+| Model | uncurated AUROC | **curated-mES AUROC** | 95% CI (curated) | top-5% (curated) |
 |---|---:|---:|---:|---:|
-| uncurated | 20,340 | 0.497 | [0.491, 0.503] | 0.98× |
-| **curated mES** | 21,503 | **0.492** | [0.487, 0.497] | 0.93× |
+| GET | 0.507 | **0.490** | [0.487, 0.492] | 0.99× |
+| ChromBERT | 0.497 | **0.492** | [0.487, 0.497] | 0.93× |
+| ChromFound | 0.586 | **0.440** | [0.435, 0.445] | 1.39× |
 
-**Curation did not move ChromBERT off chance.** For ChromBERT this argues *against*
-endpoint-noise (explanation 1) and *toward* the magnitude being intrinsically
-uninformative here (explanation 2) — but ChromBERT was already null and carries a known
-magnitude issue ([task_7727d992]; `cross_model_consistency.md`), so it is a **weak** test
-of the general question. The decisive test is a curated re-run of **ChromFound** (the one
-model with signal, 0.586) and **GET** — both blocked on their mirrors (`:38524`, `:38824`
-down at time of writing).
+**Curation did not sharpen any model — the opposite.** GET and ChromBERT stay at chance.
+**ChromFound's only above-chance signal (0.586) did NOT survive curation — it dropped to
+0.440, below chance** (though its top-5% enrichment persists at 1.39×, i.e. the
+score↔binding relationship is non-monotonic after curation). Two readings, both honest:
+(a) the original 0.586 was partly an artifact of the contaminated endpoint, not robust
+driver recovery; and/or (b) the curated mES (only 2 libraries, shallower) is itself a
+different, lower-coverage endpoint, so ChromFound is simply **sensitive to endpoint
+definition**. Either way, **driver_score informativeness is not robustly established on
+this pair** — the result flips sign under a reasonable change of endpoints.
+
+> **This does not support the hypothesis that the models give informative driver
+> scores.** Recorded in full per the instruction to report all results honestly. The
+> direction channel is unaffected (measured aTPM); this concerns magnitude only.
 
 ## Caveats / next steps (do not over-read this first pass)
 
