@@ -1,7 +1,29 @@
-# Claim 1 — is `driver_score` informative? (mm10 MEF→mES, first pass)
+# Claim 1 — is `driver_score` informative? (mm10 MEF→mES)
 
-**Date:** 2026-07-13 · **Pair:** mm10 MEF→mES · **Channel:** `driver_score` (magnitude).
-Machine-readable copy: [`claim1_results.mm10.tsv`](claim1_results.mm10.tsv).
+**Dates:** 2026-07-13 → 2026-07-14 · **Pair:** mm10 MEF→mES · **Channel:** `driver_score`
+(magnitude). Machine-readable copy: [`claim1_results.mm10.tsv`](claim1_results.mm10.tsv).
+Session status / handoff: [`claim1_progress.md`](claim1_progress.md).
+
+## Summary (final — read this first)
+
+On **clean, verified endpoints** (GSE201577: 3 MEF + 3 mESC concordant clones),
+`driver_score` is **moderately informative for 2 of 3 models**:
+
+| Model | best clean AUROC | how |
+|---|---|---|
+| GET | **0.581** | all-regions (rescued from chance 0.507 by clean endpoints) |
+| ChromFound | **0.643** | opening-only (top-5% 1.62×; robust across all datasets) |
+| ChromBERT | 0.500 | null everywhere — robustly uninformative |
+
+The earlier flat null (all three ≈ chance) was **substantially an endpoint-quality
+artifact**: the original mES endpoint was contaminated (only 2 of 5 mESC ATAC libraries
+coherent). Effect sizes are **moderate** (0.58–0.64), not strong — driver_score is a
+weak-to-moderate, model- and framing-dependent signal, not a universal driver detector.
+The `direction` channel is separate and unaffected (measured aTPM). Only 3 of the 5
+integrated models were tested: ATACformer's mm10 liftOver overlaps only 1,335 union
+regions (too few) and EpiAgent's mm10 contract was not built for this test.
+
+The sections below are the full investigation trail, in chronological order.
 
 ## Question
 
@@ -22,7 +44,7 @@ and its self-tests `tests/test_eval_claim1.py`.)
 - **Test pair endpoints are the SAME (uncurated) pseudobulks the driver contracts were
   built from** — see caveats.
 
-## Result
+## First pass — uncurated endpoints, all-regions
 
 | Model | positives | AUROC vs matched bg | 95% CI | AUROC vs random bg | confound gap | top-5% fold |
 |---|---:|---:|---:|---:|---:|---:|
@@ -34,7 +56,7 @@ The label-shuffle null centres at 0.500 for all three. The permutation p-values 
 for GET/ChromFound (e.g. GET p≈1e-3) **only because n≈200k makes a 0.507 AUROC
 "significant"** — report the effect size (AUROC, fold), not the p-value.
 
-## Read
+### Read (first pass — superseded by the clean-endpoint result above)
 
 - **ChromFound is the only model with a real (if modest) signal:** AUROC 0.586, top-5%
   enrichment 1.49×, CI excludes 0.5. Its confound gap ≈ 0, so this is **not** just tracking
@@ -144,3 +166,27 @@ opening-only); ChromBERT does not.
    opening toward mES) is worth testing, with care not to re-confound with `|ΔaTPM|`.
 3. **Large-n significance.** Ignore the permutation p-values here; use AUROC + CI + fold.
 4. Per-model, not pooled — there is no consensus driver_score (see cross-model note).
+
+## Artifacts & reproducibility (where everything lives)
+
+Contracts and inputs are on the ephemeral GPU mirror's **persistent** shared disk
+(`172.16.78.10:/yutiancheng/yuhao/eCR/`) and on **PeiLab2**
+(`172.16.78.234:2020` → `/mnt3/wuyuhao/`). Canonical numbers live in this repo
+(`claim1_results.mm10.tsv`); the large data files are NOT committed.
+
+- **Driver-score contracts** (mirror `artifacts/`, mirrored to PeiLab2
+  `claim1_work/`): `{get,chromfound,chrombert}_driver_scores.mm10{,.curated,.clean}.tsv`.
+- **Clean dataset (GSE201577)** inputs: PeiLab2 `/mnt3/wuyuhao/GSE201577_clean/`
+  (`union_named.bed` 86,956 peaks, `atpm_union.tsv`, `union_confound.clean.tsv`,
+  `MEF.peaks.bed`, `mES.peaks.bed`, `clean.motif.mm10.npz`) and mirror
+  `/yutiancheng/yuhao/eCR/clean201577/`. Clean embeddings: mirror `artifacts/`
+  (`{get,chrombert}.{MEF,mES}.clean.mm10.npz`) and
+  `chromfound_curated/clean_emb/chromfound.{MEF,mES}.hg38.npz`.
+- **Positive set:** PeiLab2 `/mnt3/wuyuhao/chip_atlas_mm10/master_tf.consensus.bed`
+  (+ per-factor consensus + `README.txt`).
+- **Contaminated source datasets:** PeiLab2 `/mnt3/wuyuhao/MEF_mESC{,_2,_3}/`
+  (GSE274130 / GSE201852 / GSE243513).
+- **Eval code (committed):** `scripts/eval_driver_claim1.py` (+ `--opening-only`),
+  `tests/test_eval_claim1.py` (11 self-tests). Runnable on any host with numpy.
+- **Mirror connection + key-restore procedure:** see
+  [`claim1_progress.md`](claim1_progress.md) and [`server_mirrors.md`](server_mirrors.md).

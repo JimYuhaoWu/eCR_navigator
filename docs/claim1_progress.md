@@ -1,6 +1,7 @@
 # Claim 1 validation — session progress / handoff
 
-Living status doc so this work can be resumed after a context reset. Updated 2026-07-13.
+Living status doc so this work can be resumed after a context reset. Updated 2026-07-14
+(clean-endpoint re-run complete for all three models).
 
 ## Goal
 
