@@ -109,6 +109,50 @@ def test_label_shuffle_is_chance():
     assert abs(res.auroc_matched - 0.5) < 0.06, res.auroc_matched
 
 
+def _synthetic_opening(n=8000, n_pos=600, alpha=1.0, seed=1):
+    """signed delta ~ U(-1,1): ~half open (>0), ~half close (<0). Positives are OPENING
+    regions that are also drivers, biased toward large opening. score = alpha*is_pos +
+    |delta| + noise (so magnitude is a confound that opening-matching must remove)."""
+    rng = np.random.default_rng(seed)
+    signed = rng.uniform(-1, 1, n)
+    opening = signed > 0
+    op = np.where(opening)[0]
+    w = signed[op] / signed[op].sum()
+    pos_idx = rng.choice(op, size=n_pos, replace=False, p=w)
+    labels = np.zeros(n, dtype=bool); labels[pos_idx] = True
+    scores = alpha * labels.astype(float) + np.abs(signed) + rng.normal(0, 0.25, n)
+    return scores, labels, signed
+
+
+def test_opening_only_detects_tf_among_equally_opening():
+    # drivers score higher among opening regions, at matched opening magnitude
+    scores, labels, signed = _synthetic_opening(alpha=1.0, seed=2)
+    res = evaluate(scores, labels, np.abs(signed), signed=signed, opening_only=True,
+                   n_boot=300, n_perm=300, seed=3)
+    assert res.auroc_matched > 0.6, res.auroc_matched
+    assert res.ci_matched[0] > 0.5, res.ci_matched
+
+
+def test_opening_only_confound_only_is_chance():
+    # no TF-specific signal (alpha=0): score is pure opening magnitude -> matched ~0.5
+    scores, labels, signed = _synthetic_opening(alpha=0.0, seed=4)
+    res = evaluate(scores, labels, np.abs(signed), signed=signed, opening_only=True,
+                   n_boot=300, n_perm=300, seed=5)
+    assert abs(res.auroc_matched - 0.5) < 0.06, res.auroc_matched
+
+
+def test_opening_only_excludes_closing_positives():
+    # positives placed on CLOSING regions must be dropped by the opening filter
+    scores, labels, signed = _synthetic_opening(alpha=1.0, seed=6)
+    # add closing positives
+    closing = np.where(signed < 0)[0][:300]
+    labels2 = labels.copy(); labels2[closing] = True
+    res = evaluate(scores, labels2, np.abs(signed), signed=signed, opening_only=True,
+                   n_boot=200, n_perm=200, seed=7)
+    n_opening_pos = int((labels2 & (signed > 0)).sum())
+    assert res.n_pos == n_opening_pos, (res.n_pos, n_opening_pos)
+
+
 def test_topk_fold_enrichment_direction():
     # strong signal -> top-k enriched (>1); pure noise -> ~1
     scores, labels, confound = _synthetic(alpha=3.0, beta=0.0, seed=8)

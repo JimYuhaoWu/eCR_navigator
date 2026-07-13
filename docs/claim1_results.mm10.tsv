@@ -10,3 +10,7 @@ ChromBERT	20340	19610	0.497	0.491	0.503	0.497	0.000	0.98
 ChromBERT_curated_mES	21503	39139	0.492	0.487	0.497	0.492	-0.000	0.93
 GET_curated_mES	60418	142501	0.490	0.487	0.492	0.490	0.000	0.99
 ChromFound_curated_mES	22370	57076	0.440	0.435	0.445	0.442	0.002	1.39
+# opening-only (signed-matched): positives = TF-bound AND opening toward mES; uncurated endpoints
+GET_opening	40465	53284	0.512	0.508	0.516	0.512	0.000	1.04
+ChromFound_opening	12322	16584	0.664	0.658	0.670	0.664	0.000	2.00
+ChromBERT_opening	5166	5707	0.501	0.490	0.512	0.501	0.000	1.03

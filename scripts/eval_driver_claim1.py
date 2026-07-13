@@ -199,11 +199,27 @@ class Claim1Result:
     topk_fold: float
 
 
-def evaluate(scores, labels, confound, n_per_pos=3, n_bins=20, seed=0,
-             n_boot=2000, n_perm=1000, k_frac=0.05):
+def evaluate(scores, labels, confound, signed=None, opening_only=False, open_thresh=0.0,
+             n_per_pos=3, n_bins=20, seed=0, n_boot=2000, n_perm=1000, k_frac=0.05):
+    """Enrichment of driver_score for positives vs a confound-matched background.
+
+    Default: positives vs a |confound|-matched negative set over all regions.
+    opening_only=True: restrict to regions OPENING toward the end state
+    (signed delta > open_thresh) and match negatives on the opening magnitude, so
+    positives (opening AND labelled) are compared only to non-labelled regions that
+    open by a similar amount — isolating the label (TF binding) from the accessibility
+    gain. Requires `signed` (the signed delta; `confound` is its magnitude).
+    """
     scores = np.asarray(scores, dtype=float)
     labels = np.asarray(labels, dtype=bool)
     confound = np.asarray(confound, dtype=float)
+
+    keep = np.isfinite(confound)
+    if opening_only:
+        if signed is None:
+            raise ValueError("opening_only requires signed delta")
+        keep = keep & (np.asarray(signed, dtype=float) > open_thresh)
+    scores, labels, confound = scores[keep], labels[keep], confound[keep]
 
     pos = np.where(labels)[0]
     neg_matched = matched_negative_indices(labels, confound, n_per_pos, n_bins, seed)
@@ -272,6 +288,12 @@ def main():
     ap.add_argument("--n-bins", type=int, default=20)
     ap.add_argument("--k-frac", type=float, default=0.05)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--opening-only", action="store_true",
+                    help="restrict to regions OPENING toward the end state (signed delta > "
+                         "--open-thresh) and match on opening magnitude; tests the label "
+                         "(TF binding) among equally-opening regions")
+    ap.add_argument("--open-thresh", type=float, default=0.0,
+                    help="signed-delta threshold for 'opening' (default 0.0)")
     args = ap.parse_args()
 
     chrom, start, end, score, direction = load_contract(args.contract)
@@ -280,17 +302,22 @@ def main():
 
     if args.confound:
         cc, cs, ce, cv, _ = load_contract(args.confound)  # reuse: value in col 4
-        # join by exact coordinate key
+        # join by exact coordinate key; keep SIGNED delta (sign selects opening regions)
         key = {(a, int(b), int(d)): v for a, b, d, v in zip(cc, cs, ce, cv)}
-        confound = np.array([abs(key.get((a, int(b), int(d)), np.nan))
-                             for a, b, d in zip(chrom, start, end)])
+        signed = np.array([key.get((a, int(b), int(d)), np.nan)
+                           for a, b, d in zip(chrom, start, end)])
     else:
-        confound = np.abs(direction)
+        signed = direction
+    confound = np.abs(signed)
     if not np.isfinite(confound).any():
-        raise SystemExit("no finite confound values; pass --confound with |Delta aTPM|")
+        raise SystemExit("no finite confound values; pass --confound with Delta aTPM")
 
-    res = evaluate(score, labels, confound, n_per_pos=args.n_per_pos,
-                   n_bins=args.n_bins, seed=args.seed, k_frac=args.k_frac)
+    res = evaluate(score, labels, confound, signed=signed,
+                   opening_only=args.opening_only, open_thresh=args.open_thresh,
+                   n_per_pos=args.n_per_pos, n_bins=args.n_bins, seed=args.seed,
+                   k_frac=args.k_frac)
+    if args.opening_only:
+        print(f"[opening-only: signed delta > {args.open_thresh}]")
     print(f"positives (regions overlapping label): {res.n_pos}")
     print(f"matched negatives:                     {res.n_matched_neg}")
     print(f"AUROC vs matched background:  {res.auroc_matched:.3f}  "

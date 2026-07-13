@@ -83,6 +83,25 @@ this pair** — the result flips sign under a reasonable change of endpoints.
 > scores.** Recorded in full per the instruction to report all results honestly. The
 > direction channel is unaffected (measured aTPM); this concerns magnitude only.
 
+## Reframed hypothesis — opening-only, signed-matched (quick look, uncurated endpoints)
+
+Positives restricted to master-TF-bound regions that **open toward mES** (signed ΔaTPM > 0);
+negatives = non-TF opening regions matched on opening magnitude. This isolates TF binding
+from the accessibility gain (`--opening-only` in `eval_driver_claim1.py`; self-tested).
+
+| Model | positives | AUROC (opening, matched) | 95% CI | top-5% fold |
+|---|---:|---:|---:|---:|
+| ChromFound | 12,322 | **0.664** | [0.658, 0.670] | **2.00×** |
+| GET | 40,465 | 0.512 | [0.508, 0.516] | 1.04× |
+| ChromBERT | 5,166 | 0.501 | [0.490, 0.512] | 1.03× |
+
+**The reframing sharpens ChromFound** (0.586 all-regions → **0.664** opening-only; top-5%
+1.49× → 2.00×): among regions opening by the same amount, TF-bound ones score meaningfully
+higher. GET and ChromBERT stay at chance even reframed. Caveats: (1) this is on the
+**uncurated** endpoints (which still contain the 2 MEF-like mES libraries), so it needs a
+clean dataset to confirm; (2) it is **one model** — not a general property of driver_score.
+Encouraging enough to justify obtaining a clean MEF→mESC/iPSC dataset and re-testing.
+
 ## Caveats / next steps (do not over-read this first pass)
 
 1. **Uncurated endpoints.** These runs use the existing merged MEF/mES pseudobulks, which
