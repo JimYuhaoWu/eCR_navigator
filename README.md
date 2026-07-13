@@ -69,6 +69,18 @@ All five now feed the contract's optional signed `direction` column; the three p
 tiers (input-measured, predicted-model-native, external-attach) and their trust caveats are
 in [`docs/direction.md`](docs/direction.md).
 
+### Validation — is the `driver_score` actually informative? (in progress)
+
+Separate from "does the pipeline run" (above), we test whether `driver_score` recovers
+true drivers, using master-TF ChIP binding (ChIP-Atlas) as ground truth against a
+change-magnitude-matched background. On **clean, verified endpoints** (GSE201577,
+mm10 MEF→mES), it is **moderately informative for 2 of 3 models tested** — GET all-regions
+AUROC 0.581, ChromFound opening-only 0.643, ChromBERT null. The earlier flat null was
+substantially an endpoint-quality artifact. Full trail, effect sizes, and honest caveats:
+[`docs/claim1_results.md`](docs/claim1_results.md); session handoff / reproduction paths:
+[`docs/claim1_progress.md`](docs/claim1_progress.md); cross-model magnitude consistency:
+[`docs/cross_model_consistency.md`](docs/cross_model_consistency.md).
+
 Scoped / candidate (not integrated — see the per-model docs):
 
 | Model | Input data | Species | Output score type | Status |

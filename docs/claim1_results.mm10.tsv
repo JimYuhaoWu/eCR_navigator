@@ -1,0 +1,23 @@
+# Claim 1 driver_score enrichment, mm10 MEF->mES, 2026-07-13
+# positives: ChIP-Atlas mm10 PSC TH20, 6 master TFs (Pou5f1,Sox2,Nanog,Esrrb,Klf4,Myc),
+#   consensus >=3 experiments per factor, unioned = 132766 regions (46 Mbp).
+# confound: |dATPM| = |mES-MEF| SignalOnPeaks, bedtools-map onto contract regions.
+# endpoints UNCURATED (same merged pseudobulks as the driver contracts). Report AUROC/CI/fold, not perm-p.
+model	positives	matched_neg	auroc_matched	ci_lo	ci_hi	auroc_random	confound_gap	top5_fold
+ChromFound	22366	58383	0.586	0.582	0.591	0.583	-0.003	1.49
+GET	60418	145635	0.507	0.504	0.510	0.507	-0.000	1.01
+ChromBERT	20340	19610	0.497	0.491	0.503	0.497	0.000	0.98
+ChromBERT_curated_mES	21503	39139	0.492	0.487	0.497	0.492	-0.000	0.93
+GET_curated_mES	60418	142501	0.490	0.487	0.492	0.490	0.000	0.99
+ChromFound_curated_mES	22370	57076	0.440	0.435	0.445	0.442	0.002	1.39
+# opening-only (signed-matched): positives = TF-bound AND opening toward mES; uncurated endpoints
+GET_opening	40465	53284	0.512	0.508	0.516	0.512	0.000	1.04
+ChromFound_opening	12322	16584	0.664	0.658	0.670	0.664	0.000	2.00
+ChromBERT_opening	5166	5707	0.501	0.490	0.512	0.501	0.000	1.03
+# CLEAN endpoints (GSE201577: 3 MEF + 3 mESC clones, verified concordant). all-regions + opening-only.
+GET_clean_all	36686	50270	0.581	0.577	0.585	0.581	0.000	1.27
+GET_clean_opening	26579	20697	0.536	0.531	0.542	0.536	0.000	1.09
+ChromFound_clean_all	15817	24427	0.521	0.515	0.527	0.521	0.000	1.39
+ChromFound_clean_opening	9867	8633	0.643	0.635	0.651	0.643	0.000	1.62
+ChromBERT_clean_all	16919	12228	0.500	0.493	0.506	0.500	0.000	0.97
+ChromBERT_clean_opening	9452	6037	0.495	0.486	0.505	0.495	0.000	0.96
