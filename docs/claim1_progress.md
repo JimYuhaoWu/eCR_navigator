@@ -23,7 +23,19 @@ master-TF ChIP binding as ground truth. (Claim 2 = direction; not started.)
   (SRR29564556/557), 1 is low quality (SRR30151579). Plus a strong batch axis. So the
   driver_score results rest on a weak endpoint.
 
-## Current task (IN PROGRESS): clean-endpoint re-run on GSE201577
+## STATUS 2026-07-14: clean-endpoint re-run mostly DONE
+
+GET + ChromFound re-embedded on GSE201577 clean endpoints and enriched (see
+`claim1_results.md`): **GET all-regions rescued to 0.581** (was at chance on contaminated
+endpoints), **ChromFound opening-only holds at 0.643** (robust). Moderate effect sizes.
+**ChromBERT clean run still PENDING** — its mirror `:35963` was down; when it returns,
+run the ChromBERT clean embed (per-state peaks `MEF.peaks.bed`/`mES.peaks.bed` in
+`/yutiancheng/yuhao/eCR/clean201577/`) → navigate → enrich (all + opening-only). Clean
+inputs are staged at `/yutiancheng/yuhao/eCR/clean201577/` (shared) and
+`/mnt3/wuyuhao/GSE201577_clean/`. Clean contracts: `*_driver_scores.mm10.clean.tsv` in
+mirror `artifacts/` and `/mnt3/wuyuhao/claim1_work/`. Confounds: `union_confound.clean.tsv`.
+
+## Original clean-endpoint plan on GSE201577
 
 `GSE201577` (ATAC subseries of GSE201578, "RNA-seq and ATAC-seq in MEF and mESC") is a
 **clean, verified** matched dataset: 3 MEF clones (C1/C2/C4) + 3 mESC clones (C1/C3/C5),

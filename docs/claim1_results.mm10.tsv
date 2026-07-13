@@ -14,3 +14,8 @@ ChromFound_curated_mES	22370	57076	0.440	0.435	0.445	0.442	0.002	1.39
 GET_opening	40465	53284	0.512	0.508	0.516	0.512	0.000	1.04
 ChromFound_opening	12322	16584	0.664	0.658	0.670	0.664	0.000	2.00
 ChromBERT_opening	5166	5707	0.501	0.490	0.512	0.501	0.000	1.03
+# CLEAN endpoints (GSE201577: 3 MEF + 3 mESC clones, verified concordant). all-regions + opening-only.
+GET_clean_all	36686	50270	0.581	0.577	0.585	0.581	0.000	1.27
+GET_clean_opening	26579	20697	0.536	0.531	0.542	0.536	0.000	1.09
+ChromFound_clean_all	15817	24427	0.521	0.515	0.527	0.521	0.000	1.39
+ChromFound_clean_opening	9867	8633	0.643	0.635	0.651	0.643	0.000	1.62
