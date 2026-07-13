@@ -1,0 +1,9 @@
+# Claim 1 driver_score enrichment, mm10 MEF->mES, 2026-07-13
+# positives: ChIP-Atlas mm10 PSC TH20, 6 master TFs (Pou5f1,Sox2,Nanog,Esrrb,Klf4,Myc),
+#   consensus >=3 experiments per factor, unioned = 132766 regions (46 Mbp).
+# confound: |dATPM| = |mES-MEF| SignalOnPeaks, bedtools-map onto contract regions.
+# endpoints UNCURATED (same merged pseudobulks as the driver contracts). Report AUROC/CI/fold, not perm-p.
+model	positives	matched_neg	auroc_matched	ci_lo	ci_hi	auroc_random	confound_gap	top5_fold
+ChromFound	22366	58383	0.586	0.582	0.591	0.583	-0.003	1.49
+GET	60418	145635	0.507	0.504	0.510	0.507	-0.000	1.01
+ChromBERT	20340	19610	0.497	0.491	0.503	0.497	0.000	0.98
