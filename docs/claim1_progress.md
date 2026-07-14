@@ -24,6 +24,18 @@ master-TF ChIP binding as ground truth. (Claim 2 = direction; not started.)
   (SRR29564556/557), 1 is low quality (SRR30151579). Plus a strong batch axis. So the
   driver_score results rest on a weak endpoint.
 
+## Scope: why only 3 of 5 models (mm10)
+
+Claim 1 covers **GET, ChromBERT, ChromFound** only. **ATACformer and EpiAgent are
+human-designed, fixed-universe (hg38) token models**; on mouse they are reachable only by
+liftOver, which leaves a **very sparse** in-vocabulary region set (ATACformer ~1,335 union
+regions; EpiAgent sparser) — too few for a `|ΔaTPM|`-matched background, so a mm10 AUROC is
+meaningless. Hence they are **not worth testing on the mouse transition**. GET/ChromBERT are
+native mm10 and ChromFound liftOver keeps ~99.8%, so all three give dense coverage.
+**When human (hg38) data arrives, ALL FIVE models should be tested** — ATACformer/EpiAgent
+are native on hg38, so the sparsity problem disappears and a fair five-model test is
+possible. That is the planned next validation step.
+
 ## STATUS 2026-07-14: clean-endpoint re-run COMPLETE (all 3 models)
 
 All three models re-embedded on GSE201577 clean endpoints and enriched (see

@@ -19,11 +19,32 @@ The earlier flat null (all three ≈ chance) was **substantially an endpoint-qua
 artifact**: the original mES endpoint was contaminated (only 2 of 5 mESC ATAC libraries
 coherent). Effect sizes are **moderate** (0.58–0.64), not strong — driver_score is a
 weak-to-moderate, model- and framing-dependent signal, not a universal driver detector.
-The `direction` channel is separate and unaffected (measured aTPM). Only 3 of the 5
-integrated models were tested: ATACformer's mm10 liftOver overlaps only 1,335 union
-regions (too few) and EpiAgent's mm10 contract was not built for this test.
+The `direction` channel is separate and unaffected (measured aTPM). **Only 3 of the 5
+integrated models were tested here — see "Why only 3 of 5 models" below.**
 
 The sections below are the full investigation trail, in chronological order.
+
+## Why only 3 of 5 models (and when to test all five)
+
+Claim 1 was run on **GET, ChromBERT, and ChromFound** and *not* on **ATACformer** or
+**EpiAgent**. This is a deliberate coverage decision, not an omission:
+
+- **ATACformer and EpiAgent are human-designed, fixed-universe token models** (their
+  region/cCRE vocabularies are defined on hg38). On mouse they can only be reached by
+  **liftOver**, and mm10→(their hg38 universe) leaves a **very sparse** set of in-vocab
+  regions — e.g. ATACformer's mm10 liftOver overlaps only ~1,335 of the union regions,
+  and EpiAgent is sparser still (its native-hg38 run already yields only a few hundred
+  regions under the cCRE rank cap). That is far too few to build a
+  `|ΔaTPM|`-matched passenger background, so a mm10 AUROC would be meaningless.
+  **Therefore they are not worth testing on this mouse transition.**
+- **GET and ChromBERT are native mm10; ChromFound liftOver keeps ~99.8%** — all three
+  give dense, per-region coverage over the ~130k positives, which the matched-background
+  test requires.
+
+**When human (hg38) data comes in, all five models should be tested.** ATACformer and
+EpiAgent are native on hg38 (dense coverage), so the sparsity objection disappears and a
+fair Claim 1 test becomes possible for the full five-model matrix. Testing all five on a
+clean human transition is the planned next validation step.
 
 ## Question
 

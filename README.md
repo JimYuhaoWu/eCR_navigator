@@ -76,7 +76,10 @@ true drivers, using master-TF ChIP binding (ChIP-Atlas) as ground truth against 
 change-magnitude-matched background. On **clean, verified endpoints** (GSE201577,
 mm10 MEF→mES), it is **moderately informative for 2 of 3 models tested** — GET all-regions
 AUROC 0.581, ChromFound opening-only 0.643, ChromBERT null. The earlier flat null was
-substantially an endpoint-quality artifact. Full trail, effect sizes, and honest caveats:
+substantially an endpoint-quality artifact. **Only 3 of the 5 models are tested on mouse:
+ATACformer and EpiAgent are human-designed fixed-universe models whose mm10 liftOver is too
+sparse for a matched-background test — when human (hg38) data comes in, all five should be
+tested** (their native assembly, so coverage is dense). Full trail, effect sizes, and honest caveats:
 [`docs/claim1_results.md`](docs/claim1_results.md); session handoff / reproduction paths:
 [`docs/claim1_progress.md`](docs/claim1_progress.md); cross-model magnitude consistency:
 [`docs/cross_model_consistency.md`](docs/cross_model_consistency.md).
