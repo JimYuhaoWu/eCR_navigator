@@ -36,6 +36,29 @@ native mm10 and ChromFound liftOver keeps ~99.8%, so all three give dense covera
 are native on hg38, so the sparsity problem disappears and a fair five-model test is
 possible. That is the planned next validation step.
 
+## STATUS 2026-07-14 (phase 2): master-TF BINDING vs LOCI — COMPLETE
+
+Second round, driven by the OSKM-bias concern. Reuses the clean driver contracts (positive
+labels only change → CPU-only, no re-embedding). Full results in `claim1_results.md`
+(Phase 2) + `claim1_results.mtf.tsv`.
+
+- **Master-TF *binding* hypothesis FALSIFIED (generalization).** JGES cocktail
+  (Jdp2/Glis1/Esrrb/Sall4) ground truth from the lab's own GSE199612 CUT&Tag (native mm10;
+  ChIP-Atlas has 0 mouse ChIP for Jdp2/Glis1, thin Sall4). All three models at chance
+  (0.48–0.51), every polarity (all/opening/closing), both stringencies. GET's OSKM 0.581 did
+  NOT reproduce (0.486).
+- **Master-TF *loci* reframe HOLDS for GET.** Positives = cis-regulatory regions (promoter
+  ±2kb + ±50kb neighborhood) of 26 core pluripotency-TF genes → GET AUROC 0.566–0.582 (CI
+  excludes 0.5), robust to dropping the 4 canonical loci (0.564), broad across the network
+  (per-gene mean pct 0.598; highest at Zfp42/Foxd3/Fbxo15/Dppa3, not the big 4). Extends to
+  genome-wide H3K27ac-activated enhancers (GET 0.574). ChromFound top-5% tail only (2.5–4.2×,
+  null AUROC); ChromBERT small-n noise.
+- **Bound claim:** GET marks the OPENING/ACTIVATING regulatory landscape (explains phase-1:
+  OSKM binds at those enhancers). But every GET signal collapses to ~0.50 opening-only →
+  largely DIRECTIONAL. Whether it beats a signed-Δ baseline = Claim 2 (deferred).
+- **Artifacts:** `/mnt3/wuyuhao/{jges_gse199612,mtf_loci,claim1_work}/` (see
+  `claim1_results.md` Artifacts). Claim 2 (direction) still not started.
+
 ## STATUS 2026-07-14: clean-endpoint re-run COMPLETE (all 3 models)
 
 All three models re-embedded on GSE201577 clean endpoints and enriched (see

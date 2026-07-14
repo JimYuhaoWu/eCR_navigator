@@ -1,0 +1,61 @@
+# Claim 1 phase 2 — master-TF BINDING vs master-TF LOCI, mm10 MEF->mES, 2026-07-14
+# Endpoints: CLEAN GSE201577 (same clean driver contracts as phase 1). Confound: |dATPM|, signed for opening/closing.
+# Ground truth sources:
+#   JGES binding  = GSE199612 CUT&Tag (Sall4,Jdp2,Glis1,Esrrb), lab's own paper, native mm10, WT samples,
+#                   top-decile-per-factor over clean union; union=>=1 factor (15875), core2=>=2 factors (8878).
+#   master-TF loci= cis-regulatory regions of 26 core pluripotency TF genes (refGene mm10):
+#                   promoter=TSS+/-2kb; neighborhood=gene span +/-50kb; .no4 drops Pou5f1/Sox2/Nanog/Esrrb.
+#   H3K27ac       = GSE199612 H3K27ac CUT&Tag (D0,D7); active=D7 top quartile; activated=D7 high & gain vs D0.
+# Report AUROC/CI/fold, not perm-p. "opening"/"closing" = signed-dATPM restricted + magnitude-matched.
+hypothesis	positive_set	mode	model	positives	auroc	ci_lo	ci_hi	top5_fold
+binding	JGES_union	all	GET	15890	0.486	0.480	0.491	1.01
+binding	JGES_union	opening	GET	7771	0.487	0.479	0.494	0.98
+binding	JGES_union	closing	GET	7535	0.505	0.498	0.513	1.04
+binding	JGES_union	all	ChromFound	9976	0.480	0.474	0.488	1.43
+binding	JGES_union	opening	ChromFound	4491	0.503	0.493	0.513	1.49
+binding	JGES_union	closing	ChromFound	5054	0.501	0.492	0.511	1.45
+binding	JGES_union	all	ChromBERT	11299	0.501	0.494	0.507	1.02
+binding	JGES_union	opening	ChromBERT	5299	0.495	0.485	0.504	0.90
+binding	JGES_union	closing	ChromBERT	5626	0.505	0.495	0.515	1.11
+binding	JGES_core2	all	GET	8883	0.491	0.484	0.498	1.00
+binding	JGES_core2	opening	GET	4031	0.495	0.484	0.505	0.93
+binding	JGES_core2	closing	GET	4295	0.502	0.493	0.512	1.06
+binding	JGES_core2	all	ChromFound	5869	0.480	0.472	0.489	1.51
+binding	JGES_core2	opening	ChromFound	2498	0.500	0.488	0.513	1.65
+binding	JGES_core2	closing	ChromFound	2960	0.500	0.489	0.513	1.55
+binding	JGES_core2	all	ChromBERT	7199	0.509	0.501	0.517	1.00
+binding	JGES_core2	opening	ChromBERT	3257	0.505	0.494	0.516	1.00
+binding	JGES_core2	closing	ChromBERT	3590	0.510	0.499	0.521	1.06
+loci	mtf_neighborhood	all	GET	346	0.566	0.532	0.599	1.73
+loci	mtf_neighborhood	opening	GET	277	0.523	0.485	0.563	1.37
+loci	mtf_neighborhood	all	ChromFound	152	0.503	0.449	0.556	1.84
+loci	mtf_neighborhood	opening	ChromFound	109	0.500	0.440	0.561	2.20
+loci	mtf_neighborhood	all	ChromBERT	78	0.484	0.414	0.558	0.00
+loci	mtf_neighborhood	opening	ChromBERT	52	0.450	0.362	0.536	0.00
+loci	mtf_promoter	all	GET	69	0.582	0.501	0.660	2.90
+loci	mtf_promoter	opening	GET	51	0.579	0.486	0.665	2.74
+loci	mtf_promoter	all	ChromFound	49	0.513	0.419	0.606	2.45
+loci	mtf_promoter	opening	ChromFound	31	0.512	0.391	0.633	3.87
+loci	mtf_promoter	all	ChromBERT	25	0.595	0.462	0.719	0.00
+loci	mtf_promoter	opening	ChromBERT	14	0.624	0.449	0.803	0.00
+loci	mtf_neighborhood_no4	all	GET	256	0.564	0.524	0.603	2.27
+loci	mtf_neighborhood_no4	opening	GET	195	0.562	0.519	0.607	1.95
+loci	mtf_neighborhood_no4	all	ChromFound	109	0.505	0.444	0.569	1.65
+loci	mtf_neighborhood_no4	all	ChromBERT	55	0.386	0.295	0.476	0.00
+loci	mtf_promoter_no4	all	GET	57	0.573	0.482	0.665	3.51
+loci	mtf_promoter_no4	opening	GET	40	0.579	0.466	0.685	3.50
+loci	mtf_promoter_no4	all	ChromFound	37	0.508	0.401	0.616	1.62
+loci	mtf_promoter_no4	all	ChromBERT	22	0.530	0.398	0.660	0.00
+h3k27ac	mtf_active	all	GET	83	0.560	0.490	0.633	1.45
+h3k27ac	mtf_active	opening	GET	59	0.489	0.405	0.571	1.02
+h3k27ac	mtf_active	all	ChromFound	63	0.511	0.432	0.593	2.54
+h3k27ac	mtf_active	opening	ChromFound	41	0.503	0.402	0.606	3.90
+h3k27ac	mtf_active	all	ChromBERT	40	0.417	0.315	0.522	0.00
+h3k27ac	mtf_activated	all	GET	26	0.457	0.339	0.578	1.54
+h3k27ac	mtf_activated	opening	GET	26	0.414	0.287	0.555	0.77
+h3k27ac	mtf_activated	all	ChromFound	19	0.542	0.390	0.685	4.21
+h3k27ac	gw_activated	all	GET	1319	0.574	0.557	0.591	1.47
+h3k27ac	gw_activated	opening	GET	1219	0.503	0.485	0.521	1.20
+h3k27ac	gw_activated	all	ChromFound	880	0.501	0.480	0.524	2.57
+h3k27ac	gw_activated	opening	ChromFound	805	0.501	0.479	0.524	2.71
+h3k27ac	gw_activated	all	ChromBERT	646	0.478	0.452	0.503	0.93

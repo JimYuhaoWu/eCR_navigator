@@ -72,17 +72,33 @@ in [`docs/direction.md`](docs/direction.md).
 ### Validation — is the `driver_score` actually informative? (in progress)
 
 Separate from "does the pipeline run" (above), we test whether `driver_score` recovers
-true drivers, using master-TF ChIP binding (ChIP-Atlas) as ground truth against a
-change-magnitude-matched background. On **clean, verified endpoints** (GSE201577,
-mm10 MEF→mES), it is **moderately informative for 2 of 3 models tested** — GET all-regions
-AUROC 0.581, ChromFound opening-only 0.643, ChromBERT null. The earlier flat null was
-substantially an endpoint-quality artifact. **Only 3 of the 5 models are tested on mouse:
-ATACformer and EpiAgent are human-designed fixed-universe models whose mm10 liftOver is too
-sparse for a matched-background test — when human (hg38) data comes in, all five should be
-tested** (their native assembly, so coverage is dense). Full trail, effect sizes, and honest caveats:
-[`docs/claim1_results.md`](docs/claim1_results.md); session handoff / reproduction paths:
-[`docs/claim1_progress.md`](docs/claim1_progress.md); cross-model magnitude consistency:
-[`docs/cross_model_consistency.md`](docs/cross_model_consistency.md).
+true drivers against a change-magnitude-matched background, on **clean, verified endpoints**
+(GSE201577, mm10 MEF→mES). Two rounds:
+
+- **Phase 1 — master-TF ChIP binding (ChIP-Atlas OSKMNE):** GET all-regions AUROC 0.581,
+  ChromFound opening-only 0.643, ChromBERT null. (The earlier flat null was substantially an
+  endpoint-quality artifact.)
+- **Phase 2 — generalization + reframe.** The OSKM binding set is cocktail-biased, so we
+  tested an independent route (**JGES** = Jdp2/Glis1/Esrrb/Sall4, from the lab's own
+  GSE199612 CUT&Tag) and reframed the target. **(a)** Master-TF *binding* does **not**
+  generalize — all three models are at chance on JGES footprints (0.48–0.51); GET's 0.581
+  did not reproduce (0.486). **(b)** Master-TF *loci* — the cis-regulatory regions
+  (promoter/enhancer) of 26 pluripotency-TF genes — **do** carry elevated GET driver_score
+  (0.566–0.582, robust, broad), extending to H3K27ac-activated enhancers genome-wide (0.574).
+  The unifying signal is the **opening/activating regulatory landscape**, not TF occupancy —
+  but it is **largely directional** (collapses to ~0.50 opening-only), so whether it beats a
+  signed-Δaccessibility baseline is a Claim 2 question (deferred).
+
+Only GET shows a rankable AUROC; ChromFound contributes a non-monotonic top-tail; ChromBERT
+nothing. **Only 3 of the 5 models are tested on mouse:** ATACformer and EpiAgent are
+human-designed fixed-universe models whose mm10 liftOver is too sparse for a matched-background
+test — when human (hg38) data comes in, all five should be tested (native assembly, dense
+coverage). Full trail, effect sizes, and honest caveats:
+[`docs/claim1_results.md`](docs/claim1_results.md) (+ machine-readable
+[`docs/claim1_results.mm10.tsv`](docs/claim1_results.mm10.tsv),
+[`docs/claim1_results.mtf.tsv`](docs/claim1_results.mtf.tsv)); session handoff / reproduction
+paths: [`docs/claim1_progress.md`](docs/claim1_progress.md); cross-model magnitude
+consistency: [`docs/cross_model_consistency.md`](docs/cross_model_consistency.md).
 
 Scoped / candidate (not integrated — see the per-model docs):
 

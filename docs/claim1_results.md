@@ -22,6 +22,34 @@ weak-to-moderate, model- and framing-dependent signal, not a universal driver de
 The `direction` channel is separate and unaffected (measured aTPM). **Only 3 of the 5
 integrated models were tested here — see "Why only 3 of 5 models" below.**
 
+### Phase-2 update (2026-07-14) — the positive set matters more than the model
+
+A second round tested an alternative, independent reprogramming cocktail (**JGES** =
+Jdp2/Glis1/Esrrb/Sall4) and, crucially, **reframed what a "driver region" is**. Two findings:
+
+1. **The master-TF *binding* hypothesis fails to generalize.** Using the lab's own JGES
+   CUT&Tag (GSE199612) as ground truth, **all three models are at chance** (AUROC 0.48–0.51)
+   for JGES-bound regions — in every polarity (all / opening / closing) and at two stringencies.
+   GET's phase-1 OSKM number (0.581) did **not** reproduce on JGES binding (0.486). So the
+   phase-1 result was **not** "driver_score finds where master TFs bind."
+2. **The master-TF *loci* reframe holds — for GET.** When positives are instead the
+   **cis-regulatory regions of the pluripotency master-TF genes themselves** (promoters +
+   enhancer neighborhoods of 26 core genes), GET's driver_score is elevated
+   (**AUROC 0.566–0.582, CI excludes 0.5**), robust to dropping the 4 canonical loci
+   (0.564), broad across the network, and it extends to H3K27ac-activated enhancers
+   genome-wide (0.574). ChromFound shows only a top-5% tail (2.5–4.2×, null AUROC);
+   ChromBERT is small-n noise.
+
+**Unifying reading:** GET's driver_score marks the **opening/activating regulatory
+landscape** of pluripotency (master-TF promoters/enhancers and activated enhancers) — which
+also explains phase-1: OSKM factors bind *at* those enhancers, so "OSKM binding" ≈ "active
+enhancers," while JGES binding is broader and partly at closing chromatin. **But the signal
+is largely directional**: every GET result is in all-regions mode and collapses to ~0.50
+under opening-only (magnitude-matched), i.e. GET adds "these regions open" beyond raw |Δ|
+but does not rank master-TF loci above *other* opening enhancers. Whether that beats a plain
+signed-Δaccessibility baseline is a **Claim 2** (direction) question, deferred. Full phase-2
+trail below; machine-readable table: [`claim1_results.mtf.tsv`](claim1_results.mtf.tsv).
+
 The sections below are the full investigation trail, in chronological order.
 
 ## Why only 3 of 5 models (and when to test all five)
@@ -174,6 +202,91 @@ uninformative across all conditions, consistent with its known magnitude issue. 
 models carry a moderate driver signal on clean endpoints (GET all-regions, ChromFound
 opening-only); ChromBERT does not.
 
+## Phase 2 (2026-07-14) — master-TF *binding* vs master-TF *loci*
+
+Motivated by the concern that the phase-1 positive set (ChIP-Atlas OSKMNE binding) is
+**cocktail-specific and OSKM-biased**, and that reprogramming routes are not unique. We
+tested the **JGES** cocktail (Jdp2/Glis1/Esrrb/Sall4; the lab's own efficient MEF→iPSC
+route, Nat Commun 2023 "NuRD complex cooperates with SALL4 to orchestrate reprogramming"),
+then reframed the hypothesis itself. All runs reuse the **clean GSE201577 driver contracts**
+— only the positive-label set changes, so no re-embedding was needed (CPU-only).
+
+### Ground-truth sourcing (why ChIP-Atlas was insufficient for JGES)
+
+- **ChIP-Atlas mm10 has no usable JGES data for J and G:** Jdp2 = **0** mouse ChIP
+  experiments, Glis1 = **0** (checked all thresholds, PSC and all-cell classes, and the
+  master `experimentList.tab`). Sall4 = 6 total (3 PSC, all ES) → a ≥3-experiment consensus
+  of only **48 regions**. Only Esrrb is well-covered. So a JGES positive set **cannot** be
+  built from ChIP-Atlas — itself evidence that ChIP-Atlas is structurally OSKM-biased
+  (canonical factors are far more profiled).
+- **Solution — the lab's own paper data, GSE199612** ("NuRD-dependent Reprogramming by
+  Sall4-Jdp2-Esrrb-Glis1", CUT&Tag, **native mm10**): all four JGES factors + H3K27ac, in
+  D1/D2 reprogramming intermediates. Only bigWig signal tracks are posted (no called peaks),
+  so "bound" = top-decile CUT&Tag signal per factor over the clean union (WT samples only,
+  not the K5A/N12 NuRD-mutant conditions). JGES positive sets: **union** (≥1 factor) 15,875
+  regions; **core2** (≥2 factors) 8,878. Co-binding QC: 3,255 regions bound by all 4 factors
+  vs ~9 expected by chance (**~370×**) — coherent ground truth, not noise.
+
+### Result A — master-TF *binding* (JGES): null for all three models
+
+| Model | all-regions | opening-only | closing-only |
+|---|---:|---:|---:|
+| GET | 0.486 | 0.487 | 0.505 |
+| ChromFound | 0.480 | 0.503 | 0.501 |
+| ChromBERT | 0.501 | 0.495 | 0.505 |
+
+(union positive set; core2 identical picture, 0.480–0.510 everywhere; all CIs include/below
+0.5.) Every model, every polarity, every stringency = chance. GET's OSKM 0.581 does **not**
+reproduce on JGES binding (0.486). Checked and ruled out as rescues: (a) **polarity** —
+Sall4-NuRD *closes* chromatin, but empirically JGES-bound regions are ~47% closing vs 45%
+baseline (balanced), and closing-only is also null; (b) **ground-truth quality** — the ~370×
+co-binding rules out noise. **The master-TF-binding hypothesis does not generalize.**
+
+### Result B — master-TF *loci* (regulatory-region reframe): holds for GET
+
+New positives = **cis-regulatory regions of 26 core pluripotency-TF genes** (the 9
+reprogramming factors + endogenous network: Zfp42, Prdm14, Tfcp2l1, Dppa2/3/4, Utf1, Lin28a,
+Fbxo15, Tbx3, Klf2/5, Nr5a2, Sall1/3, Nr0b1, Foxd3). Windows: **promoter** = TSS±2kb;
+**neighborhood** = gene span ±50kb (refGene mm10). Premise validated: these loci
+**overwhelmingly open** toward mES (Pou5f1 23/26, Sox2 13/14, Nanog 20/22, Esrrb 29/31,
+Prdm14 10/10, Zfp42 6/6, Foxd3 11/11); exceptions are the MEF-expressed / non-specific ones
+(Myc 4/11, Klf4 7/13) and Glis1 (1/20).
+
+| Positive set (GET) | positives | AUROC | 95% CI | top-5% |
+|---|---:|---:|---:|---:|
+| neighborhood, all | 346 | **0.566** | [0.532, 0.599] | 1.73× |
+| neighborhood, opening | 277 | 0.523 | [0.485, 0.563] | 1.37× |
+| promoter, all | 69 | **0.582** | [0.501, 0.660] | 2.90× |
+| neighborhood, **drop top-4 loci** | 256 | **0.564** | [0.524, 0.603] | 2.27× |
+| promoter, drop top-4 loci | 57 | 0.573 | [0.482, 0.665] | 3.51× |
+
+**Robust and broad, not locus-driven.** Per-gene GET percentile (mean over all master-TF
+regions = **0.598** vs 0.5 random) is highest at **non-canonical** loci — Zfp42 0.94,
+Foxd3 0.78, Fbxo15 0.76, Dppa3 0.75, Sall1 0.73, Tfcp2l1 0.70 — while the 4 dominant loci
+are only moderate (Pou5f1 0.60, Sox2 0.54, Nanog 0.67, Esrrb 0.63). Low loci are sensible
+(Myc 0.37, Klf4 0.49, Glis1 0.29). ChromFound AUROC null but top-5% tail 1.8–3.9×;
+ChromBERT small-n noise (n = 14–78, CIs span 0.5).
+
+### Result C — H3K27ac-defined enhancers (GSE199612 D0/D7)
+
+Restricting the master-TF neighborhood to H3K27ac-active peaks (D7 top quartile) did **not**
+sharpen — it just cut n to 83 and widened GET's CI (0.560 [0.490, 0.633]); the activated
+subset (26) is too small. But a well-powered **genome-wide H3K27ac-activated enhancer** set
+(D7-high & gained vs D0, 1,319 regions) gives **GET all-regions 0.574 [0.557, 0.591]** — CI
+excludes 0.5. ChromFound tail-only (2.6–2.7×, null AUROC); ChromBERT null.
+
+### Phase-2 synthesis
+
+GET's driver_score is consistently elevated (~0.56–0.58, all-regions) across **four**
+framings of the pluripotency regulatory landscape — OSKM binding (0.581), master-TF loci
+(0.566), master-TF promoters (0.582), genome-wide activated enhancers (0.574) — and **null**
+on JGES binding footprints (0.486). The common thread is **activating regulatory regions**
+(promoters/enhancers that open), not TF occupancy. **Caveat that bounds the claim:** every
+GET signal collapses to ~0.50 under opening-only (magnitude-matched), so beyond raw |Δ| the
+discriminative content is **directional** ("these open"). Whether it beats a signed-Δ
+baseline is a Claim 2 question (deferred). Only GET shows this as a rankable AUROC;
+ChromFound contributes a non-monotonic top-tail; ChromBERT nothing.
+
 ## Caveats / next steps (do not over-read this first pass)
 
 1. **Uncurated endpoints.** These runs use the existing merged MEF/mES pseudobulks, which
@@ -207,6 +320,16 @@ Contracts and inputs are on the ephemeral GPU mirror's **persistent** shared dis
   (+ per-factor consensus + `README.txt`).
 - **Contaminated source datasets:** PeiLab2 `/mnt3/wuyuhao/MEF_mESC{,_2,_3}/`
   (GSE274130 / GSE201852 / GSE243513).
+- **Phase-2 ground truth & positives (PeiLab2):**
+  - JGES CUT&Tag (GSE199612, mm10): `/mnt3/wuyuhao/jges_gse199612/` — factor bigWigs,
+    per-factor signal `GSM*.sig.tab`, `jges.{union,core2}.bed`, `jges.signal.tsv`,
+    `build_jges_positive.py`; H3K27ac D0/D7 signal + `mtf.h3k_active.bed`,
+    `mtf.h3k_activated.bed`, `h3k_activated_genomewide.bed`, `build_h3k_enh.py`.
+  - Master-TF loci: `/mnt3/wuyuhao/mtf_loci/` — `refGene.txt.gz`, `mtf.{promoter,
+    neighborhood}[.no4].bed`, `build_mtf_loci.py`, `per_gene_driver.py`.
+  - ChIP-Atlas experiment-count check: `/mnt3/wuyuhao/chip_atlas_mm10/` (+ `experimentList.tab`).
+  - Eval logs: `/mnt3/wuyuhao/claim1_work/{jges_eval,jges_closing,mtf_eval,mtf_no4,h3k_eval}.log`
+    and the run scripts alongside. Canonical numbers: `docs/claim1_results.mtf.tsv`.
 - **Eval code (committed):** `scripts/eval_driver_claim1.py` (+ `--opening-only`),
   `tests/test_eval_claim1.py` (11 self-tests). Runnable on any host with numpy.
 - **Mirror connection + key-restore procedure:** see
