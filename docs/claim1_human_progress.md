@@ -106,6 +106,55 @@ master-TF loci → no testable AUROC. Confirms the mouse-era concern persists on
 assembly. **ATACformer verdict (both systems): null** — dense coverage, but driver_score
 does not recover drivers (iCM null; iN null/slightly-below-chance).
 
+## Top-5% (top-tail) enrichment — a separate, operationally relevant signal
+
+Across BOTH species and all three ground-truth types, the **top 5% of `driver_score` is
+2–4× enriched for master-TF regulatory regions — often even when the confound-matched AUROC
+is ~0.5.** This matters because the navigator's job is to **nominate the top handful of driver
+regions**, so top-tail enrichment is arguably the metric that matches the use case better than
+global AUROC. Compiled `top5_fold` (from `claim1_results.{mm10,mtf,human}.tsv`):
+
+| Ground truth | model / setting | AUROC (matched) | **top-5% fold** | n_pos |
+|---|---|---:|---:|---:|
+| **promoters** | GET mouse (JGES-panel) | 0.58 | **2.7–2.9×** | 51–69 |
+| promoters | GET mouse, drop-top-4-loci | 0.57 | **3.5×** | 40–57 |
+| promoters | **GET human iN** | **0.668** | **2.1–2.5×** | 65–85 |
+| promoters | ChromFound mouse (opening) | 0.51 (null) | **3.9×** | 31 |
+| promoters | GET human iCM (weak system) | 0.47 (null) | **2.3×** | 164 |
+| **loci / neighborhood** | GET mouse | 0.57 | 1.7–2.3× | 256–346 |
+| loci | **GET human iN** | 0.54 | **2.1–2.4×** | 327–461 |
+| loci | **GET human iCM** (weak system) | **0.49 (null)** | **2.3–3.1×** | 372–778 |
+| loci | ChromFound mouse (opening) | 0.50 (null) | 2.2× | 109 |
+| activated enhancers (gw) | ChromFound mouse | 0.50 (null) | **2.6–2.7×** | 805–880 |
+| activated enhancers | ChromFound mouse H3K27ac (opening) | 0.50 (null) | 3.9× | 41 |
+| **TF binding** | ChromFound mouse OSKM (opening) | 0.66 | 2.0× | 12k |
+| binding | ChromFound human Ascl1 | 0.57 | 1.8× | (large) |
+| binding | ChromFound mouse JGES | 0.48 (null) | 1.4–1.65× | 2–10k |
+| binding | GET human/mouse | 0.53/0.58 | 1.1–1.3× | large |
+
+**Pattern.** Top-tail enrichment is (a) **strongest for loci/promoters (2–4×)**, weaker for TF
+binding (1.2–2×) — the same "loci beat footprints" ordering seen in the AUROC; and (b) present
+for **both GET and ChromFound**, and even for the *weak* iCM system and *null-AUROC* settings —
+the very top scores concentrate on master-TF regulatory regions across the board.
+
+**Honest caveat — top-5% fold is NOT confound-matched** (unlike the AUROC, which controls for
+|Δaccessibility|; `topk_fold_enrichment` in `eval_driver_claim1.py` runs on the raw full
+ranking). So when AUROC≈0.5 but top-5% fold is high, the top-scoring regions are enriched for
+the ground truth **largely because master-TF loci are big-change regions and the top
+driver_scores are big-change regions** — i.e. much of the top-tail signal is a change-magnitude
+effect, not confound-controlled evidence of driver-specific recovery. Two regimes:
+- **Both AUROC and top-5% high** (GET on loci/promoters, mouse + human iN): real, model-specific
+  driver signal (survives |Δ| matching) *and* concentrated at the top — the strong case.
+- **Only top-5% high** (GET iCM cardiac loci 2.3–3.1×; ChromFound activated enhancers 2.6×):
+  the top nominations are enriched, but it's mostly a |Δ| effect — operationally useful for
+  target nomination, but weaker as evidence that driver_score beats a plain |Δaccessibility|
+  ranking. (That comparison is exactly the deferred **Claim 2** control.)
+
+**Takeaway for the platform.** For target *nomination* (pick the top-k regions), several
+models — not just GET — put ~2–4× more master-TF regulatory regions in their top 5% than
+chance. For the scientific claim that driver_score adds information beyond change magnitude,
+the matched AUROC remains the rigorous test, and there GET-on-a-clean-transition is the signal.
+
 ## Infrastructure notes
 
 - **Motif matrices (GET only)** must be built on **PeiLab2** (`get_regionmotif_matrix.py`,

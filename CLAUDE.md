@@ -154,6 +154,37 @@ scATAC models (ATACformer, ChromFound, EpiAgent) are primary for human and a
 liftOver-bridged reference for mouse. All five are validated end-to-end on both mm10
 (MEF→mES) and hg38 (kidney vs pancreas).
 
+**Claim 1 validation — is `driver_score` INFORMATIVE? (merged, PRs #5/#6; docs
+`claim1_results.md` + `claim1_human_progress.md`, machine-readable `claim1_results.*.tsv`).**
+Pipeline-runs ≠ informative. Tested by matched-background AUROC (control for
+|Δaccessibility|) against master-TF ground truth on clean, strong transitions. Bottom
+line: **GET is the one informative model, on the master-TF *loci* reframe** — the
+cis-regulatory regions (esp. **promoters**) of the target-cell master-TF genes, NOT where
+TFs bind — and only on a clean, strong endpoint pair.
+
+| Model | mouse MEF→mES (clean GSE201577) | human fib→iN (GSE299923) |
+|---|---|---|
+| **GET** | ✅ master-TF loci **0.57–0.58** (robust, broad) | ✅ master-TF **promoters 0.668**, robust to opening-only |
+| ChromFound | loci tail-only (top-5% 2–4×, null AUROC); OSKM opening-only 0.643 | null on loci, **positive on pioneer (Ascl1) binding 0.572** |
+| ChromBERT | null | null / below-chance |
+| ATACformer | not tested (mm10 liftOver too sparse) | null / below-chance (first fair hg38-native test) |
+| EpiAgent | not tested (too sparse) | too sparse (8,190-cCRE rank cap) |
+
+Lessons that shape method choices: (1) master-TF **binding footprints do NOT work** — they
+fail to generalize across reprogramming cocktails (mouse OSKM→JGES, human); the informative
+target is the master-TF **gene loci** (their promoters/enhancers, which must open). (2) The
+signal is **model-specific (GET)** and needs a **strong transition** — the weak/partial human
+iCM system (GSE179011) was dropped; all models null there. (3) Whether GET's signal beats a
+plain signed-Δaccessibility baseline is a **Claim 2** (direction) question — deferred, not
+yet done. Do not overclaim `driver_score` beyond GET-on-a-clean-transition.
+
+Separate **top-tail signal** (see `claim1_human_progress.md`): the **top 5% of `driver_score`
+is 2–4× enriched for master-TF loci/promoters** for several models (GET and ChromFound, both
+species), *even when the matched AUROC is ~0.5*. This is the metric that matches the
+navigator's job (nominate the top-k regions) — but top-5% fold is NOT |Δ|-matched, so much of
+it is a change-magnitude effect. Use it for target-nomination intuition; use the matched AUROC
+for the scientific claim.
+
 **Driver-score readout — keep BOTH scores (decided 2026-07-03; reframed 2026-07-09):**
 - **Zero-shot** — embedding-shift between endpoint states. Always available; needs no
   labels; endpoint-only. The default (regime 2 above). Implemented (`features.py` +
