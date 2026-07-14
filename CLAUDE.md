@@ -178,6 +178,13 @@ iCM system (GSE179011) was dropped; all models null there. (3) Whether GET's sig
 plain signed-Δaccessibility baseline is a **Claim 2** (direction) question — deferred, not
 yet done. Do not overclaim `driver_score` beyond GET-on-a-clean-transition.
 
+Separate **top-tail signal** (see `claim1_human_progress.md`): the **top 5% of `driver_score`
+is 2–4× enriched for master-TF loci/promoters** for several models (GET and ChromFound, both
+species), *even when the matched AUROC is ~0.5*. This is the metric that matches the
+navigator's job (nominate the top-k regions) — but top-5% fold is NOT |Δ|-matched, so much of
+it is a change-magnitude effect. Use it for target-nomination intuition; use the matched AUROC
+for the scientific claim.
+
 **Driver-score readout — keep BOTH scores (decided 2026-07-03; reframed 2026-07-09):**
 - **Zero-shot** — embedding-shift between endpoint states. Always available; needs no
   labels; endpoint-only. The default (regime 2 above). Implemented (`features.py` +
