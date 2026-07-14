@@ -1,0 +1,38 @@
+# Claim 1 validation — HUMAN (hg38), 2026-07-14. All five models hg38-native (definitive multi-model round).
+# Two direct-reprogramming systems: iN (fibroblast->induced neuron, GSE299923 ATAC hg19->hg38 lift + GSE299920 Ascl1 ChIP)
+#   and iCM (fibroblast->induced cardiomyocyte, GSE179011 ATAC hg38) -- iCM DROPPED (weak partial transition; see claim1_human_progress.md).
+# Ground truth: master-TF LOCI (promoter TSS+/-2kb + gene+/-50kb neighborhood of 26 target-cell master TFs; refGene hg38)
+#   and BINDING (iN: in-study Ascl1 ChIP top-decile; iCM: ChIP-Atlas GATA4/TBX5/NKX2-5 iPSC-CM consensus).
+# Matched-background AUROC (report AUROC/CI/fold, not perm-p). "opening"/"closing" = signed-daccessibility restricted + magnitude-matched.
+system	model	positive_set	mode	positives	auroc	ci_lo	ci_hi	top5_fold
+iN	GET	neural_neighborhood	all	461	0.537	0.508	0.566	2.08
+iN	GET	neural_neighborhood	opening	327	0.557	0.522	0.591	2.39
+iN	GET	neural_neighborhood	closing	129	0.512	0.458	0.567	1.09
+iN	GET	neural_promoter	all	85	0.668	0.606	0.727	2.12
+iN	GET	neural_promoter	opening	65	0.664	0.594	0.735	2.46
+iN	GET	neural_promoter	closing	18	0.652	0.520	0.787	1.11
+iN	GET	ascl1_binding	all	80483	0.533	0.531	0.536	1.18
+iN	ChromFound	neural_neighborhood	all	494	0.498	0.468	0.528	0.53
+iN	ChromFound	neural_neighborhood	opening	348	0.498	0.463	0.534	0.75
+iN	ChromFound	neural_promoter	all	88	0.497	0.426	0.567	0.45
+iN	ChromFound	ascl1_binding	all	NA	0.572	0.569	0.574	1.77
+iN	ATACformer	neural_neighborhood	all	143	0.426	0.375	0.476	0.28
+iN	ATACformer	neural_neighborhood	opening	91	0.426	0.360	0.488	0.00
+iN	ATACformer	neural_promoter	all	22	0.390	0.266	0.513	0.00
+iN	ATACformer	ascl1_binding	all	39154	0.473	0.469	0.477	0.88
+iN	EpiAgent	neural_neighborhood	all	5	0.573	0.240	0.893	NA
+iN	EpiAgent	neural_promoter	all	0	NA	NA	NA	NA
+iN	ChromBERT	neural_neighborhood	all	204	0.448	0.402	0.493	0.98
+iN	ChromBERT	neural_neighborhood	opening	124	0.411	0.352	0.471	0.97
+iN	ChromBERT	neural_neighborhood	closing	79	0.539	0.458	0.620	1.01
+iN	ChromBERT	neural_promoter	all	39	0.392	0.284	0.500	1.54
+iN	ChromBERT	neural_promoter	opening	25	0.375	0.254	0.500	1.60
+iN	ChromBERT	ascl1_binding	all	50621	0.519	0.516	0.523	1.18
+iCM	GET	cardiac_neighborhood	all	778	0.492	0.469	0.515	2.65
+iCM	GET	cardiac_neighborhood	opening	372	0.481	0.448	0.514	2.26
+iCM	GET	cardiac_neighborhood	closing	390	0.498	0.466	0.532	3.13
+iCM	GET	cardiac_promoter	all	164	0.465	0.416	0.519	2.32
+iCM	GET	cardiac_binding	all	866	0.485	0.463	0.506	1.09
+iCM	ATACformer	cardiac_neighborhood	all	191	0.521	0.473	0.567	0.63
+iCM	ATACformer	cardiac_binding	all	652	0.477	0.452	0.502	1.17
+iCM	EpiAgent	cardiac_neighborhood	all	6	0.583	0.306	0.852	0.00

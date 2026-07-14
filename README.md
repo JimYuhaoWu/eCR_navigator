@@ -100,6 +100,17 @@ coverage). Full trail, effect sizes, and honest caveats:
 paths: [`docs/claim1_progress.md`](docs/claim1_progress.md); cross-model magnitude
 consistency: [`docs/cross_model_consistency.md`](docs/cross_model_consistency.md).
 
+- **Phase 3 — HUMAN (hg38), all five models.** The definitive multi-model round on two direct
+  reprogramming systems: **fibroblast→iN** (induced neuron, GSE299923/GSE299920; strong clean
+  transition) and **fibroblast→iCM** (induced cardiomyocyte, GSE179011; *dropped* — weak
+  partial transition). On iN, **only GET is positive** — master-TF **promoters AUROC 0.668**
+  (CI excludes 0.5), robust to opening-only — confirming the phase-2 loci reframe on human.
+  ChromFound is null on loci but positive on pioneer (Ascl1) binding (0.572); ChromBERT and
+  ATACformer are null/below-chance; EpiAgent is too sparse (8,190-cap). The informative
+  signal is **model-specific (GET) and needs a clean strong transition**. Full trail:
+  [`docs/claim1_human_progress.md`](docs/claim1_human_progress.md) (+ machine-readable
+  [`docs/claim1_results.human.tsv`](docs/claim1_results.human.tsv)).
+
 Scoped / candidate (not integrated — see the per-model docs):
 
 | Model | Input data | Species | Output score type | Status |
