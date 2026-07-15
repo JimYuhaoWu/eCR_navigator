@@ -1,0 +1,17 @@
+# Claim 2A — does GET driver_score add over a signed-Δaccessibility baseline? 2026-07-15.
+# GET only (sole model with a rankable Claim-1 signal). Systems where Claim 1 was positive:
+#   mouse MEF->mES (GSE201577 clean) and human fib->iN (GSE299923).
+# Harness: scripts/eval_driver_claim2.py. signed-Δ promoted from Claim-1 confound to a
+#   competing scorer. mode=opening-only is the primary test (matches Claim 1: |signed-Δ|-
+#   matched background restricted to opening regions); mode=all-regions lets signed-Δ keep
+#   its full magnitude power (a tougher baseline). Report AUROC head-to-head, paired-bootstrap
+#   ΔAUROC CI, and an incremental LR test (does driver improve label~signed?). perm p on LR.
+# Contracts + signed tracks on PeiLab2 /mnt3/wuyuhao/{claim1_work,in_clean}/ (no re-embedding).
+system	model	positive_set	mode	n_pos	n_neg	auroc_driver	auroc_signed	delta_auroc	dci_lo	dci_hi	lr_stat	driver_coef	perm_p	top5_driver	top5_signed	verdict
+mouse	GET	mtf_promoter	opening	51	153	0.579	0.507	0.071	-0.045	0.188	2.21	0.256	0.1319	2.74	5.10	null_underpowered
+mouse	GET	mtf_neighborhood	opening	277	831	0.523	0.500	0.023	-0.026	0.073	1.51	0.089	0.2128	1.37	2.38	null
+mouse	GET	mtf_promoter	all	69	207	0.582	0.633	-0.051	-0.137	0.037	0.82	0.138	0.3676	2.90	5.22	baseline_wins
+iN	GET	neural_promoter	opening	65	195	0.664	0.494	0.170	0.081	0.264	18.61	0.670	0.000999	2.46	1.54	supported
+iN	GET	neural_neighborhood	opening	327	981	0.557	0.499	0.057	0.012	0.103	10.28	0.210	0.001998	2.39	0.80	supported
+iN	GET	neural_promoter	all	85	255	0.668	0.599	0.069	-0.009	0.151	20.98	0.611	0.000999	2.12	1.18	increment_only
+iN	GET	neural_neighborhood	all	461	1383	0.537	0.555	-0.018	-0.057	0.021	4.63	0.116	0.02298	2.08	0.82	increment_only

@@ -70,13 +70,16 @@ Only a real (non-circular) test for models whose direction is a **prediction**:
 
 ## Status & next step
 
-- Harness + tests: **done, mirror-independent** (this commit).
-- **Next (needs data paths / a mirror up):** point `eval_driver_claim2.py` at the
-  on-disk GET contract + signed-Δ track for mouse MEF→mES and human iN, run, and record
-  results to `claim2_results.*` mirroring the Claim 1 layout. No new embedding compute —
-  it re-uses tracks already produced for Claim 1.
+- Harness + tests: **done, mirror-independent**.
+- 2A run + recorded (2026-07-15): see [`claim2_results.md`](claim2_results.md) +
+  [`claim2_results.tsv`](claim2_results.tsv). **Supported on human iN** (GET driver_score
+  beats + adds over signed-Δ, decisively on promoters: opening-only ΔAUROC +0.170
+  CI[+0.081,+0.264], incremental LR p=0.001; the increment survives the tougher
+  all-regions baseline); **null on mouse MEF→mES** (underpowered / signed-Δ dominates).
+- 2B (direction-column correctness): still **deferred** — only non-circular for
+  prediction-head models (EpiAgent / AlphaGenome).
 
-## Honest expectation
+## Honest expectation (recorded before the run — kept for the record)
 
 Because Claim 1's signal was "largely directional," 2A may well show `driver_score`
 does **not** beat signed-Δ except possibly as an *increment* on the clean GET
@@ -84,3 +87,9 @@ transitions. Either way it is a defensible result: it tells the platform whether
 foundation model's value is *direction* (probably not — you already measure that) or
 *regulatory-region prioritization at matched magnitude+direction* (the Claim-1 GET
 signal). This directly informs whether direction is worth model compute at all.
+
+**Outcome vs expectation:** the increment *did* materialize on human iN — and more
+strongly than expected (driver also beats signed-Δ head-to-head on promoters, not only
+as an LR increment). Mouse matched the pessimistic prior. So the platform read is
+system-dependent: the model's value is **regulatory-region prioritization** on strong
+clean transitions, and negligible over signed-Δ on weaker/already-directional ones.
