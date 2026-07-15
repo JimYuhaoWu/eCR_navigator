@@ -175,8 +175,41 @@ fail to generalize across reprogramming cocktails (mouse OSKM→JGES, human); th
 target is the master-TF **gene loci** (their promoters/enhancers, which must open). (2) The
 signal is **model-specific (GET)** and needs a **strong transition** — the weak/partial human
 iCM system (GSE179011) was dropped; all models null there. (3) Whether GET's signal beats a
-plain signed-Δaccessibility baseline is a **Claim 2** (direction) question — deferred, not
-yet done. Do not overclaim `driver_score` beyond GET-on-a-clean-transition.
+plain signed-Δaccessibility baseline is **Claim 2A** — now **answered** (see below). Do not
+overclaim `driver_score` beyond GET-on-a-clean-transition.
+
+**Claim 2A — does `driver_score` add over signed-Δaccessibility? (branch `validation-claim2`;
+docs `claim2_plan.md` + `claim2_results.md`, machine-readable `claim2_results.tsv`).** GET only
+(sole rankable Claim-1 signal). signed-Δ promoted from Claim-1 *confound* to a *competing
+scorer*; head-to-head paired ΔAUROC + an incremental logistic-LR test. **Result is
+system-dependent:** on human **iN** (strong clean transition) driver_score **beats and adds
+over** signed-Δ — decisively on master-TF **promoters** (opening-only AUROC 0.664 vs 0.494,
+ΔAUROC +0.170 CI[+0.081,+0.264], LR p=0.001; the increment *survives* the tougher all-regions
+baseline where the head-to-head AUROC washes out). On mouse **MEF→mES** it does **not** — the
+opening-only point estimate favors driver but is underpowered (n=51), and all-regions signed-Δ
+wins outright (0.633 vs 0.582). So GET's value is **regulatory-region prioritization at matched
+magnitude+direction** on strong/clean pairs, and negligible over signed-Δ on
+weaker/already-directional ones (use signed-Δ there — don't pay for the model). This *partly
+overturns* the "largely directional" read from Claim 1. **2B** (is the `direction` *column*
+correct?) stays deferred — circular for GET/ChromFound/ATACformer/ChromBERT (their direction
+IS the measured aTPM-Δ); only a real test for prediction-head models (EpiAgent / AlphaGenome).
+
+**Nomination policy — which score to trust per transition (`scripts/preflight.py`,
+`claim2_results.md` §Nomination policy).** The scorer choice is transition-dependent and
+**no endpoint-only indicator predicts it** (PC1 cleanliness fails — mouse is cleanest yet GET
+loses there; rank-divergence from magnitude fails too). So don't *predict* "clean enough" —
+*measure* it per transition with two gates. **Gate 1 (admissibility, endpoint-only):** ≥2
+reps/state, replicate-coherence margin ≥0.10, PC1 ≥0.80 — a reliable REJECT of the "nothing
+works" mode (dropped iCM), NOT a reliable admit. **Gate 2 (decision):** eCR design always
+targets a *known* cell type, so its canonical master-TF loci (known biology) go into the
+Claim-2A harness as positives; if GET `driver_score` beats signed-Δ (ΔAUROC CI excludes 0 **or**
+incremental-LR p<0.05, driver coef>0) → **PRIMARY = GET top ~1%**, else → **PRIMARY = signed-Δ
+top-k**; measured signed-Δ always rides along for direction. Validated: human iN → GET; mouse
+MEF→mES → signed-Δ (admissible but driver-not-primary — why Gate 1 alone is insufficient).
+Top-k confidence is front-loaded (GET human-iN top-1% ~9–10×, ~1.7× by top-10%) and
+GET-specific (all other models null/mid-tail/too-sparse at the top, both species). Thresholds
+first-pass (n=2 transitions). **`driver_score` stays a magnitude, not a signed call** — pair
+each nominated region with its measured signed-Δ so eCR_predictor knows the intended open/close.
 
 Separate **top-tail signal** (see `claim1_human_progress.md`): the **top 5% of `driver_score`
 is 2–4× enriched for master-TF loci/promoters** for several models (GET and ChromFound, both
