@@ -1,5 +1,9 @@
 # Claim 1 validation — HUMAN (hg38) progress / handoff
 
+> **STATUS: historical handoff (Claim 1 complete & merged).** For the current bottom line and
+> which-score-to-trust policy, read [`validation_summary.md`](validation_summary.md). This doc
+> is kept for the full human-phase trail and reproduction paths.
+
 Living status doc for the human Claim-1 test (is `driver_score` informative?), the
 definitive multi-model round: **all five models are hg38-native**, so this is where
 ATACformer and EpiAgent finally get a fair test (mouse liftOver made them too sparse).

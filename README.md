@@ -69,47 +69,25 @@ All five now feed the contract's optional signed `direction` column; the three p
 tiers (input-measured, predicted-model-native, external-attach) and their trust caveats are
 in [`docs/direction.md`](docs/direction.md).
 
-### Validation — is the `driver_score` actually informative? (in progress)
+### Validation — is the `driver_score` actually informative?
 
-Separate from "does the pipeline run" (above), we test whether `driver_score` recovers
-true drivers against a change-magnitude-matched background, on **clean, verified endpoints**
-(GSE201577, mm10 MEF→mES). Two rounds:
+Separate from "does the pipeline run" (above), we test whether `driver_score` recovers true
+drivers against a change-magnitude-matched background, on clean verified endpoints. **Full
+current-state summary + which-score-to-trust policy:
+[`docs/validation_summary.md`](docs/validation_summary.md)** (deep trail and honest negatives
+linked from there; docs map: [`docs/README.md`](docs/README.md)). Bottom lines:
 
-- **Phase 1 — master-TF ChIP binding (ChIP-Atlas OSKMNE):** GET all-regions AUROC 0.581,
-  ChromFound opening-only 0.643, ChromBERT null. (The earlier flat null was substantially an
-  endpoint-quality artifact.)
-- **Phase 2 — generalization + reframe.** The OSKM binding set is cocktail-biased, so we
-  tested an independent route (**JGES** = Jdp2/Glis1/Esrrb/Sall4, from the lab's own
-  GSE199612 CUT&Tag) and reframed the target. **(a)** Master-TF *binding* does **not**
-  generalize — all three models are at chance on JGES footprints (0.48–0.51); GET's 0.581
-  did not reproduce (0.486). **(b)** Master-TF *loci* — the cis-regulatory regions
-  (promoter/enhancer) of 26 pluripotency-TF genes — **do** carry elevated GET driver_score
-  (0.566–0.582, robust, broad), extending to H3K27ac-activated enhancers genome-wide (0.574).
-  The unifying signal is the **opening/activating regulatory landscape**, not TF occupancy —
-  but it is **largely directional** (collapses to ~0.50 opening-only), so whether it beats a
-  signed-Δaccessibility baseline is a Claim 2 question (deferred).
-
-Only GET shows a rankable AUROC; ChromFound contributes a non-monotonic top-tail; ChromBERT
-nothing. **Only 3 of the 5 models are tested on mouse:** ATACformer and EpiAgent are
-human-designed fixed-universe models whose mm10 liftOver is too sparse for a matched-background
-test — when human (hg38) data comes in, all five should be tested (native assembly, dense
-coverage). Full trail, effect sizes, and honest caveats:
-[`docs/claim1_results.md`](docs/claim1_results.md) (+ machine-readable
-[`docs/claim1_results.mm10.tsv`](docs/claim1_results.mm10.tsv),
-[`docs/claim1_results.mtf.tsv`](docs/claim1_results.mtf.tsv)); session handoff / reproduction
-paths: [`docs/claim1_progress.md`](docs/claim1_progress.md); cross-model magnitude
-consistency: [`docs/cross_model_consistency.md`](docs/cross_model_consistency.md).
-
-- **Phase 3 — HUMAN (hg38), all five models.** The definitive multi-model round on two direct
-  reprogramming systems: **fibroblast→iN** (induced neuron, GSE299923/GSE299920; strong clean
-  transition) and **fibroblast→iCM** (induced cardiomyocyte, GSE179011; *dropped* — weak
-  partial transition). On iN, **only GET is positive** — master-TF **promoters AUROC 0.668**
-  (CI excludes 0.5), robust to opening-only — confirming the phase-2 loci reframe on human.
-  ChromFound is null on loci but positive on pioneer (Ascl1) binding (0.572); ChromBERT and
-  ATACformer are null/below-chance; EpiAgent is too sparse (8,190-cap). The informative
-  signal is **model-specific (GET) and needs a clean strong transition**. Full trail:
-  [`docs/claim1_human_progress.md`](docs/claim1_human_progress.md) (+ machine-readable
-  [`docs/claim1_results.human.tsv`](docs/claim1_results.human.tsv)).
+- **Claim 1 (informative?):** YES for **GET only**, on the master-TF **loci** reframe (the
+  cis-regulatory regions of the target-cell master-TF *genes*, esp. promoters — NOT where TFs
+  bind), and only on a **strong clean transition** (mouse MEF→mES loci 0.57–0.58; human fib→iN
+  promoters 0.668). Binding footprints don't generalize across cocktails; other models are
+  null / top-tail-only. iCM (weak transition) dropped.
+- **Claim 2A (beats a plain signed-Δaccessibility baseline?):** system-dependent — **YES on
+  human iN** (GET promoters ΔAUROC +0.170, incremental-LR p=0.001), **NO on mouse** (signed-Δ
+  dominates). GET's real value is regulatory-region **prioritization**, not direction.
+- **Nomination:** trust **GET's top ~1%** on a strong clean transition (front-loaded ~9–10×
+  enrichment for master-TF loci); a per-transition preflight (`scripts/preflight.py`) decides
+  GET-vs-signed-Δ. **Claim 2B** (is the direction *column* itself correct?) is deferred.
 
 Scoped / candidate (not integrated — see the per-model docs):
 
