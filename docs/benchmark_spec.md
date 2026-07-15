@@ -127,7 +127,7 @@ sourcing candidates:
 
 **Two new strong transitions clear the bar (C/EBPα, MyoD)** — enough to reach v1.
 
-## Proposed v1 panel (5 transitions) — for confirmation
+## v1 panel (5 transitions) — LOCKED 2026-07-15
 | # | Transition | Role | Species | Source |
 |---|---|---|---|---|
 | 1 | fib→iN (Ascl1) | strong / model-positive | human | GSE299923 (have) |
@@ -137,6 +137,12 @@ sourcing candidates:
 | 5 | MEF→iCM | weak / partial (Gate-1 stress / reject candidate) | human | GSE179011 (have) |
 
 Hits the target (3 strong, 1 null control, 1 weak; both species — 3 mouse / 2 human).
-iNSC/iHep → v2. **Next after confirmation:** assemble each bundle (endpoints matrix + signed-Δ
-+ target-cell master-TF anchor BEDs + Gate-1 label) per the layout above, starting with the two
-new mouse sets (GSE151748, GSE186271) which are native mm10 and need no liftOver.
+iNSC/iHep → v2. v1 leans mouse (the two new strong sets are mm10) because human
+transdifferentiation with bulk ATAC + reps is scarce — a 6th **human** strong slot is held open
+for when such a dataset surfaces. For the two time-course sets, use the two **endpoints** as the
+state pair (C/EBPα: 0 h pre-B / 120 h macrophage; MyoD: MEF / iMPC) and ignore intermediate
+timepoints for scoring (endpoint-only principle).
+
+**Next: assemble each bundle** (endpoints matrix + signed-Δ + target-cell master-TF anchor BEDs
++ Gate-1 label) per the layout above, starting with the two new native-mm10 sets (GSE151748,
+GSE186271) — no liftOver needed.
