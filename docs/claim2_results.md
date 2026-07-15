@@ -90,6 +90,56 @@ head-to-head is fair because signed-Δ *is* the magnitude scorer):
   regions, so ranking by accessibility change finds them better than the model — the
   concrete mechanism behind mouse being "largely directional."
 
+### Per-model, per-species top-k confidence (all models, driver_score only)
+
+Extends the sweep beyond GET to every model tested, per species — the confidence that a
+top-k nomination is a real master-TF locus, at each cut (fold enrichment over that model's
+own base rate; `claim1_work/topk_allmodels.py`). `npos` = master-TF positives in that
+model's universe; small `npos` ⇒ noisy fold.
+
+**MOUSE mm10 — master-TF promoter**
+| model | N | npos | top-0.5% | top-1% | top-2% | top-5% | top-10% |
+|---|---|---|---|---|---|---|---|
+| **GET** | 86,956 | 69 | 5.8× | **2.9×** | 4.3× | 2.9× | 2.5× |
+| ChromFound | 40,365 | 49 | 0× | 0× | 4.1× | 2.5× | 2.0× |
+| ChromBERT | 29,343 | 26 | 0× | 0× | 0× | 0× | 0× |
+
+**MOUSE mm10 — master-TF neighborhood**
+| model | N | npos | top-0.5% | top-1% | top-2% | top-5% | top-10% |
+|---|---|---|---|---|---|---|---|
+| **GET** | 86,956 | 346 | 2.9× | 1.4× | 1.9× | 1.7× | 1.5× |
+| ChromFound | 40,365 | 154 | 1.3× | 1.3× | 3.3× | 1.8× | 1.2× |
+| ChromBERT | 29,343 | 80 | 0× | 0× | 0× | 0× | 0× |
+
+**HUMAN iN hg38 — master-TF promoter**
+| model | N | npos | top-0.5% | top-1% | top-2% | top-5% | top-10% |
+|---|---|---|---|---|---|---|---|
+| **GET** | 329,983 | 85 | 4.7× | **9.4×** | 4.7× | 2.1× | 1.7× |
+| ChromBERT | 144,659 | 39 | 0× | 0× | 3.9× | 1.5× | 0.8× |
+| ChromFound | 348,786 | 88 | 0× | 0× | 0.6× | 0.5× | 0.6× |
+| ATACformer | 112,920 | 22 | 0× | 0× | 0× | 0× | 0× |
+| EpiAgent | 3,346 | **0** | — | — | — | — | — |
+
+**HUMAN iN hg38 — master-TF neighborhood**
+| model | N | npos | top-0.5% | top-1% | top-2% | top-5% | top-10% |
+|---|---|---|---|---|---|---|---|
+| **GET** | 329,983 | 461 | 1.7× | **9.8×** | 4.9× | 2.1× | 1.4× |
+| ChromBERT | 144,659 | 204 | 0× | 0× | 2.5× | 1.0× | 0.7× |
+| ChromFound | 348,786 | 494 | 0× | 0× | 0.5× | 0.5× | 0.7× |
+| ATACformer | 112,920 | 143 | 0× | 0× | 0.4× | 0.3× | 0.4× |
+| EpiAgent | 3,346 | 5 | 39×¹ | 20×¹ | 10×¹ | 8×¹ | 4×¹ |
+
+¹ EpiAgent's large folds are **1–2 hits out of 5 positives** — noise, not signal; its
+8,190-cCRE cap leaves too few master-TF loci in-universe to evaluate (0 promoters overlap).
+
+**Read across models:** **GET is the only model with usable top-k confidence**, and it is
+sharpest on human iN (top-1% ~9–10×, front-loaded). ChromFound has a *weak mid-tail* mouse
+signal (top-2–5%, ~2–4×) but **nothing at the very top** and is at/below base rate on human.
+ChromBERT and ATACformer are **null at every cut** (their occasional top-2% blips are ≤3
+hits). EpiAgent is **too sparse to nominate** (0–5 in-universe positives). So for target
+nomination, trust **GET's top ~1% on a strong clean transition**; no other model earns a
+top-k nomination on this evidence.
+
 ## What this means for the platform
 
 The question 2A was built to answer — *is direction worth model compute at all?* — resolves
