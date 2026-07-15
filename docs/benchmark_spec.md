@@ -1,9 +1,9 @@
-# Benchmark spec — a frozen, model-agnostic transition panel (DRAFT / sketch)
+# Benchmark spec — a frozen, model-agnostic transition panel
 
-> **Status: proposal for review.** Sketches the dataset that turns Claim-1/2 validation
-> ([`validation_summary.md`](validation_summary.md)) from n=2 ad-hoc transitions into a frozen
-> panel any current *or future / self-trained* model can be scored against with one command.
-> Nothing built yet — this is the design to react to before we assemble data.
+> **Status: v1 scope SETTLED 2026-07-15 (see "v1 decisions" below); data not yet assembled.**
+> Turns Claim-1/2 validation ([`validation_summary.md`](validation_summary.md)) from n=2 ad-hoc
+> transitions into a frozen panel any current *or future / self-trained* model can be scored
+> against with one command. Next action is the data-availability pass on the sourcing list.
 
 ## Why
 
@@ -45,14 +45,26 @@ Each transition is a self-contained, frozen bundle:
 - **Gate-1 REJECTs are kept as negative controls**, not discarded — they test that the
   benchmark (and any model) correctly refuses to nominate on a bad transition.
 
-## Composition target (v1)
-Balance so the scorecard can discriminate, not just confirm:
-- **≥3 strong clean transitions** (expect model-positive) — e.g. fib→iN (have), MEF→mES (have,
-  but note: model-*null* under Claim 2 — a clean-yet-directional case, keep it),
-  + new: B-cell→macrophage (C/EBPα), fib→myotube (MyoD), fib→hepatocyte, fib→iNSC.
-- **≥2 weak/partial** (expect signed-Δ-primary or Gate-1 reject) — e.g. iCM (GSE179011, dropped).
-- **both species** represented; where possible a **same-destination cross-species pair** (tests
-  species-invariance of a model's signal).
+## Composition target (v1) — SETTLED
+Freeze **5–6 transitions**, balanced so the scorecard can discriminate, not just confirm:
+- **have already:** fib→iN (strong, model-positive) · MEF→mES (clean-but-**null** under Claim 2,
+  the instructive "clean yet directional" control — keep) · iCM GSE179011 (weak/partial —
+  the weak-or-Gate-1-reject slot).
+- **collect 2–3 new strong** from the sourcing priority list below (whichever clear the data
+  bar), to reach 3–4 strong total.
+- Panel must contain **≥1 weak/partial and ≥1 Gate-1 reject** (iCM is the current candidate;
+  confirm which role it plays once its per-replicate matrix is scored), and **both species**.
+
+### Sourcing priority list (settled — attempt all, take those with usable data)
+Bar: **defined destination cell type + public bulk/pseudobulk ATAC at both endpoints, ≥2
+reps/state.** Priority order by cleanliness of the master-TF definition:
+1. **MyoD fib→myotube** — single master TF; cleanest possible positive control.
+2. **C/EBPα B-cell→macrophage** — classic, well-defined; fast transdifferentiation.
+3. **fib→hepatocyte** (Foxa/Hnf) — diversifies lineage (endoderm) beyond neuro/muscle/blood.
+4. **fib→iNSC** (Sox2-led) — distinct destination identity, neuro-adjacent to iN.
+
+Any of these that lack usable data → deferred to v2. If ≥2 same-destination across species turn
+up (e.g. mouse+human MyoD), keep the **cross-species pair** (tests species-invariance).
 
 ## Per-(model × transition) scorecard (generated)
 Reuses `eval_driver_claim1.py`, `eval_driver_claim2.py`, `preflight.py` — no new stats code:
@@ -91,12 +103,18 @@ Freeze **v1** (panel + per-cell-type TF lists + anchor BEDs + preflight threshol
 version when transitions or anchor lists change, so cross-model scores stay comparable within a
 version.
 
-## Open questions for review
-1. **v1 size** — how many transitions to target before first freeze (I'd suggest 5–6: 3–4
-   strong, 1–2 weak, ≥1 Gate-1 reject)?
-2. **Binding as a second axis** — include in-study ChIP/CUT&Tag ground truth where available, or
-   keep the benchmark loci-only for consistency?
-3. **New-transition sourcing** — which reprogramming systems to prioritize collecting, given the
-   "defined destination + bulk ATAC + reps" bar?
-4. **Self-trained-model hook** — do we also want a *training* split (transitions reserved for
-   fine-tuning a driver-supervised model) vs a held-out *test* split, or is v1 test-only?
+## v1 decisions (settled 2026-07-15)
+1. **Size:** freeze **5–6 transitions** (3–4 strong, ≥1 weak, ≥1 Gate-1 reject).
+2. **Ground truth:** **master-TF loci primary** (scored on every transition); **binding
+   (ChIP/CUT&Tag) optional secondary** where the study provides it — never a required column.
+3. **Sourcing priority:** MyoD fib→myotube · C/EBPα B-cell→macrophage · fib→hepatocyte ·
+   fib→iNSC (attempt all; take those clearing the data bar; rest → v2).
+4. **Split:** **test-only for v1** — a clean held-out yardstick for zero-shot models. A reserved
+   *train* split is added later, when a driver-supervised fine-tune corpus is actually being
+   built (regime 1/3; see CLAUDE.md endpoint-only principle).
+
+## Next action (not yet started)
+**Data-availability pass** on the four sourcing candidates: for each, find public bulk/pseudobulk
+ATAC at both endpoints with ≥2 reps/state (GEO), confirm assembly, and note the master-TF list +
+any in-study binding. Output a short table (candidate → GEO/assembly/reps/verdict) → pick the 2–3
+that clear the bar → then assemble the frozen `benchmark/` bundle per the layout above.
