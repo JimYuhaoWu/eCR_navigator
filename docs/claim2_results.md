@@ -60,6 +60,36 @@ proxy for signed accessibility change, at least on the best system.
   enriched vs signed-Δ's 0.8–1.5× — driver nominates a better top-k. On mouse, signed-Δ's
   top-5% (5×) exceeds driver's (2.7–2.9×) — again the mouse-is-directional story.
 
+## Top-nomination sweep (the metric that matches the navigator's job)
+
+The navigator nominates a **limited top-k** of regions for `eCR_predictor`, so the
+decision-relevant question is not average AUROC but: *how enriched for master-TF loci are
+the very top regions under `driver_score` vs under the directional signed-Δ score?* Fold
+enrichment over base rate, computed on the **full** contract ranking (PeiLab2
+`claim1_work/topk_sweep.py`; raw ranking, not |Δ|-matched — but the driver-vs-signed
+head-to-head is fair because signed-Δ *is* the magnitude scorer):
+
+| System | Positive | | top-0.5% | top-1% | top-2% | top-5% | top-10% |
+|---|---|---|---|---|---|---|---|
+| **iN** | promoter | driver | 4.7× | **9.4×** | 4.7× | 2.1× | 1.7× |
+| | | signed-Δ | 0.0× | 2.4× | 1.2× | 1.2× | 0.7× |
+| **iN** | neighborhood | driver | 1.7× | **9.8×** | 4.9× | 2.1× | 1.4× |
+| | | signed-Δ | 0.4× | 1.1× | 0.9× | 0.8× | 0.8× |
+| mouse | promoter | driver | 5.8× | 2.9× | 4.3× | 2.9× | 2.5× |
+| | | signed-Δ | 5.8× | **7.2×** | **9.4×** | **5.2×** | 3.3× |
+| mouse | neighborhood | driver | 2.9× | 1.4× | 1.9× | 1.7× | 1.5× |
+| | | signed-Δ | 5.2× | **4.9×** | **4.3×** | **2.7×** | 2.5× |
+
+- **Human iN — `driver_score` owns the top.** top-1% is **~9–10×** enriched for master-TF
+  loci; the directional score's top regions sit **at or below base rate** (0–2.4×). At the
+  cut that matters, the model beats direction by 4–9×. Enrichment is **concentrated in the
+  top ~1%** and decays fast (9.4× → 2.1× by top-5% → 1.7× by top-10%) — evidence that a
+  *small* nomination set is where the confidence lives.
+- **Mouse — reversed.** signed-Δ's top nominations are the more enriched (5–9× at the top)
+  than driver's (1.4–2.9×). Mouse master-TF promoters simply *are* the biggest-opening
+  regions, so ranking by accessibility change finds them better than the model — the
+  concrete mechanism behind mouse being "largely directional."
+
 ## What this means for the platform
 
 The question 2A was built to answer — *is direction worth model compute at all?* — resolves
