@@ -140,6 +140,50 @@ hits). EpiAgent is **too sparse to nominate** (0–5 in-universe positives). So 
 nomination, trust **GET's top ~1% on a strong clean transition**; no other model earns a
 top-k nomination on this evidence.
 
+## Nomination policy — which score to trust for a new transition (`scripts/preflight.py`)
+
+The scores above are transition-dependent, so the platform needs a *preflight* that decides,
+per transition, whether to nominate from GET `driver_score` or from signed-Δ — runnable
+**before** nominating, from data available at inference (endpoint accessibility + known
+target-cell biology; no drivers of *this* transition, no wet-lab ground truth).
+
+**First, a negative result that shapes the design.** No endpoint-only indicator we tried
+separates "GET wins" from "signed-Δ wins":
+- **Cleanliness (PC1 / endpoint separation) does NOT predict it.** Recorded PC1: iN ≈0.89,
+  mouse MEF→mES ≈0.96–0.98, dropped iCM ≈0.68. Mouse is the *cleanest* yet GET *lost* there.
+- **Rank-divergence from magnitude does NOT predict it.** GET is ~equally weakly correlated
+  with |signed-Δ| in both systems (Spearman ≈0.21 mouse / ≈0.16 human; top-1% overlap ≈0.02
+  both). GET departs from "what opens" in *both* — divergence doesn't say *toward* drivers.
+
+So we do **not predict** "clean enough"; we **measure** it per transition. Two gates:
+
+**Gate 1 — admissibility (endpoint-only; a reliable REJECT, not a reliable ADMIT).** From a
+per-replicate accessibility matrix: require ≥2 replicates/state, within-state minus
+across-state correlation ≥ 0.10, and PC1 ≥ 0.80. Screens the "nothing works" failure mode
+(weak/partial transition, e.g. the dropped iCM). **Clearing it does not mean GET will win** —
+mouse clears it (PC1 0.956, coherence +0.845) and GET still loses. Gate 2 is the real decision.
+
+**Gate 2 — score selection (the decision).** eCR design always targets a *known* cell type,
+so its canonical master-TF loci are known biology, independent of this transition. Drop them
+into the Claim-2A harness as positives and read the **stable** statistics (paired ΔAUROC CI +
+incremental LR — not a few-hit top-1% fold):
+- driver **beats** signed (ΔAUROC CI excludes 0 in driver's favour **or** incremental-LR
+  p<0.05 with positive driver coef) → **PRIMARY = GET `driver_score` top ~1%**.
+- otherwise → **PRIMARY = signed-Δ top-k** (GET supplementary).
+- In both, the measured signed-Δ rides along per region for open/close **direction**.
+
+**Validated on both transitions (`preflight.py`, run 2026-07-15):**
+
+| Transition | Gate 1 | Gate 2 (85/69 anchors) | PRIMARY |
+|---|---|---|---|
+| human iN | (per-rep matrix not on disk; QC PC1≈0.89) | driver 0.664 vs signed 0.494, ΔAUROC CI[+0.081,+0.264], LR p=0.001 | **GET top ~1%** |
+| mouse MEF→mES | ADMIT (PC1 0.956, coherence +0.845) | driver 0.579 vs signed 0.507, ΔAUROC CI[−0.045,+0.188], LR p=0.13 | **signed-Δ top-k** |
+
+Mouse is the instructive case: **admissible yet driver-not-primary** — exactly why Gate 1
+alone is insufficient. Thresholds (PC1≥0.80, coherence≥0.10, "CI>0 or LR p<0.05") are
+first-pass, calibrated on **n=2** transitions; tighten as more accrue. Needs ≥~20 in-universe
+anchors for a reliable Gate-2 verdict (widen promoter→+neighborhood if sparse).
+
 ## What this means for the platform
 
 The question 2A was built to answer — *is direction worth model compute at all?* — resolves

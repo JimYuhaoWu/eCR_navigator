@@ -194,6 +194,23 @@ overturns* the "largely directional" read from Claim 1. **2B** (is the `directio
 correct?) stays deferred — circular for GET/ChromFound/ATACformer/ChromBERT (their direction
 IS the measured aTPM-Δ); only a real test for prediction-head models (EpiAgent / AlphaGenome).
 
+**Nomination policy — which score to trust per transition (`scripts/preflight.py`,
+`claim2_results.md` §Nomination policy).** The scorer choice is transition-dependent and
+**no endpoint-only indicator predicts it** (PC1 cleanliness fails — mouse is cleanest yet GET
+loses there; rank-divergence from magnitude fails too). So don't *predict* "clean enough" —
+*measure* it per transition with two gates. **Gate 1 (admissibility, endpoint-only):** ≥2
+reps/state, replicate-coherence margin ≥0.10, PC1 ≥0.80 — a reliable REJECT of the "nothing
+works" mode (dropped iCM), NOT a reliable admit. **Gate 2 (decision):** eCR design always
+targets a *known* cell type, so its canonical master-TF loci (known biology) go into the
+Claim-2A harness as positives; if GET `driver_score` beats signed-Δ (ΔAUROC CI excludes 0 **or**
+incremental-LR p<0.05, driver coef>0) → **PRIMARY = GET top ~1%**, else → **PRIMARY = signed-Δ
+top-k**; measured signed-Δ always rides along for direction. Validated: human iN → GET; mouse
+MEF→mES → signed-Δ (admissible but driver-not-primary — why Gate 1 alone is insufficient).
+Top-k confidence is front-loaded (GET human-iN top-1% ~9–10×, ~1.7× by top-10%) and
+GET-specific (all other models null/mid-tail/too-sparse at the top, both species). Thresholds
+first-pass (n=2 transitions). **`driver_score` stays a magnitude, not a signed call** — pair
+each nominated region with its measured signed-Δ so eCR_predictor knows the intended open/close.
+
 Separate **top-tail signal** (see `claim1_human_progress.md`): the **top 5% of `driver_score`
 is 2–4× enriched for master-TF loci/promoters** for several models (GET and ChromFound, both
 species), *even when the matched AUROC is ~0.5*. This is the metric that matches the
