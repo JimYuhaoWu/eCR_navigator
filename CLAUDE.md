@@ -154,69 +154,24 @@ scATAC models (ATACformer, ChromFound, EpiAgent) are primary for human and a
 liftOver-bridged reference for mouse. All five are validated end-to-end on both mm10
 (MEF→mES) and hg38 (kidney vs pancreas).
 
-**Claim 1 validation — is `driver_score` INFORMATIVE? (merged, PRs #5/#6; docs
-`claim1_results.md` + `claim1_human_progress.md`, machine-readable `claim1_results.*.tsv`).**
-Pipeline-runs ≠ informative. Tested by matched-background AUROC (control for
-|Δaccessibility|) against master-TF ground truth on clean, strong transitions. Bottom
-line: **GET is the one informative model, on the master-TF *loci* reframe** — the
-cis-regulatory regions (esp. **promoters**) of the target-cell master-TF genes, NOT where
-TFs bind — and only on a clean, strong endpoint pair.
-
-| Model | mouse MEF→mES (clean GSE201577) | human fib→iN (GSE299923) |
-|---|---|---|
-| **GET** | ✅ master-TF loci **0.57–0.58** (robust, broad) | ✅ master-TF **promoters 0.668**, robust to opening-only |
-| ChromFound | loci tail-only (top-5% 2–4×, null AUROC); OSKM opening-only 0.643 | null on loci, **positive on pioneer (Ascl1) binding 0.572** |
-| ChromBERT | null | null / below-chance |
-| ATACformer | not tested (mm10 liftOver too sparse) | null / below-chance (first fair hg38-native test) |
-| EpiAgent | not tested (too sparse) | too sparse (8,190-cCRE rank cap) |
-
-Lessons that shape method choices: (1) master-TF **binding footprints do NOT work** — they
-fail to generalize across reprogramming cocktails (mouse OSKM→JGES, human); the informative
-target is the master-TF **gene loci** (their promoters/enhancers, which must open). (2) The
-signal is **model-specific (GET)** and needs a **strong transition** — the weak/partial human
-iCM system (GSE179011) was dropped; all models null there. (3) Whether GET's signal beats a
-plain signed-Δaccessibility baseline is **Claim 2A** — now **answered** (see below). Do not
-overclaim `driver_score` beyond GET-on-a-clean-transition.
-
-**Claim 2A — does `driver_score` add over signed-Δaccessibility? (branch `validation-claim2`;
-docs `claim2_plan.md` + `claim2_results.md`, machine-readable `claim2_results.tsv`).** GET only
-(sole rankable Claim-1 signal). signed-Δ promoted from Claim-1 *confound* to a *competing
-scorer*; head-to-head paired ΔAUROC + an incremental logistic-LR test. **Result is
-system-dependent:** on human **iN** (strong clean transition) driver_score **beats and adds
-over** signed-Δ — decisively on master-TF **promoters** (opening-only AUROC 0.664 vs 0.494,
-ΔAUROC +0.170 CI[+0.081,+0.264], LR p=0.001; the increment *survives* the tougher all-regions
-baseline where the head-to-head AUROC washes out). On mouse **MEF→mES** it does **not** — the
-opening-only point estimate favors driver but is underpowered (n=51), and all-regions signed-Δ
-wins outright (0.633 vs 0.582). So GET's value is **regulatory-region prioritization at matched
-magnitude+direction** on strong/clean pairs, and negligible over signed-Δ on
-weaker/already-directional ones (use signed-Δ there — don't pay for the model). This *partly
-overturns* the "largely directional" read from Claim 1. **2B** (is the `direction` *column*
-correct?) stays deferred — circular for GET/ChromFound/ATACformer/ChromBERT (their direction
-IS the measured aTPM-Δ); only a real test for prediction-head models (EpiAgent / AlphaGenome).
-
-**Nomination policy — which score to trust per transition (`scripts/preflight.py`,
-`claim2_results.md` §Nomination policy).** The scorer choice is transition-dependent and
-**no endpoint-only indicator predicts it** (PC1 cleanliness fails — mouse is cleanest yet GET
-loses there; rank-divergence from magnitude fails too). So don't *predict* "clean enough" —
-*measure* it per transition with two gates. **Gate 1 (admissibility, endpoint-only):** ≥2
-reps/state, replicate-coherence margin ≥0.10, PC1 ≥0.80 — a reliable REJECT of the "nothing
-works" mode (dropped iCM), NOT a reliable admit. **Gate 2 (decision):** eCR design always
-targets a *known* cell type, so its canonical master-TF loci (known biology) go into the
-Claim-2A harness as positives; if GET `driver_score` beats signed-Δ (ΔAUROC CI excludes 0 **or**
-incremental-LR p<0.05, driver coef>0) → **PRIMARY = GET top ~1%**, else → **PRIMARY = signed-Δ
-top-k**; measured signed-Δ always rides along for direction. Validated: human iN → GET; mouse
-MEF→mES → signed-Δ (admissible but driver-not-primary — why Gate 1 alone is insufficient).
-Top-k confidence is front-loaded (GET human-iN top-1% ~9–10×, ~1.7× by top-10%) and
-GET-specific (all other models null/mid-tail/too-sparse at the top, both species). Thresholds
-first-pass (n=2 transitions). **`driver_score` stays a magnitude, not a signed call** — pair
-each nominated region with its measured signed-Δ so eCR_predictor knows the intended open/close.
-
-Separate **top-tail signal** (see `claim1_human_progress.md`): the **top 5% of `driver_score`
-is 2–4× enriched for master-TF loci/promoters** for several models (GET and ChromFound, both
-species), *even when the matched AUROC is ~0.5*. This is the metric that matches the
-navigator's job (nominate the top-k regions) — but top-5% fold is NOT |Δ|-matched, so much of
-it is a change-magnitude effect. Use it for target-nomination intuition; use the matched AUROC
-for the scientific claim.
+**Validation — is `driver_score` any good? → see [`docs/validation_summary.md`](docs/validation_summary.md)
+(canonical) and the `docs/README.md` index.** Bottom lines to keep in mind here:
+- **Claim 1 (informative?):** YES for **GET only**, on the master-TF **loci** reframe
+  (promoters/enhancers of the target-cell master-TF *genes*, NOT where TFs bind), and only on a
+  **strong clean transition** (mouse loci 0.57–0.58; human iN promoters 0.668). Other models
+  null/tail-only. Binding footprints don't generalize across cocktails.
+- **Claim 2A (beats signed-Δaccessibility?):** system-dependent — **YES on human iN** (GET
+  promoters ΔAUROC +0.170, incremental-LR p=0.001), **NO on mouse** (signed-Δ dominates). GET's
+  value is regulatory-region *prioritization*, not direction.
+- **Nomination policy (`scripts/preflight.py`):** no endpoint-only indicator predicts which
+  score wins (PC1/cleanliness fails — mouse is cleanest yet GET loses). So **Gate 1** rejects
+  unusable transitions (≥2 reps, coherence ≥0.10, PC1 ≥0.80; a reject-only screen) and **Gate 2**
+  *measures* it — run the Claim-2A harness on the known target-cell master-TF loci; GET PRIMARY
+  iff it beats signed-Δ, else signed-Δ. Trust **GET's top ~1%** on a strong clean transition
+  (front-loaded ~9–10× enrichment); no other model earns a top-k. Thresholds first-pass (n=2).
+- **`driver_score` is a magnitude, not a signed call** — always attach the measured signed-Δ
+  for open/close direction. **Claim 2B** (is the direction *column* itself correct?) is deferred
+  (circular for all current models; only testable on prediction-head models EpiAgent/AlphaGenome).
 
 **Driver-score readout — keep BOTH scores (decided 2026-07-03; reframed 2026-07-09):**
 - **Zero-shot** — embedding-shift between endpoint states. Always available; needs no

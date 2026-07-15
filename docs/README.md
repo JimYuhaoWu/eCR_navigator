@@ -1,0 +1,41 @@
+# docs/ index
+
+Map of the docs — start here to find things fast. **Bold = read first for that topic.**
+
+## Architecture & contracts (the stable interfaces)
+| Doc | What it is / read when |
+|---|---|
+| [`region_weight_contract.md`](region_weight_contract.md) | **Output contract** `chrom,start,end,driver_score[,direction]` that eCR_predictor consumes. Read before touching outputs. |
+| [`embedding_artifact.md`](embedding_artifact.md) | Internal `.npz` contract (mirror → navigator). Read when adding a model's embed script. |
+| [`direction.md`](direction.md) | The optional signed `direction` column + its three provenance tiers (input-measured / predicted / external-attach) and trust caveats. |
+
+## Validation — is `driver_score` any good? (**read the summary first**)
+| Doc | What it is / read when |
+|---|---|
+| [`validation_summary.md`](validation_summary.md) | **CANONICAL current-state summary of Claim 1 + Claim 2 + the nomination policy.** The one doc to read; everything below is deep provenance. |
+| [`claim1_results.md`](claim1_results.md) | Claim 1 mouse full trail (phases 1–2: OSKM binding, JGES, master-TF loci reframe, H3K27ac). Deep dive. |
+| [`claim1_human_progress.md`](claim1_human_progress.md) | Claim 1 human (all 5 models, iN + dropped iCM) + top-tail section. Deep dive. |
+| [`claim1_progress.md`](claim1_progress.md) | Claim 1 session handoff / reproduction paths (historical). |
+| [`cross_model_consistency.md`](cross_model_consistency.md) | Why the 5 models' magnitude rankings don't agree (Spearman≈0). |
+| [`claim2_plan.md`](claim2_plan.md) | Claim 2 scope: 2A (done) vs 2B (deferred, why). |
+| [`claim2_results.md`](claim2_results.md) | Claim 2A results, top-k sweeps, per-model×species confidence, **nomination policy**. Deep dive. |
+| `benchmark_spec.md` | (planned) frozen transition panel so future/self-trained models run the same scorecard. |
+| `*.tsv` | Machine-readable results: `claim1_results.{mm10,mtf,human}.tsv`, `claim2_results.tsv`, `cross_model_consistency.mm10.tsv`. |
+
+## Per-model pipelines (run + species notes, one per model)
+[`get_pipeline.md`](get_pipeline.md) · [`chrombert_pipeline.md`](chrombert_pipeline.md) ·
+[`chromfound_pipeline.md`](chromfound_pipeline.md) · [`atacformer_pipeline.md`](atacformer_pipeline.md) ·
+[`epiagent_pipeline.md`](epiagent_pipeline.md) · [`alphagenome_pipeline.md`](alphagenome_pipeline.md)
+(scoping) · [`evo2_scoping.md`](evo2_scoping.md) (scope-only).
+AlphaGenome track lists: `alphagenome_mouse_{atac,dnase}_tracks.tsv`.
+
+## Mirror / server operations
+| Doc | What it is / read when |
+|---|---|
+| [`server_mirrors.md`](server_mirrors.md) | **Mirror access (ports, keys, envs) + per-model runtime notes + artifact locations.** Read when connecting to a GPU mirror or PeiLab2. |
+| [`mirror_onboarding.md`](mirror_onboarding.md) | Reusable playbook for wiring up a new model's mirror. |
+| [`model_runtime_matrix.md`](model_runtime_matrix.md) | Measured peak GPU mem + torch/CUDA/driver per model. |
+
+> Convention: `*_progress.md` are **session handoff / status** docs (historical once the work
+> merges) — the current bottom line always lives in `validation_summary.md`. `*_results.md`
+> are the durable deep-dive results.

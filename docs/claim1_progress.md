@@ -1,5 +1,9 @@
 # Claim 1 validation — session progress / handoff
 
+> **STATUS: historical handoff (Claim 1 complete & merged).** For the current bottom line and
+> which-score-to-trust policy, read [`validation_summary.md`](validation_summary.md). This doc
+> is kept for the mouse-phase trail and reproduction paths.
+
 Living status doc so this work can be resumed after a context reset. Updated 2026-07-14
 (clean-endpoint re-run complete for all three models).
 
