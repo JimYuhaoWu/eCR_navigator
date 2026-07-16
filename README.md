@@ -87,7 +87,8 @@ linked from there; docs map: [`docs/README.md`](docs/README.md)). Bottom lines:
   dominates). GET's real value is regulatory-region **prioritization**, not direction.
 - **Nomination:** trust **GET's top ~1%** on a strong clean transition (front-loaded ~9–10×
   enrichment for master-TF loci); a per-transition preflight (`scripts/preflight.py`) decides
-  GET-vs-signed-Δ. **Claim 2B** (is the direction *column* itself correct?) is deferred.
+  GET-vs-signed-Δ. **Claim 2B** (is the *measured* direction trustworthy where it picks an
+  effector domain?) is specced and ready to run — see `docs/claim2_plan.md` §2B.
 
 Scoped / candidate (not integrated — see the per-model docs):
 

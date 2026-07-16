@@ -2,7 +2,7 @@
 
 **Canonical, current-state summary. Read this first; the deep per-phase docs (linked at the
 bottom) hold the full trail, effect sizes, and honest negatives.** Two questions have been
-answered on real transitions; one (2B) is deferred.
+answered on real transitions; 2B is specced and ready to run.
 
 - **Claim 1 — is `driver_score` informative?** (recovers true drivers vs a
   change-magnitude-matched background) → **YES, for GET, on the master-TF *loci* reframe, on a
@@ -10,8 +10,9 @@ answered on real transitions; one (2B) is deferred.
 - **Claim 2A — does it add over a signed-Δaccessibility baseline?** → **YES on human iN
   (strong/clean), NO on mouse MEF→mES (signed-Δ dominates).**
 - **Nomination policy** — a runnable per-transition preflight decides GET-vs-signed.
-- **Claim 2B — is the `direction` *column* itself correct?** → **deferred** (circular for all
-  current models; only testable on prediction-head models EpiAgent / AlphaGenome).
+- **Claim 2B — is the measured `direction` trustworthy where it picks an ED?** → **specced,
+  not run** ([`claim2_plan.md`](claim2_plan.md) §2B). Two-sided against destination (must
+  open) and source-cell (must close) master-TF anchors; no GPU.
 
 Method throughout: matched-background AUROC (control for |Δaccessibility|) + bootstrap CI +
 top-k fold, on clean verified endpoints. Report AUROC/CI/fold, **not** permutation-p (n large).
@@ -94,9 +95,13 @@ transitions — tighten as the benchmark grows.
 ## `driver_score` is a magnitude, not a signed call
 
 All current models' "direction" is the *measured* aTPM-Δ (input-measured or external-attach),
-so pair every nominated region with its measured signed-Δ for the predictor. Whether a model
-can *predict* direction (Claim 2B) is only non-circular for prediction-head models
-(EpiAgent SR head, AlphaGenome DNase head) — deferred; see [`claim2_plan.md`](claim2_plan.md) §2B.
+so pair every nominated region with its measured signed-Δ for the predictor. Because the
+navigator always has both endpoints, that Δ is the **design target**, not an estimate of one
+— which is why "can a model *predict* direction?" is model QC rather than a platform question
+(moved to [`alphagenome_pipeline.md`](alphagenome_pipeline.md) §Validation).
+The live question is whether the *measured* sign is trustworthy where it picks an effector
+domain — **42% of iN nominations have |direction| < 0.05** — which is
+[`claim2_plan.md`](claim2_plan.md) §2B.
 
 ---
 
@@ -108,14 +113,20 @@ can *predict* direction (Claim 2B) is only non-circular for prediction-head mode
 | Claim 1 human (all 5 models, iN + dropped iCM) | [`claim1_human_progress.md`](claim1_human_progress.md) · TSV [`claim1_results.human.tsv`](claim1_results.human.tsv) |
 | Claim 1 session handoff / reproduction paths | [`claim1_progress.md`](claim1_progress.md) |
 | Cross-model magnitude (non-)consistency | [`cross_model_consistency.md`](cross_model_consistency.md) · TSV [`cross_model_consistency.mm10.tsv`](cross_model_consistency.mm10.tsv) |
-| Claim 2 plan (2A scope, 2B deferred rationale) | [`claim2_plan.md`](claim2_plan.md) |
+| Claim 2 plan (2A scope; **2B spec**; Claim 3 parked) | [`claim2_plan.md`](claim2_plan.md) |
 | Claim 2A results, top-k sweeps, per-model×species confidence, nomination policy | [`claim2_results.md`](claim2_results.md) · TSV [`claim2_results.tsv`](claim2_results.tsv) |
 | Eval + preflight code | `scripts/eval_driver_claim1.py`, `scripts/eval_driver_claim2.py`, `scripts/preflight.py` (+ `tests/`) |
 | Server-side artifacts | PeiLab2 `/mnt3/wuyuhao/{claim1_work,in_clean,mtf_loci,neural_gt,jges_gse199612}/` (see `server_mirrors.md`) |
 
 ## Open items
 
-- **Claim 2B** (direction-column correctness) — deferred; needs a prediction-head model.
+- **Claim 2B** (is the measured `direction` trustworthy where it picks an ED?) — **specced,
+  ready to run, no GPU**; [`claim2_plan.md`](claim2_plan.md) §2B. Only new asset is
+  source-cell master-TF anchors.
+- **Claim 3** (counterfactual direction) — parked (hard; needs AlphaGenome + perturbation
+  ground truth).
+- Predicted-vs-measured direction (the *old* Claim 2B) — model QC, moved to
+  [`alphagenome_pipeline.md`](alphagenome_pipeline.md) §Validation, gated on that model.
 - **Run bundles — the panel is regenerated as bundles** (2026-07-16), `/mnt3/wuyuhao/bundles/`.
   One `navigate.py --contract --bundle` per transition, no special-casing: **2 nominate from
   GET (iN 3,300 / C/EBPα 3,139), 1 from signed-Δ (MEF→mES 870), 3 refuse** (MyoD, iCM, ETV2 —
