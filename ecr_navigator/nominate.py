@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -86,12 +87,15 @@ def nominate(rows: list[RegionWeight], gate1: dict | None, gate2: dict | None,
     # stable sort: equal scores keep input order, so ranks are deterministic. Ties are
     # expected and unavoidable under score_norm='rank' -- driver_score is a percentile, so
     # a top_frac band spans [1-top_frac, 1.0] by construction.
-    order = sorted(range(len(scored)), key=lambda i: -scored[i][1])
-    k = round(len(scored) * top_frac)
+    ranked = sorted(scored, key=lambda t: -t[1])
+    # ceil, not round: round() would banker's-round a 50-region universe at top_frac=0.01
+    # down to ZERO nominations while still reporting refused=False -- a bundle state the
+    # contract does not allow (refusal is the only way to nominate nothing).
+    k = max(1, math.ceil(len(scored) * top_frac))
     # full precision in memory; rounding is a serialization concern (as in weights.py)
     noms = [Nomination(chrom=r.chrom, start=r.start, end=r.end, rank=i,
                        nomination_score=float(s), direction=r.direction)
-            for i, (r, s) in enumerate((scored[j] for j in order[:k]), 1)]
+            for i, (r, s) in enumerate(ranked[:k], 1)]
 
     return noms, {"score_source": primary, "score_norm": norm, "top_frac": top_frac,
                   "n_nominated": len(noms), "refused": False, "refusal_reason": None}
@@ -136,8 +140,9 @@ def write_nominations(noms: list[Nomination], path: str | Path) -> None:
         for n in noms:
             d = ("" if n.direction is None
                  else round(max(-1.0, min(1.0, float(n.direction))), 4))
+            score = max(0.0, min(1.0, float(n.nomination_score)))   # clamp, as weights.py
             w.writerow([n.chrom, int(n.start), int(n.end), n.rank,
-                        round(float(n.nomination_score), 4), d])
+                        round(score, 4), d])
 
 
 def read_nominations(path: str | Path) -> list[Nomination]:
@@ -158,10 +163,13 @@ def write_bundle(outdir: str | Path, manifest: dict, weights: list[RegionWeight]
                  noms: list[Nomination]) -> None:
     """Write the three-part run bundle. `weights` is the FULL region universe (emitted even
     for a refusal -- Tier-2 off-target weighting only needs relative accessibility
-    importance, not a trustworthy driver ranking)."""
+    importance, not a trustworthy driver ranking).
+
+    `bundle_version` is stamped here rather than taken from the caller: the writer is what
+    determines the on-disk format, so it is the only thing that can honestly declare it."""
     d = Path(outdir)
     d.mkdir(parents=True, exist_ok=True)
     write_region_weights(weights, d / "weights.tsv")
     write_nominations(noms, d / "nominations.tsv")
     with open(d / "manifest.json", "w") as fh:
-        json.dump(manifest, fh, indent=2)
+        json.dump({**manifest, "bundle_version": BUNDLE_VERSION}, fh, indent=2)

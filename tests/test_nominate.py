@@ -14,8 +14,8 @@ from _runner import run, add_repo_paths
 
 add_repo_paths()
 
-from ecr_navigator.nominate import (nominate, read_nominations, write_bundle,
-                                    write_nominations)
+from ecr_navigator.nominate import (BUNDLE_VERSION, nominate, read_nominations,
+                                    write_bundle, write_nominations)
 from ecr_navigator.weights import RegionWeight
 
 ADMIT = {"admit": True, "pc1_frac": 0.89, "coherence_margin": 0.31, "n_a": 2, "n_b": 2,
@@ -109,7 +109,48 @@ def test_signed_primary_drops_unmeasured_regions():
     assert len(noms) == 25, "top_frac applies to the 50 MEASURED regions, not all 100"
 
 
+# ------------------------------------------------------------------ zero-nomination guard
+def test_small_universe_never_yields_a_silent_empty_nomination():
+    """A non-refused bundle must never nominate nothing. round() would banker's-round a
+    50-region universe at top_frac=0.01 down to k=0 while reporting refused=False -- a
+    bundle state the contract does not allow."""
+    for n in (1, 30, 50, 99):
+        rows = [RegionWeight("chr1", i, i + 1, i / max(n - 1, 1), 0.1) for i in range(n)]
+        noms, block = nominate(rows, ADMIT, GATE2_GET, top_frac=0.01)
+        assert block["refused"] is False
+        assert len(noms) >= 1, f"{n} regions -> {len(noms)} nominations with refused=False"
+        assert block["n_nominated"] == len(noms)
+
+
+def test_top_frac_uses_ceiling_not_rounding():
+    """250 * 0.01 = 2.5, where ceil gives 3 but banker's round gives 2 -- a case that
+    actually discriminates the two (1.5 would not: both give 2)."""
+    rows = [RegionWeight("chr1", i, i + 1, i / 249, 0.1) for i in range(250)]
+    noms, _ = nominate(rows, ADMIT, GATE2_GET, top_frac=0.01)
+    assert len(noms) == 3, len(noms)
+
+
 # ------------------------------------------------------------------ rank / direction detail
+def test_nomination_score_is_clamped_like_driver_score():
+    """weights.py clamps driver_score to [0,1]; nominations.tsv must not be laxer -- the
+    contract declares nomination_score is [0,1]."""
+    rows = [RegionWeight("chr1", 0, 1, 1.7, 0.5), RegionWeight("chr1", 2, 3, -0.4, 0.5)]
+    noms, _ = nominate(rows, ADMIT, GATE2_GET, top_frac=1.0)
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "nominations.tsv"
+        write_nominations(noms, p)
+        scores = [float(ln.split("\t")[4]) for ln in p.read_text().splitlines()[1:]]
+    assert scores == [1.0, 0.0], scores
+
+
+def test_write_bundle_stamps_bundle_version():
+    with tempfile.TemporaryDirectory() as d:
+        noms, block = nominate(_rows(100), ADMIT, GATE2_GET)
+        write_bundle(d, {"nomination": block}, _rows(100), noms)   # caller omits it
+        m = json.load(open(Path(d) / "manifest.json"))
+        assert m["bundle_version"] == BUNDLE_VERSION
+
+
 def test_rank_is_dense_and_deterministic_under_ties():
     """driver_score is a percentile, so a top_frac band is full of ties (17 at 1.0 in the
     real iN fixture). Ranks must still be 1..k, stable, and tie-broken by input order."""
