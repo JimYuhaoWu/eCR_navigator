@@ -19,7 +19,8 @@ Map of the docs — start here to find things fast. **Bold = read first for that
 | [`cross_model_consistency.md`](cross_model_consistency.md) | Why the 5 models' magnitude rankings don't agree (Spearman≈0). |
 | [`claim2_plan.md`](claim2_plan.md) | Claim 2 scope: 2A (done) vs 2B (deferred, why). |
 | [`claim2_results.md`](claim2_results.md) | Claim 2A results, top-k sweeps, per-model×species confidence, **nomination policy**. Deep dive. |
-| `benchmark_spec.md` | (planned) frozen transition panel so future/self-trained models run the same scorecard. |
+| [`benchmark_v1_results.md`](benchmark_v1_results.md) | **v1 benchmark scorecard** — 6 transitions × GET (+ChromBERT on mouse). GET wins on both strong (iN, C/EBPα); fails on all weak. Read with `validation_summary.md`. |
+| [`benchmark_spec.md`](benchmark_spec.md) | Benchmark *design*: frozen transition panel so future/self-trained models run the same scorecard. v1 as-built + v2 backlog. |
 | `*.tsv` | Machine-readable results: `claim1_results.{mm10,mtf,human}.tsv`, `claim2_results.tsv`, `cross_model_consistency.mm10.tsv`. |
 
 ## Per-model pipelines (run + species notes, one per model)
