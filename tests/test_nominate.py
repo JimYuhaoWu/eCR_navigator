@@ -16,7 +16,7 @@ add_repo_paths()
 
 from ecr_navigator.nominate import (BUNDLE_VERSION, nominate, read_nominations,
                                     write_bundle, write_nominations)
-from ecr_navigator.weights import RegionWeight
+from ecr_navigator.weights import RegionWeight, read_region_weights
 
 ADMIT = {"admit": True, "pc1_frac": 0.89, "coherence_margin": 0.31, "n_a": 2, "n_b": 2,
          "reasons": []}
@@ -171,6 +171,51 @@ def test_unmeasured_direction_stays_empty_never_zero():
         cells = [ln.split("\t") for ln in p.read_text().splitlines()[1:]]
         assert cells[0][5] == "", "unmeasured -> empty field"
         assert read_nominations(p)[0].direction is None
+
+
+# ------------------------------------------------------- shipped boundary fixtures
+# examples/run_bundle/ is eCR_predictor's only navigator-produced test material. These pin
+# the guarantees its Tier-2 adapter and target.py are written against.
+FIXTURES = Path(__file__).resolve().parent.parent / "examples" / "run_bundle"
+
+
+def test_every_bundle_ships_weights_including_the_refusal():
+    """The contract says weights.tsv is emitted for EVERY run, including refusals -- a
+    Gate-1 reject is precisely when it is the only useful output."""
+    for run_id in ("in_gse299923", "myod_gse186271"):
+        w = read_region_weights(FIXTURES / run_id / "weights.tsv")
+        assert len(w) > 1000, run_id
+    myod = FIXTURES / "myod_gse186271"
+    assert read_nominations(myod / "nominations.tsv") == [], "myod is the refusal bundle"
+    assert len(read_region_weights(myod / "weights.tsv")) > 1000, \
+        "a refusal must still ship usable off-target weights"
+
+
+def test_fixture_nominations_are_a_subset_of_weights():
+    """The mapping a Tier-2 adapter performs: every nominated region must be findable in
+    the dense table."""
+    d = FIXTURES / "in_gse299923"
+    w = {(r.chrom, r.start, r.end) for r in read_region_weights(d / "weights.tsv")}
+    noms = read_nominations(d / "nominations.tsv")
+    assert noms and all((n.chrom, n.start, n.end) in w for n in noms)
+
+
+def test_edge_case_fixture_keeps_unmeasured_distinct_from_flat():
+    """The contract-critical distinction, pinned as bytes: empty field = unmeasured,
+    0.0 = measured-and-flat. A consumer reading our writer must see both."""
+    rows = read_region_weights(FIXTURES / "_encoding_edge_cases" / "weights.tsv")
+    assert any(r.direction is None for r in rows), "no unmeasured row"
+    assert any(r.direction == 0.0 for r in rows), "no measured-flat row"
+    raw = (FIXTURES / "_encoding_edge_cases" / "weights.tsv").read_text().splitlines()
+    assert any(ln.endswith("\t") for ln in raw[1:]), "unmeasured must serialize as EMPTY"
+
+
+def test_edge_case_fixture_covers_the_four_column_form():
+    """Every ChromBERT contract in the benchmark is 4-column: a missing `direction` column
+    is distinct from an empty field, and consumers must handle it."""
+    p = FIXTURES / "_encoding_edge_cases" / "weights.no_direction.tsv"
+    assert p.read_text().splitlines()[0] == "chrom\tstart\tend\tdriver_score"
+    assert all(r.direction is None for r in read_region_weights(p))
 
 
 def test_roundtrip_preserves_rows():
