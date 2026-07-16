@@ -16,7 +16,9 @@ add_repo_paths()
 
 from ecr_navigator.nominate import (BUNDLE_VERSION, nominate, read_nominations,
                                     write_bundle, write_nominations)
-from ecr_navigator.weights import RegionWeight, read_region_weights
+from ecr_navigator.weights import (RegionWeight, fmt_direction, fmt_score,
+                                   parse_direction, read_region_weights,
+                                   write_region_weights)
 
 ADMIT = {"admit": True, "pc1_frac": 0.89, "coherence_margin": 0.31, "n_a": 2, "n_b": 2,
          "reasons": []}
@@ -171,6 +173,36 @@ def test_unmeasured_direction_stays_empty_never_zero():
         cells = [ln.split("\t") for ln in p.read_text().splitlines()[1:]]
         assert cells[0][5] == "", "unmeasured -> empty field"
         assert read_nominations(p)[0].direction is None
+
+
+# ------------------------------------------------------- shared contract encoding
+# weights.tsv and nominations.tsv must encode identically -- both go to the same consumer,
+# and a drift in the unmeasured-vs-flat rule is one it silently misreads. The rules live in
+# weights.py; these pin that nominate.py actually uses them.
+def test_both_writers_encode_direction_identically():
+    vals = [0.7412, 0.0, None, -0.6, 1.9, -2.4]          # incl. out-of-range and unmeasured
+    rows = [RegionWeight("chr1", i * 10, i * 10 + 5, 0.5, v) for i, v in enumerate(vals)]
+    noms, _ = nominate(rows, ADMIT, GATE2_GET, top_frac=1.0)
+    with tempfile.TemporaryDirectory() as d:
+        write_region_weights(rows, Path(d) / "w.tsv")
+        write_nominations(noms, Path(d) / "n.tsv")
+        wcol = [ln.split("\t")[4] for ln in (Path(d) / "w.tsv").read_text().splitlines()[1:]]
+        ncol = [ln.split("\t")[5] for ln in (Path(d) / "n.tsv").read_text().splitlines()[1:]]
+    assert wcol == ncol, (wcol, ncol)
+    assert wcol[2] == "", "unmeasured must be empty in BOTH files"
+    assert wcol[1] == "0.0", "measured-flat must stay 0.0, distinct from unmeasured"
+    assert wcol[4] == "1.0" and wcol[5] == "-1.0", "both writers must clamp to [-1,1]"
+
+
+def test_score_encoding_is_shared_and_clamped():
+    assert fmt_score(1.7) == 1.0 and fmt_score(-0.4) == 0.0
+    assert fmt_score(0.123456) == 0.1235
+
+
+def test_direction_encoding_round_trips_through_the_shared_rules():
+    for v in (0.5, 0.0, -1.0, None):
+        assert parse_direction(fmt_direction(v)) == v
+    assert parse_direction(fmt_direction(None)) is None, "unmeasured survives a round trip"
 
 
 # ------------------------------------------------------- shipped boundary fixtures

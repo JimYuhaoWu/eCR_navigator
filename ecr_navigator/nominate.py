@@ -36,11 +36,12 @@ from pathlib import Path
 import numpy as np
 
 from .model import _normalize
-from .weights import RegionWeight, write_region_weights
+from .weights import (DIRECTION_COL, RegionWeight, fmt_direction, fmt_score,
+                      parse_direction, write_region_weights)
 
 BUNDLE_VERSION = "1"
 DEFAULT_TOP_FRAC = 0.01   # the validated confidence band (GET top ~1%); see below
-NOMINATION_HEADER = ["chrom", "start", "end", "rank", "nomination_score", "direction"]
+NOMINATION_HEADER = ["chrom", "start", "end", "rank", "nomination_score", DIRECTION_COL]
 
 
 @dataclass
@@ -132,17 +133,17 @@ def _primary_scores(rows: list[RegionWeight], primary: str, score_norm: str):
 
 def write_nominations(noms: list[Nomination], path: str | Path) -> None:
     """Write nominations.tsv. A refusal writes the header and nothing else -- that is a
-    valid bundle, not an error. An unmeasured direction is an EMPTY field, never 0.0
-    (which would mean measured-and-flat), matching the region-weight contract."""
+    valid bundle, not an error.
+
+    Columns are encoded through weights.py's shared contract rules, so nominations.tsv and
+    weights.tsv cannot drift apart -- in particular an unmeasured direction is an EMPTY
+    field, never 0.0 (which means measured-and-flat)."""
     with open(path, "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
         w.writerow(NOMINATION_HEADER)
         for n in noms:
-            d = ("" if n.direction is None
-                 else round(max(-1.0, min(1.0, float(n.direction))), 4))
-            score = max(0.0, min(1.0, float(n.nomination_score)))   # clamp, as weights.py
             w.writerow([n.chrom, int(n.start), int(n.end), n.rank,
-                        round(score, 4), d])
+                        fmt_score(n.nomination_score), fmt_direction(n.direction)])
 
 
 def read_nominations(path: str | Path) -> list[Nomination]:
@@ -150,11 +151,10 @@ def read_nominations(path: str | Path) -> list[Nomination]:
     out: list[Nomination] = []
     with open(path, newline="") as fh:
         for row in csv.DictReader(fh, delimiter="\t"):
-            raw = row.get("direction")
             out.append(Nomination(
                 chrom=row["chrom"], start=int(row["start"]), end=int(row["end"]),
                 rank=int(row["rank"]), nomination_score=float(row["nomination_score"]),
-                direction=float(raw) if raw not in (None, "") else None,
+                direction=parse_direction(row.get(DIRECTION_COL)),
             ))
     return out
 
