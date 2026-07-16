@@ -1,0 +1,4 @@
+chrom	start	end	driver_score
+chr1	1000	1200	0.91
+chr1	1200	1400	0.44
+chr2	100	400	0.66

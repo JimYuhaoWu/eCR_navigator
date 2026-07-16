@@ -149,19 +149,30 @@ target-cell biology; no drivers of *this* transition, no wet-lab ground truth).
 
 **First, a negative result that shapes the design.** No endpoint-only indicator we tried
 separates "GET wins" from "signed-Δ wins":
-- **Cleanliness (PC1 / endpoint separation) does NOT predict it.** Recorded PC1: iN ≈0.89,
-  mouse MEF→mES ≈0.96–0.98, dropped iCM ≈0.68. Mouse is the *cleanest* yet GET *lost* there.
+- **Cleanliness (PC1 / endpoint separation) does NOT predict it.** PC1 (recomputed
+  2026-07-16 on the fixed 50k universe — see below): iN 0.919, mouse MEF→mES 0.933, dropped
+  iCM 0.707. Mouse is the *cleanest* yet GET *lost* there.
 - **Rank-divergence from magnitude does NOT predict it.** GET is ~equally weakly correlated
   with |signed-Δ| in both systems (Spearman ≈0.21 mouse / ≈0.16 human; top-1% overlap ≈0.02
   both). GET departs from "what opens" in *both* — divergence doesn't say *toward* drivers.
 
 So we do **not predict** "clean enough"; we **measure** it per transition. Two gates:
 
-**Gate 1 — admissibility (endpoint-only; a reliable REJECT, not a reliable ADMIT).** From a
-per-replicate accessibility matrix: require ≥2 replicates/state, within-state minus
-across-state correlation ≥ 0.10, and PC1 ≥ 0.80. Screens the "nothing works" failure mode
-(weak/partial transition, e.g. the dropped iCM). **Clearing it does not mean GET will win** —
-mouse clears it (PC1 0.956, coherence +0.845) and GET still loses. Gate 2 is the real decision.
+**Gate 1 — admissibility (endpoint-only; a coarse REJECT screen, not a reliable ADMIT).** From
+a per-replicate accessibility matrix: require ≥2 replicates/state, within-state minus
+across-state correlation ≥ 0.10, and PC1 ≥ 0.80 — all computed on a **fixed universe of the
+50,000 most accessible regions** (ranked on depth-normalized signal). Screens the "nothing
+works" failure mode (weak/partial transition, e.g. the dropped iCM). **Clearing it does not
+mean GET will win** — mouse clears it (PC1 0.933, coherence +0.717) and GET still loses.
+Gate 2 is the real decision.
+
+> **The fixed universe is load-bearing (added 2026-07-16).** PC1 and coherence rise as
+> low-signal regions are dropped, so on raw universes — the benchmark panel spans 63k–1.06M
+> regions, 17× — the values are not comparable across transitions. Measured on its full
+> 1.06M-cCRE universe, **iN scores PC1 0.792 and REJECTS**, despite being the transition GET
+> demonstrably wins. Fixing N makes the statistic absolute ("the transition axis among the N
+> most accessible regions of this experiment"). N=50k is forced by ETV2's 63,562-region
+> universe, the panel's smallest. See `benchmark_v1_results.md` for the recalibration.
 
 **Gate 2 — score selection (the decision).** eCR design always targets a *known* cell type,
 so its canonical master-TF loci are known biology, independent of this transition. Drop them
@@ -176,8 +187,12 @@ incremental LR — not a few-hit top-1% fold):
 
 | Transition | Gate 1 | Gate 2 (85/69 anchors) | PRIMARY |
 |---|---|---|---|
-| human iN | (per-rep matrix not on disk; QC PC1≈0.89) | driver 0.664 vs signed 0.494, ΔAUROC CI[+0.081,+0.264], LR p=0.001 | **GET top ~1%** |
-| mouse MEF→mES | ADMIT (PC1 0.956, coherence +0.845) | driver 0.579 vs signed 0.507, ΔAUROC CI[−0.045,+0.188], LR p=0.13 | **signed-Δ top-k** |
+| human iN | ADMIT (PC1 0.919, coherence +0.569, 3/3 reps) | driver 0.664 vs signed 0.494, ΔAUROC CI[+0.081,+0.264], LR p=0.001 | **GET top ~1%** |
+| mouse MEF→mES | ADMIT (PC1 0.933, coherence +0.717) | driver 0.579 vs signed 0.507, ΔAUROC CI[−0.045,+0.188], LR p=0.13 | **signed-Δ top-k** |
+
+*iN's Gate 1 was previously unrun ("per-rep matrix not on disk"); the matrix was built from
+the 6 endpoint samples (D0 ×3 / D7 ×3) and the gate run for real on 2026-07-16 —
+`/mnt3/wuyuhao/in_clean/endpoints.matrix.tsv`.*
 
 Mouse is the instructive case: **admissible yet driver-not-primary** — exactly why Gate 1
 alone is insufficient. Thresholds (PC1≥0.80, coherence≥0.10, "CI>0 or LR p<0.05") are

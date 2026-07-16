@@ -47,7 +47,32 @@ from eval_driver_claim2 import evaluate_claim2                          # noqa: 
 MIN_REPS = 2            # replicates required per state
 MIN_COHERENCE = 0.10    # within-state minus across-state mean correlation
 MIN_PC1 = 0.80          # fraction of variance on the START<->END axis
-#   calibration: iN PC1~0.89 (admit), mouse MEF->mES ~0.98 (admit), dropped iCM ~0.68 (reject)
+GATE1_UNIVERSE_N = 50000  # regions the gate statistics are computed on -- see below
+
+# WHY A FIXED UNIVERSE (2026-07-16). PC1 and coherence are NOT universe-invariant: both rise
+# as low-signal regions are dropped, because those regions add noise dimensions and no
+# transition signal. The v1 panel's universes span 63,562-1,061,709 regions (17x), so the raw
+# values were never comparable -- and the flagship case actually broke:
+#     iN   PC1 0.792 over all 1.06M cCREs (REJECT!)  ->  0.919 at the fixed universe (ADMIT)
+# iN is the transition GET demonstrably wins on (AUROC 0.668, Delta-AUROC +0.170, LR p=0.001),
+# so a gate that refuses it was measuring universe size, not transition quality. It also means
+# the earlier "thresholds calibrated on n=6" claim did not hold: iN's recorded PC1 0.89 was a
+# QC estimate on a different region set, never this gate's output.
+#
+# Fixing N makes the statistic absolute -- "the transition axis among the N most accessible
+# regions of this experiment" -- and comparable across universes of any size. Regions are
+# ranked on the NORMALISED signal, so a deeply-sequenced sample cannot decide what counts as
+# accessible. N = 50,000 is forced by the panel: ETV2's universe (63,562) is the smallest, so
+# 50k is the largest round N available to every transition. A universe smaller than N uses all
+# of it (flagged via `universe_truncated`), which makes that run's value non-comparable.
+#
+# Recalibration at N=50k -- the panel now separates on the transition, not on its universe,
+# and MIN_PC1 stays 0.80 because it lands inside a real gap (0.785 -> 0.919):
+#     ADMIT   iN 0.919 | C/EBPa 0.963 | MEF->mES 0.933
+#     REJECT  MyoD 0.785 | iCM 0.707 (also coherence -0.059) | ETV2 0.561
+# All six match their expected verdict. Gate 1 nevertheless stays a COARSE screen for severe
+# failures -- Gate 2 is the decision (see below), because clearing Gate 1 still does not mean
+# a model beats signed-Delta: MEF->mES has the panel's cleanest endpoints and GET still loses.
 
 
 # ============================================================ GATE 1: admissibility
@@ -59,14 +84,19 @@ class Admissibility:
     pc1_frac: float
     admit: bool
     reasons: list
+    universe_n: int = 0            # regions the statistics were computed on
+    universe_truncated: bool = False   # universe was smaller than N -> not comparable
 
 
 def admissibility(matrix, is_state_a, min_reps=MIN_REPS, min_coherence=MIN_COHERENCE,
-                  min_pc1=MIN_PC1):
+                  min_pc1=MIN_PC1, universe_n=GATE1_UNIVERSE_N):
     """Endpoint admissibility from a per-replicate accessibility matrix.
 
     `matrix`: (n_regions, n_samples) raw counts or signal. `is_state_a`: bool per sample
-    (True = start state, False = end state). Normalises to log1p CPM, then:
+    (True = start state, False = end state). Library-size normalises (CPM over the FULL
+    matrix, so depth is measured on everything), log1p, then restricts to the `universe_n`
+    most accessible regions -- see the GATE1_UNIVERSE_N note above; without that the
+    statistics are not comparable across transitions -- and computes:
       - coherence_margin = mean within-state sample corr - mean across-state sample corr
       - pc1_frac         = variance on PC1 of the region-centred matrix (the transition axis)
     Admit iff both states have >=min_reps replicates AND coherence_margin>=min_coherence AND
@@ -76,10 +106,19 @@ def admissibility(matrix, is_state_a, min_reps=MIN_REPS, min_coherence=MIN_COHER
     a = np.asarray(is_state_a, dtype=bool)
     n_a, n_b = int(a.sum()), int((~a).sum())
 
-    # library-size normalise (CPM) then log1p, so correlations aren't depth-driven
+    # library-size normalise (CPM) then log1p, so correlations aren't depth-driven.
+    # Depth is computed over the WHOLE matrix -- it is a property of the library, not of
+    # whichever subset the gate then looks at.
     colsum = m.sum(axis=0, keepdims=True)
     colsum[colsum == 0] = 1.0
     logcpm = np.log1p(m / colsum * 1e6)
+
+    # fix the universe: the N most accessible regions, ranked on the normalised signal so
+    # a deeply-sequenced sample cannot decide which regions count as accessible.
+    n_used = min(int(universe_n), len(logcpm))
+    truncated = len(logcpm) < int(universe_n)
+    keep = np.argsort(-logcpm.mean(axis=1))[:n_used]
+    logcpm = logcpm[keep]
 
     # sample-sample correlation; split within-state vs across-state pairs
     c = np.corrcoef(logcpm.T)
@@ -104,7 +143,8 @@ def admissibility(matrix, is_state_a, min_reps=MIN_REPS, min_coherence=MIN_COHER
         reasons.append(f"low replicate coherence ({coherence:.3f} < {min_coherence})")
     if not (pc1 >= min_pc1):
         reasons.append(f"transition axis weak (PC1 {pc1:.3f} < {min_pc1})")
-    return Admissibility(n_a, n_b, coherence, pc1, not reasons, reasons)
+    return Admissibility(n_a, n_b, coherence, pc1, not reasons, reasons,
+                         universe_n=n_used, universe_truncated=truncated)
 
 
 # ============================================================ GATE 2: score selection
@@ -216,6 +256,10 @@ def main():
         verdict = "ADMIT" if adm.admit else "REJECT"
         print(f"GATE 1 admissibility : {verdict}")
         print(f"  replicates         : {adm.n_a} (A) / {adm.n_b} (B)")
+        print(f"  universe           : top {adm.universe_n} regions"
+              + ("  (TRUNCATED — smaller than the standard "
+                 f"{GATE1_UNIVERSE_N}; not comparable to other transitions)"
+                 if adm.universe_truncated else ""))
         print(f"  coherence margin   : {adm.coherence_margin:+.3f}  (>= {MIN_COHERENCE})")
         print(f"  PC1 fraction       : {adm.pc1_frac:.3f}  (>= {MIN_PC1})")
         if not adm.admit:

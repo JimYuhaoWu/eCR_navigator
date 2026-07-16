@@ -71,12 +71,17 @@ transition earns a top-k.**
 ## Nomination policy — which score to trust (`scripts/preflight.py`)
 
 No endpoint-only indicator predicts which score wins (**PC1 cleanliness fails** — mouse is
-cleanest, PC1 0.96, yet GET loses; **rank-divergence from |signed-Δ| fails** — ~equal both
+cleanest, PC1 0.933, yet GET loses; **rank-divergence from |signed-Δ| fails** — ~equal both
 species). So don't *predict* "clean enough"; *measure* it per transition:
 
 - **Gate 1 — admissibility** (endpoint-only): ≥2 reps/state, replicate-coherence margin ≥0.10,
-  PC1 ≥0.80. A reliable **REJECT** of the "nothing works" mode (dropped iCM), **not** a reliable
-  admit (mouse clears it and still loses).
+  PC1 ≥0.80, all computed on a **fixed universe of the 50,000 most accessible regions**. The
+  fixed universe is load-bearing: PC1/coherence rise as low-signal regions are dropped, so on
+  raw universes (the v1 panel spans 63k–1.06M regions, 17×) the values are **not comparable**
+  and iN — our best transition — scored 0.792 and *rejected*. At the fixed universe it scores
+  0.919, and all six panel transitions match their expected verdict with 0.80 inside a real
+  0.785→0.919 gap. Gate 1 is a **coarse screen for severe failures**, still **not** a reliable
+  admit (mouse clears it with the cleanest endpoints and GET still loses) — Gate 2 decides.
 - **Gate 2 — decision:** eCR design always targets a *known* cell type → its canonical
   master-TF loci (known biology) go into the Claim-2A harness as positives. GET is **PRIMARY**
   iff ΔAUROC CI excludes 0 **or** incremental-LR p<0.05 (driver coef>0), else **signed-Δ** is

@@ -5,6 +5,14 @@ eCR_navigator entrypoint — endpoint embeddings to the eCR_predictor run bundle
 Consumes two mirror-side embedding artifacts (one per cell state, e.g. MEF and mES; see
 docs/embedding_artifact.md) and scores each shared region by its embedding shift.
 
+Two input modes:
+
+  --emb-a/--emb-b  two embedding artifacts; scores them here.
+  --contract FILE  an ALREADY-scored region-weight contract TSV, skipping the embed step.
+                   The GPU mirrors are not persistent (see CLAUDE.md), so their .npz
+                   artifacts are routinely gone while the contract they produced survives.
+                   A contract carries no metadata, so --assembly and --model are required.
+
 Two output modes:
 
   --out FILE      the region-weight contract TSV alone (docs/region_weight_contract.md).
@@ -19,12 +27,18 @@ Two output modes:
     python navigate.py --emb-a chrombert.MEF.mm10.npz --emb-b chrombert.mES.mm10.npz \
         --out driver_weights.mm10.tsv
 
-    # full bundle
+    # full bundle from artifacts
     python navigate.py --emb-a get.fib.hg38.npz --emb-b get.iN.hg38.npz \
         --bundle bundles/in_gse299923 \
         --matrix endpoints.matrix.tsv --state-a fib --state-b iN \
         --anchors neural.promoter.bed --signed signed_delta.tsv \
         --transition transition.json
+
+    # full bundle from an archived contract (no GPU needed)
+    python navigate.py --contract get_in.tsv --assembly hg38 --model GET \
+        --bundle bundles/in_gse299923 \
+        --matrix endpoints.matrix.tsv --state-a fib --state-b iN \
+        --anchors neural.promoter.bed --signed signed_delta.tsv
 """
 from __future__ import annotations
 
@@ -38,7 +52,7 @@ import numpy as np
 from ecr_navigator.features import embedding_shift, load_artifact, signed_delta
 from ecr_navigator.model import attach_direction, driver_scores
 from ecr_navigator.nominate import DEFAULT_TOP_FRAC, nominate, write_bundle
-from ecr_navigator.weights import write_region_weights
+from ecr_navigator.weights import read_region_weights, write_region_weights
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts"))
 
@@ -57,8 +71,12 @@ DIRECTION_PROVENANCE = {
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--emb-a", required=True, help="cell-state A artifact (.npz), e.g. MEF")
-    ap.add_argument("--emb-b", required=True, help="cell-state B artifact (.npz), e.g. mES")
+    ap.add_argument("--emb-a", help="cell-state A artifact (.npz), e.g. MEF")
+    ap.add_argument("--emb-b", help="cell-state B artifact (.npz), e.g. mES")
+    ap.add_argument("--contract", help="an already-scored contract TSV, instead of "
+                                       "--emb-a/--emb-b (mirror artifacts are ephemeral)")
+    ap.add_argument("--assembly", help="assembly for --contract mode (artifacts self-report)")
+    ap.add_argument("--model", help="model name for --contract mode (artifacts self-report)")
     ap.add_argument("--out", help="write the region-weight contract TSV here")
     ap.add_argument("--bundle", help="write the full run bundle to this directory")
     ap.add_argument("--norm", default="rank", choices=["rank", "minmax"],
@@ -86,7 +104,30 @@ def main() -> None:
 
     if not args.out and not args.bundle:
         raise SystemExit("nothing to write: pass --out and/or --bundle")
+    if bool(args.contract) == bool(args.emb_a or args.emb_b):
+        raise SystemExit("pass EITHER --emb-a/--emb-b OR --contract")
 
+    if args.contract:
+        rows, meta = _from_contract(args)
+    else:
+        rows, meta = _from_artifacts(args)
+    n_dir = sum(1 for r in rows if r.direction is not None)
+
+    if args.out:
+        write_region_weights(rows, args.out)
+        print("wrote %s : %d regions (%s vs %s, norm=%s, direction=%d, unmeasured=%d)"
+              % (args.out, len(rows), meta["state_a"], meta["state_b"],
+                 args.norm, n_dir, len(rows) - n_dir))
+
+    if args.bundle:
+        _write_bundle(args, rows, meta, n_dir)
+
+
+def _from_artifacts(args):
+    """Score two endpoint artifacts. They self-report assembly/model/cell states, so the
+    manifest metadata cannot drift from the run that produced the scores."""
+    if not (args.emb_a and args.emb_b):
+        raise SystemExit("--emb-a and --emb-b must be given together")
     a = load_artifact(args.emb_a)
     b = load_artifact(args.emb_b)
     asm_a, asm_b = a.meta.get("assembly"), b.meta.get("assembly")
@@ -98,7 +139,6 @@ def main() -> None:
     chrom, start, end, shift = embedding_shift(a, b)
     rows = driver_scores(chrom, start, end, shift, method=args.norm)
 
-    n_dir = 0
     if args.direction != "off":
         delta = signed_delta(a, b)
         if delta is None:
@@ -106,23 +146,33 @@ def main() -> None:
                 raise SystemExit("--direction on: an artifact has no scalar signal")
         else:
             attach_direction(rows, delta, method=args.direction_norm)
-            n_dir = sum(1 for r in rows if r.direction is not None)
 
-    if args.out:
-        write_region_weights(rows, args.out)
-        print("wrote %s : %d regions (%s vs %s, norm=%s, direction=%d, unmeasured=%d)"
-              % (args.out, len(rows), a.meta.get("cell_state"), b.meta.get("cell_state"),
-                 args.norm, n_dir, len(rows) - n_dir))
+    return rows, {"assembly": asm_a, "model": a.meta.get("model"),
+                  "state_a": a.meta.get("cell_state"), "state_b": b.meta.get("cell_state"),
+                  "source": a.meta.get("source"),
+                  "direction_norm": args.direction_norm}
 
-    if args.bundle:
-        _write_bundle(args, a, b, rows, asm_a, n_dir)
+
+def _from_contract(args):
+    """Load an already-scored contract TSV. Its driver_score is taken as-is (it was
+    normalized when it was produced -- declare how with --norm), and its `direction` column
+    is the measured signed-delta, already normalized. A contract carries no metadata, so
+    assembly and model must be supplied."""
+    if not (args.assembly and args.model):
+        raise SystemExit("--contract requires --assembly and --model (a contract TSV "
+                         "carries no metadata; artifacts self-report theirs)")
+    rows = read_region_weights(args.contract)
+    return rows, {"assembly": args.assembly, "model": args.model,
+                  "state_a": args.state_a, "state_b": args.state_b,
+                  "source": f"contract {os.path.basename(args.contract)}",
+                  "direction_norm": None}
 
 
 def _gates(args, rows):
     """Run the two nomination gates. Either may be None (its inputs were not supplied) --
     nominate() turns that into a refusal, which is a valid bundle."""
-    from preflight import (admissibility, gate2_inputs, load_matrix,  # noqa: E402
-                           select_score, top_k_fold)
+    from preflight import (GATE1_UNIVERSE_N, admissibility,  # noqa: E402
+                           gate2_inputs, load_matrix, select_score, top_k_fold)
 
     gate1 = None
     if args.matrix:
@@ -131,7 +181,14 @@ def _gates(args, rows):
         adm = admissibility(*load_matrix(args.matrix, args.state_a, args.state_b))
         gate1 = {"admit": bool(adm.admit), "pc1_frac": round(adm.pc1_frac, 4),
                  "coherence_margin": round(adm.coherence_margin, 4),
-                 "n_a": adm.n_a, "n_b": adm.n_b, "reasons": adm.reasons}
+                 "n_a": adm.n_a, "n_b": adm.n_b,
+                 "universe_n": adm.universe_n,
+                 "universe_truncated": adm.universe_truncated,
+                 "reasons": adm.reasons}
+        if adm.universe_truncated:
+            print(f"WARNING: Gate-1 universe is only {adm.universe_n} regions (< the "
+                  f"standard {GATE1_UNIVERSE_N}) — PC1/coherence are not comparable to "
+                  f"other transitions")
 
     gate2 = None
     if args.anchors and args.signed:
@@ -158,15 +215,15 @@ def _gates(args, rows):
     return gate1, gate2
 
 
-def _write_bundle(args, a, b, rows, assembly, n_dir):
+def _write_bundle(args, rows, meta, n_dir):
     gate1, gate2 = _gates(args, rows)
     noms, block = nominate(rows, gate1, gate2, top_frac=args.top_frac,
                            score_norm=args.norm)
 
-    model = a.meta.get("model")
+    assembly, model = meta["assembly"], meta["model"]
     transition = {"id": os.path.basename(str(args.bundle).rstrip("/\\")),
                   "species": SPECIES.get(assembly, "unknown"), "assembly": assembly,
-                  "state_a": a.meta.get("cell_state"), "state_b": b.meta.get("cell_state")}
+                  "state_a": meta["state_a"], "state_b": meta["state_b"]}
     if args.transition:
         with open(args.transition) as fh:
             transition.update(json.load(fh))
@@ -174,15 +231,15 @@ def _write_bundle(args, a, b, rows, assembly, n_dir):
     manifest = {
         "run_id": transition["id"],
         "transition": transition,
-        "region_universe": {"n_regions": len(rows), "source": a.meta.get("source")},
+        "region_universe": {"n_regions": len(rows), "source": meta["source"]},
         "gate1": gate1,
         "gate2": gate2,
         "nomination": block,
         "direction": {
-            "provenance": DIRECTION_PROVENANCE.get(model),
-            "source": f"{model} signal ({b.meta.get('cell_state')} - "
-                      f"{a.meta.get('cell_state')})" if n_dir else None,
-            "norm": args.direction_norm if n_dir else None,
+            "provenance": DIRECTION_PROVENANCE.get(model) if n_dir else None,
+            "source": (f"{model} signal ({meta['state_b']} - {meta['state_a']})"
+                       if n_dir else None),
+            "norm": meta["direction_norm"] if n_dir else None,
         },
         "models_run": [model],
     }

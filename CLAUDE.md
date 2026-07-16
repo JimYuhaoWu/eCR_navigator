@@ -178,10 +178,15 @@ liftOver-bridged reference for mouse. All five are validated end-to-end on both 
   value is regulatory-region *prioritization*, not direction.
 - **Nomination policy (`scripts/preflight.py`):** no endpoint-only indicator predicts which
   score wins (PC1/cleanliness fails — mouse is cleanest yet GET loses). So **Gate 1** rejects
-  unusable transitions (≥2 reps, coherence ≥0.10, PC1 ≥0.80; a reject-only screen) and **Gate 2**
-  *measures* it — run the Claim-2A harness on the known target-cell master-TF loci; GET PRIMARY
-  iff it beats signed-Δ, else signed-Δ. Trust **GET's top ~1%** on a strong clean transition
-  (front-loaded ~9–10× enrichment); no other model earns a top-k. Thresholds first-pass (n=2).
+  unusable transitions (≥2 reps, coherence ≥0.10, PC1 ≥0.80; a **coarse reject-only** screen)
+  and **Gate 2** *measures* it — run the Claim-2A harness on the known target-cell master-TF
+  loci; GET PRIMARY iff it beats signed-Δ, else signed-Δ. Trust **GET's top ~1%** on a strong
+  clean transition (front-loaded ~9–10× enrichment); no other model earns a top-k.
+  **Gate 1 statistics are computed on a FIXED universe (top 50k most accessible regions) — do
+  not change this casually.** PC1/coherence rise as low-signal regions are dropped, so raw
+  values aren't comparable across transitions; on its full 1.06M-cCRE universe iN scored 0.792
+  and *rejected*, despite being the transition GET demonstrably wins. Thresholds calibrated on
+  the n=6 benchmark panel at that fixed universe (`docs/benchmark_v1_results.md`).
 - **`driver_score` is a magnitude, not a signed call** — always attach the measured signed-Δ
   for open/close direction. **Claim 2B** (is the direction *column* itself correct?) is deferred
   (circular for all current models; only testable on prediction-head models EpiAgent/AlphaGenome).

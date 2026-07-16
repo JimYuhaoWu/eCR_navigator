@@ -16,14 +16,48 @@ and fails on every weak/Gate-1-reject transition. Gate-1 cleanly separates the t
 
 ## Scorecard
 
-| # | Transition | Species | Gate-1 | GET Claim-1 AUROC (promoter) | GET vs signed-Δ (Claim-2A) | Gate-2 PRIMARY | ChromBERT |
+Gate-1 columns were **recomputed 2026-07-16** on the fixed universe (see the correction
+below); the values in the original v1 run are superseded.
+
+| # | Transition | Species | Gate-1 (PC1 @50k) | GET Claim-1 AUROC (promoter) | GET vs signed-Δ (Claim-2A) | Gate-2 PRIMARY | ChromBERT |
 |---|---|---|---|---|---|---|---|
-| 1 | **fib→iN** (Ascl1) | human | ✅ admit 0.89 | **0.668** [0.606,0.727] | ΔAUROC **+0.170**, LR p=0.001 | **GET** ✅ | null |
-| 2 | **preB→macrophage** (C/EBPα) | mouse | ✅ admit 0.83 | **0.640** [0.594,0.690] | ΔAUROC **+0.106** [+0.039,+0.177], LR p=0.001 | **GET** ✅ | null (0.47/0.52) |
-| 3 | MEF→mES | mouse | ✅ admit 0.98 | 0.582 [0.501,0.660] | ΔAUROC +0.07, CI incl 0 | signed-Δ | (null, Claim 1) |
-| 4 | MEF→iMPC (MyoD) | mouse | ❌ reject 0.80 | **0.288** [0.204,0.376] (anti) | ΔAUROC −0.24 (driver worse) | signed-Δ | null (0.44/0.51) |
-| 5 | fib→iCM | human | ❌ reject 0.68 | 0.465 (null) | — | signed-Δ | (null, Claim 1) |
-| 6 | fib→endothelial (ETV2) | mouse | ❌ reject 0.53 | 0.605 [0.461,0.745] (n=19, underpowered) | ΔAUROC +0.11, CI incl 0, LR p=0.084 | signed-Δ | null (0.42/0.48) |
+| 1 | **fib→iN** (Ascl1) | human | ✅ admit **0.919** | **0.668** [0.606,0.727] | ΔAUROC **+0.170**, LR p=0.001 | **GET** ✅ | null |
+| 2 | **preB→macrophage** (C/EBPα) | mouse | ✅ admit **0.963** | **0.640** [0.594,0.690] | ΔAUROC **+0.106** [+0.039,+0.177], LR p=0.001 | **GET** ✅ | null (0.47/0.52) |
+| 3 | MEF→mES | mouse | ✅ admit **0.933** | 0.582 [0.501,0.660] | ΔAUROC +0.07, CI incl 0 | signed-Δ | (null, Claim 1) |
+| 4 | MEF→iMPC (MyoD) | mouse | ❌ reject **0.785** | **0.288** [0.204,0.376] (anti) | ΔAUROC −0.24 (driver worse) | signed-Δ | null (0.44/0.51) |
+| 5 | fib→iCM | human | ❌ reject **0.707** (coherence **−0.059**) | 0.465 (null) | — | signed-Δ | (null, Claim 1) |
+| 6 | fib→endothelial (ETV2) | mouse | ❌ reject **0.561** | 0.605 [0.461,0.745] (n=19, underpowered) | ΔAUROC +0.11, CI incl 0, LR p=0.084 | signed-Δ | null (0.42/0.48) |
+
+## Correction — Gate-1 recomputed on a fixed universe (2026-07-16)
+
+Building the run bundles (`run_bundle_contract.md`) exposed a flaw in the original Gate-1
+column. **PC1 and coherence are not universe-invariant** — both rise as low-signal regions
+are dropped, since those add noise dimensions and no transition signal. The v1 panel's
+universes span **63,562–1,061,709 regions (17×)**, so the six PC1 values were never
+comparable to one another, and the threshold was partly measuring universe size.
+
+Two concrete errors this hid:
+
+- **iN's Gate 1 had never actually been run.** The recorded 0.89 was a QC estimate on a
+  different region set (`claim2_results.md` said so: *"per-rep matrix not on disk"*). Built
+  from the 6 endpoint samples and run for real, iN scores PC1 **0.792 over its full 1.06M
+  cCRE universe — a REJECT.** That is the transition GET demonstrably wins on, so the gate
+  was refusing our best result.
+- **iN's replicate counts were wrong** in the first fixture (2/2). The real endpoints are
+  **3/3** (`claim1_human_progress.md`: start = D0 ×3 WT/AAA/QA, end = D7 WT ×3).
+
+**Fix:** Gate 1 now computes on a **fixed universe of the 50,000 most accessible regions**,
+ranked on depth-normalized signal (so a deeply-sequenced sample can't decide what counts as
+accessible). N=50k is forced by the panel — ETV2's 63,562 is the smallest universe.
+
+**Result: the split now holds for the right reason.** All six match their expected verdict,
+and `MIN_PC1 = 0.80` lands inside a real **0.785 → 0.919 gap** instead of among the values.
+iCM additionally fails coherence (−0.059), which is honest: its "replicates" are the 5F/4F
+cocktail arms, not true replicates.
+
+**The earlier claim that "Gate-1 separated admit/reject cleanly on all six, so the thresholds
+are calibrated on n=6" did not hold as stated** — that separation was partly universe
+artifact. It holds now, on the fixed universe.
 
 ## What the panel shows
 
@@ -32,15 +66,20 @@ and fails on every weak/Gate-1-reject transition. Gate-1 cleanly separates the t
    with CI excluding 0.5, top-5% fold 3.5–3.7×, **and GET beats signed-Δ** (ΔAUROC CI excludes 0,
    incremental LR p=0.001). Different lineages, different labs, different species — the signal is
    not an iN artifact.
-2. **Gate-1 separates the regimes.** Every Gate-1-**admit** transition has an informative or
-   directional GET signal; every Gate-1-**reject** transition (MyoD 0.80, iCM 0.68, ETV2 0.53)
-   has GET failing or underpowered, PRIMARY=signed-Δ. The admissibility gate earns its place.
+2. **Gate-1 separates the regimes — on the fixed universe.** Every Gate-1-**admit**
+   transition (iN 0.919, C/EBPα 0.963, MEF→mES 0.933) has an informative or directional GET
+   signal; every Gate-1-**reject** transition (MyoD 0.785, iCM 0.707, ETV2 0.561) has GET
+   failing or underpowered, PRIMARY=signed-Δ. The gate earns its place *once its statistic is
+   universe-invariant* — on the raw universes this split was partly an artifact (see the
+   correction above). It remains a **coarse screen for severe failures, not the decision**:
+   MEF→mES has the panel's cleanest endpoints and GET still loses there, which only Gate 2
+   catches.
 3. **Weak-transition failure modes differ, all correctly caught by Gate-2:**
    - **MyoD** — GET *anti*-informative (0.29): the incomplete iMPC conversion leaves master-TF
      loci among the *un*changed regions. Preflight not fooled by the significant-but-negative LR.
    - **ETV2** — GET *weakly positive but underpowered* (0.60, n=19) and doesn't beat signed-Δ.
      Cause: the endo_r1 replicate is low-quality (7,441 peaks vs ~44k), so the endothelial state
-     is incoherent (PC1 0.53). A hint of signal (endothelial TFs do open), not enough to clear.
+     is incoherent (PC1 0.561). A hint of signal (endothelial TFs do open), not enough to clear.
    - **iCM** — flat null (0.49).
 4. **ChromBERT is null on every mouse bundle** (MyoD 0.44–0.51, C/EBPα 0.47–0.52), confirming the
    Claim-1 mouse null — a clean native-mm10 negative control. **GET is the informative model.**
@@ -68,7 +107,8 @@ and fails on every weak/Gate-1-reject transition. Gate-1 cleanly separates the t
 - v1 composition ended **2 strong (iN, C/EBPα) + 1 directional control (MEF→mES) + 3 weak/reject
   (MyoD, iCM, ETV2)**. ETV2 was *intended* strong but came in weak (data quality: endo_r1 low
   peak count); a cleaner endothelial dataset (or better replicates) would restore a 3rd strong.
-- Thresholds (PC1≥0.80 etc.) now calibrated on **6** transitions, up from 2 — the admit/reject
-  split held on all six.
+- Thresholds (PC1≥0.80 etc.) calibrated on **6** transitions, up from 2 — the admit/reject
+  split holds on all six **once Gate 1 uses the fixed 50k universe** (see the correction
+  above; on the raw universes it did not, and iN rejected).
 - Optional follow-ups: redo C/EBPα on dataset peaks (used cCRE fallback); source a cleaner
   endothelial dataset for a 3rd strong; add the 3 hg38 models when a human bundle is added.

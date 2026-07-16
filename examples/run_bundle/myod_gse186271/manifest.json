@@ -17,12 +17,14 @@
   },
   "gate1": {
     "admit": false,
-    "pc1_frac": 0.7978,
-    "coherence_margin": 0.8012,
+    "pc1_frac": 0.7846,
+    "coherence_margin": 0.8309,
     "n_a": 2,
     "n_b": 2,
+    "universe_n": 50000,
+    "universe_truncated": false,
     "reasons": [
-      "transition axis weak (PC1 0.798 < 0.8)"
+      "transition axis weak (PC1 0.785 < 0.8)"
     ]
   },
   "gate2": {
@@ -41,7 +43,7 @@
     "top_frac": null,
     "n_nominated": 0,
     "refused": true,
-    "refusal_reason": "Gate-1 REJECT: transition axis weak (PC1 0.798 < 0.8)"
+    "refusal_reason": "Gate-1 REJECT: transition axis weak (PC1 0.785 < 0.8)"
   },
   "direction": {
     "provenance": "input-measured",
@@ -55,6 +57,7 @@
   "provenance": {
     "benchmark_version": "v1",
     "scorecard": "benchmark/scorecard.tsv",
-    "source_contract": "benchmark/myod_gse186271/myod_get.driver.tsv"
+    "source_contract": "benchmark/myod_gse186271/myod_get.driver.tsv",
+    "gate1_source": "preflight.admissibility() on the fixed 50k universe, run 2026-07-16; iN matrix built from GSE299923 D0x3/D7x3 -> in_clean/endpoints.matrix.tsv"
   }
 }

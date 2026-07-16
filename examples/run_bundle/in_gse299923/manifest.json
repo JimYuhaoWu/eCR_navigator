@@ -17,10 +17,12 @@
   },
   "gate1": {
     "admit": true,
-    "pc1_frac": 0.89,
-    "coherence_margin": null,
-    "n_a": 2,
-    "n_b": 2,
+    "pc1_frac": 0.9187,
+    "coherence_margin": 0.5694,
+    "n_a": 3,
+    "n_b": 3,
+    "universe_n": 50000,
+    "universe_truncated": false,
     "reasons": []
   },
   "gate2": {
@@ -60,6 +62,7 @@
     "benchmark_version": "v1",
     "scorecard": "benchmark/scorecard.tsv",
     "source_contract": "in_clean/get_in.tsv",
-    "note": "gate1/gate2 values carried from benchmark/scorecard.tsv (Claim-2A run)"
+    "note": "gate1/gate2 values carried from benchmark/scorecard.tsv (Claim-2A run)",
+    "gate1_source": "preflight.admissibility() on the fixed 50k universe, run 2026-07-16; iN matrix built from GSE299923 D0x3/D7x3 -> in_clean/endpoints.matrix.tsv"
   }
 }

@@ -66,10 +66,12 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 
   "gate1": {
     "admit": true,
-    "pc1_frac": 0.89,
-    "coherence_margin": null,
-    "n_a": 2,
-    "n_b": 2,
+    "pc1_frac": 0.919,
+    "coherence_margin": 0.569,
+    "n_a": 3,
+    "n_b": 3,
+    "universe_n": 50000,
+    "universe_truncated": false,
     "reasons": []
   },
 
@@ -110,7 +112,8 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 | Field | Rule |
 |---|---|
 | `transition.assembly` | **Load-bearing.** Must match the peaks *and* the genome FASTA the predictor uses. Mismatched coordinates silently corrupt both weighting and site selection. |
-| `gate1` | Verbatim from `scripts/preflight.py` `admissibility()`. `admit:false` ⇒ `nomination.refused:true`. A reliable **reject**, not a reliable admit. |
+| `gate1` | Verbatim from `scripts/preflight.py` `admissibility()`. `admit:false` ⇒ `nomination.refused:true`. A coarse **reject** screen, not a reliable admit. |
+| `gate1.universe_n` | Regions the statistics were computed on — **fixed at 50,000** (the most accessible, ranked on depth-normalized signal). PC1/coherence rise as low-signal regions are dropped, so they are only comparable across transitions at a fixed N. `universe_truncated:true` means the run's universe was smaller than 50k, so **its values are not comparable to other transitions'**. |
 | `gate2.primary` | `"GET"` \| `"signed-Delta"` (or any future model id). PRIMARY = GET iff ΔAUROC CI excludes 0 **or** (LR p<0.05 **and** `lr_coef > 0`). The `coef > 0` clause is what keeps MyoD's significant-but-**negative** LR from reading as signal. |
 | `gate2.*` stats | Everything **measured** on the anchors (including `fold_enrichment_top5pct`) lives here, not in `nomination` — that block holds only what the nominator *decided*. `null` when Gate 2 did not run. `reason` is `select_score`'s human-readable justification for the verdict. |
 | `nomination.score_source` | Mirrors `gate2.primary`. The only place the winning model is named. |
@@ -256,10 +259,24 @@ PeiLab2 (not mocks). Phase 2 (`nominate.py`) will regenerate these from the pipe
 
 | Fixture | Role | Contents |
 |---|---|---|
-| `in_gse299923/` | **GET-wins** (Gate-1 admit, Gate-2 PRIMARY=GET) | 3,300 nominations, hg38, real scores + measured ΔaTPM |
-| `myod_gse186271/` | **Refusal** (Gate-1 REJECT, GET anti-informative) | 0 nominations — header only, with `refusal_reason` |
+| `in_gse299923/` | **GET-wins** (Gate-1 admit, Gate-2 PRIMARY=GET) | 3,300 nominations + a 9,300-row `weights.tsv` slice, hg38, real scores + measured ΔaTPM |
+| `myod_gse186271/` | **Refusal** (Gate-1 REJECT, GET anti-informative) | 0 nominations — header only, with `refusal_reason` — **and a 9,000-row `weights.tsv`**, which is the refusal claim made concrete |
+| `_encoding_edge_cases/` | **Synthetic** — writer output, not a transition | The empty-vs-`0.0` direction distinction, and the 4-column form |
+
+All three parts ship, per `write_region_weights`/`write_nominations`, so a consumer tests
+against the real producer. The `weights.tsv` files are **slices** (the full universes —
+329,983 and 232,788 rows — stay on PeiLab2); the iN slice contains every nominated region
+plus neighbours plus background, so `nominations.tsv` is a strict subset of `weights.tsv`.
+
+Two facts a consumer needs, both documented in
+[`examples/run_bundle/README.md`](../examples/run_bundle/README.md):
+**our regions never overlap each other** (the universe is a merged union — the full iN
+contract has 0 overlapping and 124,485 adjacent pairs, so multi-overlap resolution fires on
+*adjacency*), and **no real bundle has ever contained an unmeasured region** (all four GET
+contracts are 100% measured, though all contain measured-flat `0.0` rows) — which is why the
+empty-direction case lives in an explicitly synthetic fixture rather than being faked into
+real data.
 
 Source: `in_clean/get_in.tsv` + `in_clean/atpm_union.tsv`;
-`benchmark/myod_gse186271/{gate1,transition}.json`; Gate-1/Gate-2 statistics carried from
-`benchmark/scorecard.tsv`. `weights.tsv` is not duplicated into the fixtures — the full
-329,983-region iN contract is the existing `get_in.tsv` on PeiLab2.
+`benchmark/myod_gse186271/{myod_get.driver.tsv,gate1,transition}.json`; Gate-2 statistics
+carried from `benchmark/scorecard.tsv`, Gate-1 recomputed on the fixed universe.
