@@ -87,6 +87,45 @@ artifact. It holds now, on the fixed universe.
    signed-Δ already captures it (Claim-2A CI includes 0) → PRIMARY=signed-Δ. Strong ≠ model-wins;
    the model must beat the baseline, which Gate-2 measures.
 
+## The panel as run bundles (2026-07-16)
+
+The whole panel is now regenerated through the production entrypoint —
+`navigate.py --contract --bundle` — as v1 run bundles ([`run_bundle_contract.md`](run_bundle_contract.md)),
+on PeiLab2 at **`/mnt3/wuyuhao/bundles/`**. This is the end-to-end test of the nomination
+policy: **no per-transition special-casing**, one command each, the verdict falls out.
+
+| Bundle | regions | nominations | PRIMARY | Gate 1 (PC1 @50k) |
+|---|---|---|---|---|
+| `in_gse299923` | 329,983 | **3,300** | **GET** | admit 0.919 |
+| `cebpa_gse151748` | 313,838 | **3,139** | **GET** | admit 0.963 |
+| `mef_mes_gse201577` | 86,956 | **870** | **signed-Δ** | admit 0.933 |
+| `myod_gse186271` | 232,788 | **0** | *(refused)* | REJECT 0.785 |
+| `icm_gse179011` | 233,342 | **0** | *(refused)* | REJECT 0.707 (coherence −0.059) |
+| `etv2_gse168636` | 63,562 | **0** | *(refused)* | REJECT 0.561 |
+
+**2 nominate from GET, 1 from signed-Δ, 3 refuse — exactly the predicted split.** All six
+pass the structural checks: three parts present, `nominations.tsv` a strict subset of
+`weights.tsv`, ranks dense `1..k`, `bundle_version` stamped.
+
+Three things this exercised for the first time:
+
+1. **The signed-Δ nomination path.** MEF→mES is the "clean but directional" case — Gate 1
+   admits it with the panel's second-cleanest endpoints, and Gate 2 still measures
+   ΔAUROC +0.080 (CI [−0.037,+0.198], LR p=0.107) → **PRIMARY = signed-Δ**. It nominates 870
+   regions ranked by |ΔaTPM| (rank-1 |direction| 0.996), *not* by driver score. Strong ≠
+   model-wins, and the bundle records which score it actually used.
+2. **Refusal at scale.** The three rejects ship **0 nominations and 63k–233k weights** each —
+   the contract's claim that a Gate-1 reject still yields usable off-target weights, now true
+   of the real artifacts rather than only the prose.
+3. **`--contract` mode.** The GPU mirrors are not persistent and their `.npz` artifacts are
+   gone, but every archived contract survived, so bundles rebuild with **no GPU**. Three of
+   the six predate the `direction` column and are 4-column; their direction was re-attached
+   from the same measured aTPM table the original run used (`--direction-norm raw`). All six
+   came out **100% measured — 0 unmeasured regions**.
+
+The pipeline reproduces the committed `examples/run_bundle/in_gse299923/nominations.tsv`
+**byte-identically**, so the shipped fixture and the production path agree.
+
 ## Data-engineering notes (for reproduction)
 
 - **Region universe:** dataset-specific peaks per transition (macs from CDesk, or my own

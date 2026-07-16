@@ -116,6 +116,11 @@ can *predict* direction (Claim 2B) is only non-circular for prediction-head mode
 ## Open items
 
 - **Claim 2B** (direction-column correctness) — deferred; needs a prediction-head model.
+- **Run bundles — the panel is regenerated as bundles** (2026-07-16), `/mnt3/wuyuhao/bundles/`.
+  One `navigate.py --contract --bundle` per transition, no special-casing: **2 nominate from
+  GET (iN 3,300 / C/EBPα 3,139), 1 from signed-Δ (MEF→mES 870), 3 refuse** (MyoD, iCM, ETV2 —
+  0 nominations, weights still shipped). The unified output contract is
+  [`run_bundle_contract.md`](run_bundle_contract.md); fixtures in `examples/run_bundle/`.
 - **Benchmark v1 — BUILT AND RUN** (2026-07-16): 6 transitions × GET (+ChromBERT on the mouse
   bundles). **The Claim-1/2 finding generalized: GET wins on BOTH strong clean transitions —
   iN (0.668) *and* C/EBPα macrophage (0.640, ΔvsSigned +0.106 p=0.001)** — a second lineage and
