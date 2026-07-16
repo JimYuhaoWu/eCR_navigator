@@ -18,7 +18,8 @@ Map of the docs — start here to find things fast. **Bold = read first for that
 | [`claim1_human_progress.md`](claim1_human_progress.md) | Claim 1 human (all 5 models, iN + dropped iCM) + top-tail section. Deep dive. |
 | [`claim1_progress.md`](claim1_progress.md) | Claim 1 session handoff / reproduction paths (historical). |
 | [`cross_model_consistency.md`](cross_model_consistency.md) | Why the 5 models' magnitude rankings don't agree (Spearman≈0). |
-| [`claim2_plan.md`](claim2_plan.md) | Claim 2 scope: 2A (done); **2B spec** (is measured `direction` trustworthy where it picks an ED — ready to run, no GPU); Claim 3 parked. |
+| [`claim2_plan.md`](claim2_plan.md) | Claim 2 scope: 2A (done); 2B spec; Claim 3 parked. |
+| [`claim2b_results.md`](claim2b_results.md) | **Claim 2B results** — measured `direction` is trustworthy for the ED call at **\|direction\| ≥ 0.05** (consistent on 3 admit transitions; Gate-1-reject control shows no threshold). Two-sided source arm is system-dependent. |
 | [`claim2_results.md`](claim2_results.md) | Claim 2A results, top-k sweeps, per-model×species confidence, **nomination policy**. Deep dive. |
 | [`benchmark_v1_results.md`](benchmark_v1_results.md) | **v1 benchmark scorecard** — 6 transitions × GET (+ChromBERT on mouse). GET wins on both strong (iN, C/EBPα); fails on all weak. Read with `validation_summary.md`. |
 | [`benchmark_spec.md`](benchmark_spec.md) | Benchmark *design*: frozen transition panel so future/self-trained models run the same scorecard. v1 as-built + v2 backlog. |

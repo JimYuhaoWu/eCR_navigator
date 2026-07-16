@@ -120,9 +120,12 @@ domain — **42% of iN nominations have |direction| < 0.05** — which is
 
 ## Open items
 
-- **Claim 2B** (is the measured `direction` trustworthy where it picks an ED?) — **specced,
-  ready to run, no GPU**; [`claim2_plan.md`](claim2_plan.md) §2B. Only new asset is
-  source-cell master-TF anchors.
+- **Claim 2B — DONE** (2026-07-16, [`claim2b_results.md`](claim2b_results.md)): the measured
+  `direction` is trustworthy for the ED call at **|direction| ≥ 0.05** — sign-accuracy is at
+  the opening-rate baseline below that and 0.80–0.95 above, consistent on 3 admit transitions;
+  the Gate-1-reject control shows no threshold (direction trust tracks Gate-1). The two-sided
+  source arm is system-dependent (clean on C/EBpα; iN's human-fibroblast source opens not
+  closes). Per-region `direction_confidence` column deferred (contract change).
 - **Claim 3** (counterfactual direction) — parked (hard; needs AlphaGenome + perturbation
   ground truth).
 - Predicted-vs-measured direction (the *old* Claim 2B) — model QC, moved to

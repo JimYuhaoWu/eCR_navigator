@@ -188,10 +188,11 @@ liftOver-bridged reference for mouse. All five are validated end-to-end on both 
   and *rejected*, despite being the transition GET demonstrably wins. Thresholds calibrated on
   the n=6 benchmark panel at that fixed universe (`docs/benchmark_v1_results.md`).
 - **`driver_score` is a magnitude, not a signed call** — always attach the measured signed-Δ
-  for open/close direction. **Claim 2B** (specced, not run — `docs/claim2_plan.md` §2B): is the
-  *measured* direction trustworthy where it picks an effector domain (42% of iN nominations
-  have |direction|<0.05)? Two-sided against destination-opens / source-closes master-TF
-  anchors; no GPU. The old 2B (predicted-vs-measured direction) is model QC → moved to
+  for open/close direction. **Claim 2B — DONE** (`docs/claim2b_results.md`): the measured
+  direction is trustworthy for the ED call at **|direction| ≥ 0.05** (sign-accuracy ≈ base
+  rate below, 0.80–0.95 above; consistent on 3 admit transitions, no threshold on the Gate-1
+  reject). `fuse.py` should not pick activator-vs-repressor below 0.05. Two-sided source arm
+  system-dependent. The old 2B (predicted-vs-measured direction) is model QC → moved to
   `docs/alphagenome_pipeline.md`. **Claim 3** (counterfactual direction) parked — hard.
 
 **Driver-score readout — keep BOTH scores (decided 2026-07-03; reframed 2026-07-09):**
