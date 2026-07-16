@@ -33,14 +33,14 @@
       0.264
     ],
     "lr_p": 0.001,
-    "lr_coef": 0.67
+    "lr_coef": 0.67,
+    "fold_enrichment_top5pct": 2.46
   },
   "nomination": {
     "score_source": "GET",
     "score_norm": "rank",
     "top_frac": 0.01,
     "n_nominated": 3300,
-    "fold_enrichment_top5pct": 2.46,
     "refused": false,
     "refusal_reason": null
   },
