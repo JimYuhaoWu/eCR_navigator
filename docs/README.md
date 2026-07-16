@@ -5,7 +5,8 @@ Map of the docs — start here to find things fast. **Bold = read first for that
 ## Architecture & contracts (the stable interfaces)
 | Doc | What it is / read when |
 |---|---|
-| [`region_weight_contract.md`](region_weight_contract.md) | **Output contract** `chrom,start,end,driver_score[,direction]` that eCR_predictor consumes. Read before touching outputs. |
+| [`run_bundle_contract.md`](run_bundle_contract.md) | **THE unified output** — `manifest.json` + `weights.tsv` + `nominations.tsv`. The boundary object with eCR_predictor; carries the Gate-1/Gate-2 verdict so the predictor never learns which model won. **Read first for anything about outputs.** Fixtures: `examples/run_bundle/`. |
+| [`region_weight_contract.md`](region_weight_contract.md) | The dense `chrom,start,end,driver_score[,direction]` table (= the bundle's `weights.tsv`). Unchanged; consumed by `offtarget.py` Tier-2. |
 | [`embedding_artifact.md`](embedding_artifact.md) | Internal `.npz` contract (mirror → navigator). Read when adding a model's embed script. |
 | [`direction.md`](direction.md) | The optional signed `direction` column + its three provenance tiers (input-measured / predicted / external-attach) and trust caveats. |
 

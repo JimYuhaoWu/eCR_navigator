@@ -1,0 +1,65 @@
+{
+  "bundle_version": "1",
+  "run_id": "in_gse299923",
+  "created": "2026-07-16",
+  "transition": {
+    "id": "in_gse299923",
+    "label": "fibroblast -> induced neuron (Ascl1)",
+    "species": "human",
+    "assembly": "hg38",
+    "state_a": "fibroblast",
+    "state_b": "iN",
+    "geo": "GSE299923"
+  },
+  "region_universe": {
+    "n_regions": 329983,
+    "source": "dataset peaks (fib union iN, MACS)"
+  },
+  "gate1": {
+    "admit": true,
+    "pc1_frac": 0.89,
+    "coherence_margin": null,
+    "n_a": 2,
+    "n_b": 2,
+    "reasons": []
+  },
+  "gate2": {
+    "primary": "GET",
+    "anchor_set": "promoter",
+    "n_anchors": 85,
+    "delta_auroc": 0.17,
+    "delta_auroc_ci": [
+      0.081,
+      0.264
+    ],
+    "lr_p": 0.001,
+    "lr_coef": 0.67
+  },
+  "nomination": {
+    "score_source": "GET",
+    "score_norm": "rank",
+    "top_frac": 0.01,
+    "n_nominated": 3300,
+    "fold_enrichment_top5pct": 2.46,
+    "refused": false,
+    "refusal_reason": null
+  },
+  "direction": {
+    "provenance": "input-measured",
+    "source": "GET aTPM (atpm_iN - atpm_fib)",
+    "norm": "raw"
+  },
+  "models_run": [
+    "GET",
+    "ChromBERT",
+    "ChromFound",
+    "ATACformer",
+    "EpiAgent"
+  ],
+  "provenance": {
+    "benchmark_version": "v1",
+    "scorecard": "benchmark/scorecard.tsv",
+    "source_contract": "in_clean/get_in.tsv",
+    "note": "gate1/gate2 values carried from benchmark/scorecard.tsv (Claim-2A run)"
+  }
+}

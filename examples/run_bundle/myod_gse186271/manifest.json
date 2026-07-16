@@ -1,0 +1,60 @@
+{
+  "bundle_version": "1",
+  "run_id": "myod_gse186271",
+  "created": "2026-07-16",
+  "transition": {
+    "id": "myod_impc",
+    "label": "MEF -> iMPC (MyoD + F/R/C)",
+    "species": "mouse",
+    "assembly": "mm10",
+    "state_a": "MEF",
+    "state_b": "iMPC",
+    "geo": "GSE186271 (ATAC sub-series; Bar-Nur roadmap, Sci Adv 2022)"
+  },
+  "region_universe": {
+    "n_regions": 232788,
+    "source": "shared mm10 ENCODE SCREEN cCRE V3 (313,838); per-sample max narrowPeak signalValue via bedtools map"
+  },
+  "gate1": {
+    "admit": false,
+    "pc1_frac": 0.7978,
+    "coherence_margin": 0.8012,
+    "n_a": 2,
+    "n_b": 2,
+    "reasons": [
+      "transition axis weak (PC1 0.798 < 0.8)"
+    ]
+  },
+  "gate2": {
+    "primary": "signed-Delta",
+    "anchor_set": "promoter",
+    "n_anchors": 43,
+    "delta_auroc": -0.244,
+    "delta_auroc_ci": null,
+    "lr_p": null,
+    "lr_coef": -1.1
+  },
+  "nomination": {
+    "score_source": null,
+    "score_norm": null,
+    "top_frac": null,
+    "n_nominated": 0,
+    "fold_enrichment_top5pct": null,
+    "refused": true,
+    "refusal_reason": "Gate-1 REJECT: transition axis weak (PC1 0.798 < 0.8). GET is anti-informative here (Claim-1 AUROC 0.288, LR coef -1.10) - no trustworthy nomination exists."
+  },
+  "direction": {
+    "provenance": "input-measured",
+    "source": "GET aTPM (atpm_iMPC - atpm_MEF)",
+    "norm": "raw"
+  },
+  "models_run": [
+    "GET",
+    "ChromBERT"
+  ],
+  "provenance": {
+    "benchmark_version": "v1",
+    "scorecard": "benchmark/scorecard.tsv",
+    "source_contract": "benchmark/myod_gse186271/myod_get.driver.tsv"
+  }
+}
