@@ -217,12 +217,14 @@ stays coordinates-only.
 - **No `--assume-primary` escape hatch.** Gate 2 requires curated destination master-TF
   anchors. No anchors ⇒ no Gate 2 ⇒ no nominations, only `weights.tsv`. Falling back to an
   unmeasured top-1% reintroduces exactly the MyoD failure.
-- **No direction-ambiguity threshold — yet.** 42% of iN nominations have `|direction| < 0.05`,
-  so the ED call is weakly supported there. Whether to emit a `direction_confidence` or a
-  cutoff is exactly what **Claim 2B** is specced to decide
-  ([`claim2_plan.md`](claim2_plan.md) §2B): measure sign-accuracy on known-direction anchors,
-  stratified by `|direction|`, and read the cutoff off where accuracy meets the base rate.
-  Left to the consumer only until 2B runs.
+- **Direction-ambiguity threshold: |direction| ≥ 0.05** (resolved by Claim 2B,
+  [`claim2b_results.md`](claim2b_results.md)). On known-direction anchors, sign-accuracy sits
+  at the opening-rate baseline below ~0.05 and jumps to 0.80–0.95 above it, consistently on 3
+  admit transitions; the Gate-1-reject control shows no threshold. **Below |direction| 0.05 the
+  open/close call is not trustworthy** — `fuse.py` should emit the region but not commit to an
+  activator-vs-repressor ED there. This is consumer guidance, not a format change. A per-region
+  `direction_confidence` **column** (from replicate sign-stability) is a possible future
+  addition — it would be a `bundle_version` bump, deferred with its own decision.
 
 ## Producing a bundle
 
