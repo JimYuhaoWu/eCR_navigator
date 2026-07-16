@@ -108,11 +108,22 @@ supervision added; regimes 1/3 build on regime 2's prior. Everything downstream
 
 ## Output contract (STABLE — eCR_predictor depends on it)
 
-TSV: `chrom, start, end, driver_score` with `driver_score ∈ [0, 1]`, same assembly
-as the peaks for that run (mm10 for the mouse work, hg38 for human). See
-`docs/region_weight_contract.md` and
-`ecr_navigator/weights.py`. eCR_predictor's off-target Tier-2 maps its union
-regions onto this table via a `weight_fn(region)`.
+The unified deliverable is the **run bundle** (`docs/run_bundle_contract.md`,
+`ecr_navigator/nominate.py`) — one directory per run:
+
+- `weights.tsv` — the DENSE region-weight contract, **unchanged**: `chrom, start, end,
+  driver_score[, direction]`, `driver_score ∈ [0,1]`, same assembly as that run's peaks.
+  eCR_predictor's off-target Tier-2 maps its union regions onto this via `weight_fn(region)`.
+  See `docs/region_weight_contract.md` and `ecr_navigator/weights.py`.
+- `nominations.tsv` — SPARSE, ranked; the instruction to eCR_predictor's `target.py`
+  (region → target site). **Order by `rank`, never threshold on `nomination_score`** — it's
+  a percentile, so a top-1% band spans 0.99–1.0 by construction.
+- `manifest.json` — the Gate-1/Gate-2 verdict + provenance.
+
+Two invariants: **the navigator resolves GET-vs-signed-Δ** (the predictor never learns which
+model won, so a future self-trained model changes nothing downstream), and **refusal is a
+first-class output** (a Gate-1 reject emits a valid bundle with zero nominations and a
+reason — the correct answer for 3 of the 6 v1 benchmark transitions).
 
 ## Layout
 
@@ -121,8 +132,10 @@ ecr_navigator/
   features.py   # load embedding artifacts, align two states, compute shift  ✔
   model.py      # embedding shift -> driver_score [0,1] (rank|minmax)         ✔
   weights.py    # read/write the region-weight contract TSV                   ✔
+  nominate.py   # nomination policy -> the run bundle (docs/run_bundle_contract.md) ✔
   io.py         # load ATAC / RNA / peaks                                     (todo)
-navigate.py     # entrypoint: two artifacts -> driver-weight contract TSV     ✔
+navigate.py     # entrypoint: two artifacts -> --out contract TSV, and/or     ✔
+                #   --bundle (runs both gates + nomination -> run bundle)
 scripts/        # server-mirror workflow — kept in-repo (mirror isn't persistent)
   embedding_artifact.py          # SHARED .npz writer — every model emits through this
   mirror_env.sh / setup_mirror.sh   # SSH/conda/env + idempotent mirror setup

@@ -120,6 +120,32 @@ class ScoreSelection:
     driver_coef: float
 
 
+def gate2_inputs(chrom, start, end, anchors_path, signed_path):
+    """Align a target-cell master-TF anchor BED and a signed-Delta track onto an already
+    loaded region set. Returns (labels, signed) ready for select_score.
+
+    Shared by this CLI and navigate.py's bundle mode so the two cannot drift; a region with
+    no entry in the signed track gets NaN (unmeasured), never 0.0."""
+    pc, ps, pe = load_bed(anchors_path)
+    labels = overlap_labels(chrom, start, end, pc, ps, pe)
+    sc_c, sc_s, sc_e, sc_v, _ = load_contract(signed_path)
+    key = {(a, int(b), int(d)): v for a, b, d, v in zip(sc_c, sc_s, sc_e, sc_v)}
+    signed = np.array([key.get((a, int(b), int(d)), np.nan)
+                       for a, b, d in zip(chrom, start, end)])
+    return labels, signed
+
+
+def top_k_fold(score, labels, frac=0.05):
+    """Fold-enrichment of anchors in the top `frac` of `score` over the base rate (1.0 =
+    no enrichment). The Gate-2 confidence readout quoted in the benchmark scorecard."""
+    base = float(np.mean(labels))
+    if base <= 0:
+        return float("nan")
+    k = max(1, int(round(len(score) * frac)))
+    top = np.argsort(-np.asarray(score, dtype=float))[:k]
+    return float(np.mean(np.asarray(labels)[top]) / base)
+
+
 def select_score(driver, signed, labels, opening_only=True, **kw):
     """Run the Claim-2A comparison on the target-cell master-TF anchors and apply the rule:
     driver is PRIMARY iff its paired Delta-AUROC CI excludes 0 in its favour, OR the
@@ -199,12 +225,7 @@ def main():
         print("GATE 1 admissibility : SKIPPED (no --matrix); Gate 2 is the decision")
 
     chrom, start, end, score, direction = load_contract(args.contract)
-    pc, ps, pe = load_bed(args.anchors)
-    labels = overlap_labels(chrom, start, end, pc, ps, pe)
-    sc_c, sc_s, sc_e, sc_v, _ = load_contract(args.signed)
-    key = {(a, int(b), int(d)): v for a, b, d, v in zip(sc_c, sc_s, sc_e, sc_v)}
-    signed = np.array([key.get((a, int(b), int(d)), np.nan)
-                       for a, b, d in zip(chrom, start, end)])
+    labels, signed = gate2_inputs(chrom, start, end, args.anchors, args.signed)
 
     sel = select_score(score, signed, labels, opening_only=not args.all_regions)
     print(f"GATE 2 score selection")

@@ -81,7 +81,8 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
     "delta_auroc_ci": [0.081, 0.264],
     "lr_p": 0.001,
     "lr_coef": 0.67,
-    "fold_enrichment_top5pct": 2.46
+    "fold_enrichment_top5pct": 2.46,
+    "reason": "driver beats signed-Delta: Delta-AUROC CI[+0.081,+0.264] excludes 0"
   },
 
   "nomination": {
@@ -111,7 +112,7 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 | `transition.assembly` | **Load-bearing.** Must match the peaks *and* the genome FASTA the predictor uses. Mismatched coordinates silently corrupt both weighting and site selection. |
 | `gate1` | Verbatim from `scripts/preflight.py` `admissibility()`. `admit:false` ⇒ `nomination.refused:true`. A reliable **reject**, not a reliable admit. |
 | `gate2.primary` | `"GET"` \| `"signed-Delta"` (or any future model id). PRIMARY = GET iff ΔAUROC CI excludes 0 **or** (LR p<0.05 **and** `lr_coef > 0`). The `coef > 0` clause is what keeps MyoD's significant-but-**negative** LR from reading as signal. |
-| `gate2.*` stats | Everything **measured** on the anchors (including `fold_enrichment_top5pct`) lives here, not in `nomination` — that block holds only what the nominator *decided*. `null` when Gate 2 did not run. |
+| `gate2.*` stats | Everything **measured** on the anchors (including `fold_enrichment_top5pct`) lives here, not in `nomination` — that block holds only what the nominator *decided*. `null` when Gate 2 did not run. `reason` is `select_score`'s human-readable justification for the verdict. |
 | `nomination.score_source` | Mirrors `gate2.primary`. The only place the winning model is named. |
 | `nomination.score_norm` | `rank` \| `minmax` (`ecr_navigator/model.py`). **Load-bearing — see "rank is the orderable column" below.** |
 | `nomination.top_frac` | The **validated confidence band** (0.01 — see below), not a design budget. |
@@ -219,9 +220,34 @@ stays coordinates-only.
   column itself (that is Claim 2B, deferred: circular for every current model). Left to the
   consumer for now.
 
+## Producing a bundle
+
+One command (`navigate.py`) runs scoring, both gates, and nomination:
+
+```bash
+python navigate.py \
+    --emb-a get.fib.hg38.npz --emb-b get.iN.hg38.npz \
+    --bundle bundles/in_gse299923 \
+    --matrix endpoints.matrix.tsv --state-a fib --state-b iN   `# Gate 1` \
+    --anchors neural.promoter.bed --signed signed_delta.tsv    `# Gate 2` \
+    --transition transition.json --direction-norm raw
+```
+
+`--out FILE` (the bare contract TSV) still works and is unchanged; the two modes compose.
+Most manifest fields are derived from the artifacts' own metadata — `assembly`, `state_a`/
+`state_b`, `model`, `region_universe.source` — so they cannot drift from the run that
+produced them. `--transition` supplies only what the artifacts cannot know (`label`, `geo`).
+**Assembly is enforced:** two artifacts from different assemblies abort the run rather than
+silently emitting corrupt coordinates.
+
+Omitting a gate's inputs is not an error — it produces a **refusal** bundle, since
+`nominate()` requires both gates.
+
 ## Versioning
 
-`bundle_version` is bumped when field semantics change.
+`bundle_version` is bumped when field semantics change. It is stamped by `write_bundle()`,
+not by the caller: the writer determines the on-disk format, so it is the only thing that
+can honestly declare the version.
 
 ## Fixtures — `examples/run_bundle/`
 
