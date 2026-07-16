@@ -77,5 +77,61 @@ def test_select_get_when_driver_adds_signal():
     assert sel.delta_ci[0] > 0 or sel.perm_p < 0.05, sel
 
 
+# ------------------------------------------------------- GATE 1 fixed universe (2026-07-16)
+def _diluted(effect, noise, signal_regions=800, dead_regions=6000, seed=3):
+    """A matrix where only `signal_regions` carry the transition and `dead_regions` are
+    low-signal noise -- the shape of a real cCRE universe, where most regions are closed in
+    both states. Diluting with those regions is what drags PC1 down."""
+    rng = np.random.default_rng(seed)
+    is_a = np.array([True, True, True, False, False, False])
+    signs = np.array([+1, +1, +1, -1, -1, -1], dtype=float)
+    mu = rng.uniform(4.0, 7.0, signal_regions)
+    d = rng.normal(0.0, 1.0, signal_regions)
+    hot = (mu[:, None] + effect * d[:, None] * signs[None, :]
+           + rng.normal(0.0, noise, (signal_regions, 6)))
+    cold = rng.uniform(0.0, 0.4, (dead_regions, 6)) + rng.normal(0, noise, (dead_regions, 6))
+    return np.expm1(np.clip(np.vstack([hot, cold]), 0, None)), is_a
+
+
+def test_pc1_is_universe_dependent_without_the_fix():
+    """The finding that motivated the fixed universe: the SAME transition scores lower as
+    low-signal regions are added, so a raw PC1 is not comparable across region universes."""
+    m, is_a = _diluted(effect=1.0, noise=0.35)
+    wide = admissibility(m, is_a, universe_n=len(m)).pc1_frac       # everything
+    tight = admissibility(m, is_a, universe_n=800).pc1_frac         # signal regions only
+    assert tight > wide + 0.05, (tight, wide)
+
+
+def test_fixed_universe_makes_pc1_stable_across_universe_size():
+    """With the universe fixed, padding the matrix with dead regions must NOT move the
+    verdict -- that is the whole point of the convention."""
+    m, is_a = _diluted(effect=1.0, noise=0.35, dead_regions=2000)
+    m2, _ = _diluted(effect=1.0, noise=0.35, dead_regions=20000)
+    a = admissibility(m, is_a, universe_n=800)
+    b = admissibility(m2, is_a, universe_n=800)
+    assert abs(a.pc1_frac - b.pc1_frac) < 0.02, (a.pc1_frac, b.pc1_frac)
+    assert a.admit == b.admit
+
+
+def test_universe_truncation_is_recorded():
+    """A universe smaller than N is used whole, but flagged: its value is not comparable."""
+    m, is_a = _matrix(effect=1.0, noise=0.2, R=1500)
+    a = admissibility(m, is_a, universe_n=50000)
+    assert a.universe_n == 1500 and a.universe_truncated is True
+    b = admissibility(m, is_a, universe_n=1000)
+    assert b.universe_n == 1000 and b.universe_truncated is False
+
+
+def test_universe_ranking_is_depth_normalized():
+    """Which regions count as 'most accessible' must not be decided by a deeply-sequenced
+    sample -- rank on CPM, not raw signal. Scaling one column 10x must not move the gate."""
+    m, is_a = _diluted(effect=1.0, noise=0.35)
+    deep = m.copy()
+    deep[:, 0] *= 10.0                      # one sample sequenced 10x deeper
+    a = admissibility(m, is_a, universe_n=800)
+    b = admissibility(deep, is_a, universe_n=800)
+    assert abs(a.pc1_frac - b.pc1_frac) < 0.02, (a.pc1_frac, b.pc1_frac)
+
+
 if __name__ == "__main__":
     run(globals())

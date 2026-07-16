@@ -66,10 +66,12 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 
   "gate1": {
     "admit": true,
-    "pc1_frac": 0.89,
-    "coherence_margin": null,
-    "n_a": 2,
-    "n_b": 2,
+    "pc1_frac": 0.919,
+    "coherence_margin": 0.569,
+    "n_a": 3,
+    "n_b": 3,
+    "universe_n": 50000,
+    "universe_truncated": false,
     "reasons": []
   },
 
@@ -110,7 +112,8 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 | Field | Rule |
 |---|---|
 | `transition.assembly` | **Load-bearing.** Must match the peaks *and* the genome FASTA the predictor uses. Mismatched coordinates silently corrupt both weighting and site selection. |
-| `gate1` | Verbatim from `scripts/preflight.py` `admissibility()`. `admit:false` ⇒ `nomination.refused:true`. A reliable **reject**, not a reliable admit. |
+| `gate1` | Verbatim from `scripts/preflight.py` `admissibility()`. `admit:false` ⇒ `nomination.refused:true`. A coarse **reject** screen, not a reliable admit. |
+| `gate1.universe_n` | Regions the statistics were computed on — **fixed at 50,000** (the most accessible, ranked on depth-normalized signal). PC1/coherence rise as low-signal regions are dropped, so they are only comparable across transitions at a fixed N. `universe_truncated:true` means the run's universe was smaller than 50k, so **its values are not comparable to other transitions'**. |
 | `gate2.primary` | `"GET"` \| `"signed-Delta"` (or any future model id). PRIMARY = GET iff ΔAUROC CI excludes 0 **or** (LR p<0.05 **and** `lr_coef > 0`). The `coef > 0` clause is what keeps MyoD's significant-but-**negative** LR from reading as signal. |
 | `gate2.*` stats | Everything **measured** on the anchors (including `fold_enrichment_top5pct`) lives here, not in `nomination` — that block holds only what the nominator *decided*. `null` when Gate 2 did not run. `reason` is `select_score`'s human-readable justification for the verdict. |
 | `nomination.score_source` | Mirrors `gate2.primary`. The only place the winning model is named. |

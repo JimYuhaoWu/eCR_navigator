@@ -7,8 +7,9 @@
 >
 > **v1 as-built (6 transitions):** iN + C/EBPα (strong, both GET-wins) · MEF→mES (directional
 > control) · MyoD + iCM + ETV2 (weak/Gate-1-reject). **MyoD and ETV2 were *intended* strong but
-> both came in Gate-1-reject** (MyoD PC1 0.80 — heterogeneous iMPC; ETV2 PC1 0.53 — low-quality
-> endo_r1 replicate). **A genuine 3rd strong transition is deferred to the v2 panel** — it needs a
+> both came in Gate-1-reject** (MyoD PC1 0.785 — heterogeneous iMPC; ETV2 PC1 0.561 —
+> low-quality endo_r1 replicate). *Gate-1 values recomputed 2026-07-16 on the fixed 50k
+> universe — see `benchmark_v1_results.md` §Correction.* **A genuine 3rd strong transition is deferred to the v2 panel** — it needs a
 > cleaner source dataset, not a re-analysis. v1 stands on 2 strong + 1 directional + 3 weak, which
 > is enough to show the admit/reject split holds on all six.
 
@@ -31,7 +32,7 @@ Each transition is a self-contained, frozen bundle:
 | **signed-Δ track** | `chrom,start,end,signedΔaccessibility` over the union peak set | the baseline scorer **and** the |Δ|-matching confound (built as in Claim 1) |
 | **anchors** (ground truth) | target-cell master-TF **promoter** (TSS±2kb) + **neighborhood** (gene±50kb) BEDs | curated **known biology** — see recipe below (NON-circular: from literature, not this transition) |
 | **binding GT** (optional) | in-study master-TF ChIP/CUT&Tag top-decile BED | secondary axis; only where the study provides it |
-| **Gate-1 label** | ADMIT/REJECT + PC1 + coherence margin | `scripts/preflight.py` admissibility on the endpoint matrix |
+| **Gate-1 label** | ADMIT/REJECT + PC1 + coherence margin | `scripts/preflight.py` admissibility on the endpoint matrix, computed on the **fixed 50k-region universe** (raw-universe values are not comparable across transitions) |
 | **expected verdict** | model-positive / signed-Δ-primary / Gate-1-reject | our prior, for tracking calibration (not used in scoring) |
 | **provenance** | GEO acc, assembly, start/end cell types, cocktail, notes | registry row |
 
