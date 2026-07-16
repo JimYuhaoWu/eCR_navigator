@@ -80,7 +80,8 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
     "delta_auroc": 0.170,
     "delta_auroc_ci": [0.081, 0.264],
     "lr_p": 0.001,
-    "lr_coef": 0.67
+    "lr_coef": 0.67,
+    "fold_enrichment_top5pct": 2.46
   },
 
   "nomination": {
@@ -88,7 +89,6 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
     "score_norm": "rank",
     "top_frac": 0.01,
     "n_nominated": 3300,
-    "fold_enrichment_top5pct": 2.46,
     "refused": false,
     "refusal_reason": null
   },
@@ -111,7 +111,7 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 | `transition.assembly` | **Load-bearing.** Must match the peaks *and* the genome FASTA the predictor uses. Mismatched coordinates silently corrupt both weighting and site selection. |
 | `gate1` | Verbatim from `scripts/preflight.py` `admissibility()`. `admit:false` ⇒ `nomination.refused:true`. A reliable **reject**, not a reliable admit. |
 | `gate2.primary` | `"GET"` \| `"signed-Delta"` (or any future model id). PRIMARY = GET iff ΔAUROC CI excludes 0 **or** (LR p<0.05 **and** `lr_coef > 0`). The `coef > 0` clause is what keeps MyoD's significant-but-**negative** LR from reading as signal. |
-| `gate2.*` stats | `null` when Gate 2 did not run (no anchors, or Gate-1 refusal short-circuited it). |
+| `gate2.*` stats | Everything **measured** on the anchors (including `fold_enrichment_top5pct`) lives here, not in `nomination` — that block holds only what the nominator *decided*. `null` when Gate 2 did not run. |
 | `nomination.score_source` | Mirrors `gate2.primary`. The only place the winning model is named. |
 | `nomination.score_norm` | `rank` \| `minmax` (`ecr_navigator/model.py`). **Load-bearing — see "rank is the orderable column" below.** |
 | `nomination.top_frac` | The **validated confidence band** (0.01 — see below), not a design budget. |
@@ -119,7 +119,15 @@ docs — never in the artifact. **The bundle moves the policy into the deliverab
 | `direction.norm` | `raw` \| `maxabs` \| `signed-rank`. For GET/ChromFound aTPM (already `[0,1]`) use **`raw`**, so `direction` stays a literal ΔaTPM. |
 
 On refusal, every `nomination.*` field except `n_nominated` (0), `refused` (true), and
-`refusal_reason` is `null`.
+`refusal_reason` is `null`. `refusal_reason` states **why refused** and nothing more — the
+supporting statistics stay in `gate1.reasons` / `gate2`, never duplicated into prose.
+
+**Refusal is decided by Gate 1, not Gate 2.** Gate 2 only chooses *which* score to nominate
+from, so `primary: "signed-Delta"` is a normal, non-refusing outcome (MEF→mES: admissible,
+but signed-Δ already captures the signal). `nominate()` refuses iff Gate 1 is missing or
+rejects, or Gate 2 is missing. It therefore requires **both** gates — deliberately stricter
+than `scripts/preflight.py`, whose Gate 1 is optional because it is a diagnostic; nomination
+is the production path, and an unverified endpoint pair must not produce targets.
 
 ## `nominations.tsv`
 

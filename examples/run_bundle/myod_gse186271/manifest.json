@@ -32,16 +32,16 @@
     "delta_auroc": -0.244,
     "delta_auroc_ci": null,
     "lr_p": null,
-    "lr_coef": -1.1
+    "lr_coef": -1.1,
+    "fold_enrichment_top5pct": null
   },
   "nomination": {
     "score_source": null,
     "score_norm": null,
     "top_frac": null,
     "n_nominated": 0,
-    "fold_enrichment_top5pct": null,
     "refused": true,
-    "refusal_reason": "Gate-1 REJECT: transition axis weak (PC1 0.798 < 0.8). GET is anti-informative here (Claim-1 AUROC 0.288, LR coef -1.10) - no trustworthy nomination exists."
+    "refusal_reason": "Gate-1 REJECT: transition axis weak (PC1 0.798 < 0.8)"
   },
   "direction": {
     "provenance": "input-measured",
