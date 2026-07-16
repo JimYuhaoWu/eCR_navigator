@@ -211,10 +211,13 @@ The question 2A was built to answer — *is direction worth model compute at all
   the story.
 
 Use `driver_score` for target nomination where the endpoint pair is strong and clean; fall
-back to signed-Δ where it isn't. This does **not** settle **2B** (is the `direction` *column*
-itself correct?) — that stays deferred and is only non-circular for prediction-head models
-(EpiAgent / AlphaGenome); GET's direction *is* the measured aTPM-Δ, so testing it against
-signed-Δ is circular. See [`claim2_plan.md`](claim2_plan.md) §2B.
+back to signed-Δ where it isn't. This does **not** settle **2B** — reassigned 2026-07-16 to
+"is the *measured* `direction` trustworthy where it picks an ED?" ([`claim2_plan.md`](claim2_plan.md)
+§2B). The old 2B (is the `direction` *column*
+itself correct via a model's *prediction*?) is model QC and moved to
+[`alphagenome_pipeline.md`](alphagenome_pipeline.md) §Validation — non-circular only for
+prediction-head models (EpiAgent / AlphaGenome); GET's direction *is* the measured aTPM-Δ, so
+testing it against signed-Δ is circular. See [`claim2_plan.md`](claim2_plan.md) §2B.
 
 ## Provenance / re-run
 

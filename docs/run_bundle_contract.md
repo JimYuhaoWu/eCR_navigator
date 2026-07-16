@@ -217,11 +217,12 @@ stays coordinates-only.
 - **No `--assume-primary` escape hatch.** Gate 2 requires curated destination master-TF
   anchors. No anchors ⇒ no Gate 2 ⇒ no nominations, only `weights.tsv`. Falling back to an
   unmeasured top-1% reintroduces exactly the MyoD failure.
-- **No direction-ambiguity threshold.** 42% of iN nominations have `|direction| < 0.05`, so
-  the ED call is weakly supported there. Whether to emit a `direction_confidence`, or drop
-  ambiguous rows, needs a defensible cutoff — and we have no validation of the *direction*
-  column itself (that is Claim 2B, deferred: circular for every current model). Left to the
-  consumer for now.
+- **No direction-ambiguity threshold — yet.** 42% of iN nominations have `|direction| < 0.05`,
+  so the ED call is weakly supported there. Whether to emit a `direction_confidence` or a
+  cutoff is exactly what **Claim 2B** is specced to decide
+  ([`claim2_plan.md`](claim2_plan.md) §2B): measure sign-accuracy on known-direction anchors,
+  stratified by `|direction|`, and read the cutoff off where accuracy meets the base rate.
+  Left to the consumer only until 2B runs.
 
 ## Producing a bundle
 
