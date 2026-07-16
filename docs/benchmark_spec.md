@@ -1,9 +1,16 @@
 # Benchmark spec — a frozen, model-agnostic transition panel
 
-> **Status: v1 scope SETTLED 2026-07-15 (see "v1 decisions" below); data not yet assembled.**
+> **Status: v1 BUILT AND RUN 2026-07-16 → results in [`benchmark_v1_results.md`](benchmark_v1_results.md).**
 > Turns Claim-1/2 validation ([`validation_summary.md`](validation_summary.md)) from n=2 ad-hoc
 > transitions into a frozen panel any current *or future / self-trained* model can be scored
-> against with one command. Next action is the data-availability pass on the sourcing list.
+> against with one command. This file is the *design*; the v1 scorecard is in the results doc.
+>
+> **v1 as-built (6 transitions):** iN + C/EBPα (strong, both GET-wins) · MEF→mES (directional
+> control) · MyoD + iCM + ETV2 (weak/Gate-1-reject). **MyoD and ETV2 were *intended* strong but
+> both came in Gate-1-reject** (MyoD PC1 0.80 — heterogeneous iMPC; ETV2 PC1 0.53 — low-quality
+> endo_r1 replicate). **A genuine 3rd strong transition is deferred to the v2 panel** — it needs a
+> cleaner source dataset, not a re-analysis. v1 stands on 2 strong + 1 directional + 3 weak, which
+> is enough to show the admit/reject split holds on all six.
 
 ## Why
 
@@ -102,6 +109,14 @@ generator. Nothing else changes — that is the model-agnostic promise, enforced
 Freeze **v1** (panel + per-cell-type TF lists + anchor BEDs + preflight thresholds). Bump the
 version when transitions or anchor lists change, so cross-model scores stay comparable within a
 version.
+
+## v2 backlog
+- **A genuine 3rd strong transition** (deferred from v1): needs a cleaner source dataset with
+  coherent replicates. Candidates: a better endothelial (ETV2) deposit, or a new paradigm that
+  clears the bulk-ATAC + ≥2-good-reps bar.
+- Redo **C/EBPα on dataset peaks** (v1 used a cCRE fallback — GEO is bigWig-only there).
+- Add the **3 hg38 models** (ChromFound/ATACformer/EpiAgent) when a **human** bundle is added —
+  they're liftOver-sparse/null on mouse, so they're omitted from the v1 mouse bundles.
 
 ## v1 decisions (settled 2026-07-15)
 1. **Size:** freeze **5–6 transitions** (3–4 strong, ≥1 weak, ≥1 Gate-1 reject).

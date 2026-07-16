@@ -111,6 +111,10 @@ can *predict* direction (Claim 2B) is only non-circular for prediction-head mode
 ## Open items
 
 - **Claim 2B** (direction-column correctness) — deferred; needs a prediction-head model.
-- **Benchmark dataset** — the next build: a frozen panel of transitions (endpoint pairs +
-  target-cell master-TF anchors + Gate-1 labels) so any future / self-trained model runs the
-  same scorecard. Grows n past 2 and tightens the policy thresholds. See `benchmark_spec.md`.
+- **Benchmark v1 — BUILT AND RUN** (2026-07-16): 6 transitions × GET (+ChromBERT on the mouse
+  bundles). **The Claim-1/2 finding generalized: GET wins on BOTH strong clean transitions —
+  iN (0.668) *and* C/EBPα macrophage (0.640, ΔvsSigned +0.106 p=0.001)** — a second lineage and
+  species, so it is not an iN artifact. GET fails on all three Gate-1-reject transitions, and
+  **Gate-1 separated admit/reject cleanly on all six**, so the preflight thresholds are now
+  calibrated on n=6 rather than n=2. Results: [`benchmark_v1_results.md`](benchmark_v1_results.md);
+  design + v2 backlog: [`benchmark_spec.md`](benchmark_spec.md).
