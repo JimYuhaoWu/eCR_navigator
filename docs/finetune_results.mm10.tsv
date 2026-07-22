@@ -1,0 +1,6 @@
+transition	model	target	pca_k	held_pos	held_genes	auroc_head	auroc_driver	auroc_signed	d_head_driver	d_hd_lo	d_hd_hi	d_head_signed	d_hs_lo	d_hs_hi	setting	seed
+MEF->mES	GET	promoter	15	51	23	0.378	0.579	0.507	-0.201	-0.341	-0.056	-0.129	-0.249	-0.001	opening-only	0
+MEF->mES	GET	promoter	5	51	23	0.378	0.579	0.507	-0.201	-0.303	-0.100	-0.129	-0.259	-0.003	opening-only	0
+MEF->mES	GET	neighborhood	15	277	26	0.471	0.523	0.500	-0.052	-0.112	0.008	-0.029	-0.083	0.025	opening-only	0
+MEF->mES	GET	neighborhood	8	277	26	0.453	0.523	0.500	-0.071	-0.134	-0.009	-0.047	-0.103	0.007	opening-only	0
+MEF->mES	GET	neighborhood	5	277	26	0.444	0.523	0.500	-0.080	-0.139	-0.023	-0.056	-0.112	-0.004	opening-only	0
