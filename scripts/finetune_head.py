@@ -10,8 +10,11 @@ FROZEN embeddings, so it reuses the .npz artifacts and cannot overfit a 768-d sp
 embedding SHIFT and the signed-Δ accessibility, both derivable from the start+end
 states alone; no trajectory, no TF identity.
 
-Design (MEF→mES, loci target):
-  features  = [ PCA(emb_end - emb_start, k) | signed-Δ ]   (PCA is label-blind, fit once)
+Design (loci target):
+  features  = [ |shift| | PCA(emb_end - emb_start, k) direction | signed-Δ ]
+              (|shift| ≈ the zero-shot driver_score, so the head starts from it and the
+               PCA direction comps can only ADD; --no-magnitude drops it. PCA is
+               label-blind, fit once.)
   head      = L2-logistic
   labels    = master-TF loci (positives) vs |signed-Δ|-matched background (negatives)
   validation= LEAVE-ONE-GENE-OUT: a locus of gene g is scored only by a head trained
@@ -176,6 +179,9 @@ def main():
     ap.add_argument("--signed", required=True, help="signed-Δ track TSV chrom,start,end,value (baseline 2 + confound)")
     ap.add_argument("--loci", required=True, help="master-TF loci BED with gene name in col 4")
     ap.add_argument("--pca-k", type=int, default=15, help="PCA components of the shift")
+    ap.add_argument("--no-magnitude", action="store_true",
+                    help="exclude the shift L2 norm (the zero-shot signal) from features; "
+                         "then the head sees only shift DIRECTION + signed-Δ")
     ap.add_argument("--all-regions", action="store_true", help="do not restrict to opening regions")
     ap.add_argument("--open-thresh", type=float, default=0.0)
     ap.add_argument("--n-per-pos", type=int, default=3)
@@ -201,8 +207,19 @@ def main():
     labels, genes = labels[keep], genes[keep]
 
     z = pca_transform(shift, a.pca_k)
-    sd = signed.std()
-    feats = np.column_stack([z, (signed - signed.mean()) / (sd if sd > 0 else 1.0)])
+
+    def _std(v):
+        s = v.std()
+        return (v - v.mean()) / (s if s > 0 else 1.0)
+
+    cols = [z, _std(signed)[:, None]]
+    if not a.no_magnitude:
+        # the shift L2 NORM is (up to normalization) the zero-shot driver_score itself;
+        # include it so the head starts from the zero-shot signal and the PCA *direction*
+        # comps can only ADD to it. Without this, standardizing the PCA columns strips
+        # magnitude and the head can underperform the zero-shot score by construction.
+        cols.insert(1, _std(np.linalg.norm(shift, axis=1))[:, None])
+    feats = np.column_stack(cols)
 
     eval_idx, head_score, ev_lab = leave_one_gene_out_scores(
         feats, labels, genes, np.abs(signed), a.n_per_pos, a.n_bins, a.seed)

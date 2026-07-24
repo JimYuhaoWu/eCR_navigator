@@ -39,7 +39,41 @@ doom Regime-1 universally; it says the head-only probe finds no transferable sig
 backbone fine-tune here and for testing a **stronger transition (human iN**, GET zero-shot
 0.668) before concluding.
 
+> **Harness note (2026-07-23):** `finetune_head.py` now includes the shift **L2 norm
+> `|shift|`** as a feature by default (≈ the zero-shot `driver_score`), so the head starts
+> from the zero-shot signal and the PCA *direction* comps can only add; `--no-magnitude`
+> restores the old direction-only features. The MEF→mES numbers above predate this and are
+> effectively `--no-magnitude`; the verdict is unchanged (the human iN runs below test both).
+
+## Human iN, loci — done 2026-07-23
+
+The stronger transition (GET zero-shot promoter 0.664 in Claim 1) — the decisive test the
+mouse caveats called for. GET `get.{fib,iN}.in.hg38.npz` (329,983 regions × 768), contract
+`get_driver_scores.in.hg38.tsv`, signed-Δ `get_in.conf.tsv`, loci `neural.{promoter,
+neighborhood}.bed`. opening-only, seed 0, pca-k 15.
+
+| target | features | held-out pos (genes) | **head** | driver_score | signed-Δ | Δ head−driver [CI] | Δ head−signed [CI] |
+|---|---|---:|---:|---:|---:|---|---|
+| promoter | \|shift\|+dir+signed | 65 (15) | **0.563** | 0.664 | 0.494 | −0.100 [−0.210, +0.009] | +0.070 [−0.059, +0.206] |
+| promoter | dir+signed (no-mag) | 65 (15) | **0.551** | 0.664 | 0.494 | −0.113 [−0.228, −0.002] | +0.057 [−0.072, +0.194] |
+| neighborhood | \|shift\|+dir+signed | 327 (22) | **0.405** | 0.557 | 0.499 | −0.152 [−0.202, −0.101] | −0.094 [−0.145, −0.044] |
+
+**Verdict: the head does NOT clear the baselines on iN either — it matches or *underperforms*
+zero-shot, significantly so on neighborhood (0.405, below chance).** Crucially this holds
+**even when the head is handed `|shift|`** (the zero-shot signal) as a feature: leave-one-gene-out
+with 65–327 tiny proxy labels fits weights that don't transfer to unseen driver genes, and
+the extra learned parameters add non-transferable noise that *degrades* the fixed,
+gene-agnostic zero-shot magnitude (which is GET's real Claim-1 signal, 0.664).
+
+**Bottom line across both transitions.** Head-only supervised fine-tuning on loci **does not
+help — it hurts.** GET's driver signal is best used **zero-shot**; the small driver-label
+corpus (tens of loci across ~15–26 genes) is too little for a supervised head to learn a
+*transferable* driver code, and forcing it overfits and loses the zero-shot prior. This
+argues **against a backbone fine-tune on loci** (which would overfit harder) and refocuses
+Regime-1 on either (a) a much larger driver-label corpus, or (b) Regime-3 perturbation
+labels. Machine-readable: [`finetune_results.human.tsv`](finetune_results.human.tsv).
+
 ## Next (per plan, not yet run)
 - Rung 2: OSKMN(−Esrrb) ↔ JGES **binding**, same transition (train one panel, test the
-  other).
-- Stronger transition: human iN loci (needs the iN GET `.npz` + neural_gt gene-tagged loci).
+  other) — the last within-transition transfer test before abandoning cheap loci/binding
+  supervision.

@@ -1,0 +1,4 @@
+transition	model	target	features	pca_k	held_pos	held_genes	auroc_head	auroc_driver	auroc_signed	d_head_driver	d_hd_lo	d_hd_hi	d_head_signed	d_hs_lo	d_hs_hi	setting	seed
+fib->iN	GET	promoter	mag+dir+signed	15	65	15	0.563	0.664	0.494	-0.100	-0.210	0.009	0.070	-0.059	0.206	opening-only	0
+fib->iN	GET	promoter	dir+signed	15	65	15	0.551	0.664	0.494	-0.113	-0.228	-0.002	0.057	-0.072	0.194	opening-only	0
+fib->iN	GET	neighborhood	mag+dir+signed	15	327	22	0.405	0.557	0.499	-0.152	-0.202	-0.101	-0.094	-0.145	-0.044	opening-only	0
