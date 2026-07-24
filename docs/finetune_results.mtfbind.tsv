@@ -1,0 +1,3 @@
+transition	model	train_panel	test_panel	features	pca_k	held_pos	held_neg	auroc_head	auroc_driver	auroc_signed	d_head_driver	d_hd_lo	d_hd_hi	d_head_signed	d_hs_lo	d_hs_hi	setting	seed
+MEF->mES	GET	JGES	OSKMN	mag+dir+signed	15	7770	6686	0.495	0.512	0.582	-0.017	-0.032	-0.002	-0.087	-0.099	-0.075	opening-only	0
+MEF->mES	GET	OSKMN	JGES	mag+dir+signed	15	0	0	NA	NA	NA	NA	NA	NA	NA	NA	NA	opening-only-degenerate	0

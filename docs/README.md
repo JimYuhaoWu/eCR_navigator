@@ -23,7 +23,9 @@ Map of the docs — start here to find things fast. **Bold = read first for that
 | [`claim2_results.md`](claim2_results.md) | Claim 2A results, top-k sweeps, per-model×species confidence, **nomination policy**. Deep dive. |
 | [`benchmark_v1_results.md`](benchmark_v1_results.md) | **v1 benchmark scorecard** — 6 transitions × GET (+ChromBERT on mouse). GET wins on both strong (iN, C/EBPα); fails on all weak. Read with `validation_summary.md`. |
 | [`benchmark_spec.md`](benchmark_spec.md) | Benchmark *design*: frozen transition panel so future/self-trained models run the same scorecard. v1 as-built + v2 backlog. |
-| `*.tsv` | Machine-readable results: `claim1_results.{mm10,mtf,human}.tsv`, `claim2_results.tsv`, `cross_model_consistency.mm10.tsv`. |
+| [`finetune_plan.md`](finetune_plan.md) · [`finetune_results.md`](finetune_results.md) | **Regime-1 head-only fine-tune probe** (does supervision beat zero-shot?). Result: **no** — head < zero-shot on mouse loci, human iN loci, and OSKMN↔JGES binding transfer. The model is best used **zero-shot**. |
+| [`limited_data_strategy.md`](limited_data_strategy.md) | **What to do under scarce driver labels** — ≤3-param combiner, better zero-shot readouts, and the two real unlocks (breadth corpus / Regime-3 perturbation labels). |
+| `*.tsv` | Machine-readable results: `claim1_results.{mm10,mtf,human}.tsv`, `claim2_results.tsv`, `finetune_results.{mm10,human,mtfbind}.tsv`, `cross_model_consistency.mm10.tsv`. |
 
 ## Per-model pipelines (run + species notes, one per model)
 [`get_pipeline.md`](get_pipeline.md) · [`chrombert_pipeline.md`](chrombert_pipeline.md) ·
