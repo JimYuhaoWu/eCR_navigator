@@ -73,7 +73,32 @@ argues **against a backbone fine-tune on loci** (which would overfit harder) and
 Regime-1 on either (a) a much larger driver-label corpus, or (b) Regime-3 perturbation
 labels. Machine-readable: [`finetune_results.human.tsv`](finetune_results.human.tsv).
 
-## Next (per plan, not yet run)
-- Rung 2: OSKMN(−Esrrb) ↔ JGES **binding**, same transition (train one panel, test the
-  other) — the last within-transition transfer test before abandoning cheap loci/binding
-  supervision.
+## MEF→mES, binding — OSKMN ↔ JGES cross-panel transfer — done 2026-07-23
+
+Rung 2: train the head on one driver-TF panel, test on the OTHER (same transition), with
+shared regions excluded so a site bound by both can't leak. OSKMN = Pou5f1/Sox2/Klf4/Myc/
+Nanog ChIP-Atlas (125,273 sites, Esrrb+Sall4 dropped → JGES-side); JGES = `jges.union.bed`
+(Jdp2/Glis1/Esrrb/Sall4, 15,875). `transfer_scores`, features |shift|+dir+signed, seed 0.
+
+| direction | held-out pos / neg | **head** | driver_score | signed-Δ | Δ head−driver [CI] | Δ head−signed [CI] |
+|---|---:|---:|---:|---:|---|---|
+| JGES → OSKMN | 7,770 / 6,686 | **0.495** | 0.512 | **0.582** | −0.017 [−0.032, −0.002] | −0.087 [−0.099, −0.075] |
+| OSKMN → JGES | **0** / 0 | — | — | — | — (degenerate) | — |
+
+**OSKMN → JGES is degenerate:** OSKMN binding (125k sites ≈ 38% of opening regions)
+**subsumes** JGES — after excluding training regions, 0 JGES positives remain. The panels
+are not independent (OSKM binds essentially everywhere JGES does), so this direction can't
+be tested. **JGES → OSKMN is decisive:** the head (0.495) is **significantly worse than
+both** zero-shot driver_score (0.512) and signed-Δ (0.582); here **signed-Δ (measured
+accessibility) is the single best predictor** and the model/supervision add nothing.
+
+## Overall conclusion — supervised fine-tuning does not help at this label scale
+
+Four experiments agree: **Claim 2A** (driver_score ≈ signed-Δ), **mouse loci** (head 0.38–0.47
+< zero-shot), **human iN loci** (head 0.56 < zero-shot 0.664, even given |shift|), and **binding
+transfer** (head < driver < signed-Δ). The supervised head never clears the baselines and
+usually hurts; **measured signed-Δ accessibility is the strongest simple driver signal**, and
+GET's zero-shot prior only edges it on clean transitions and never via cheap supervision. A
+backbone fine-tune (more params, same tiny labels) would overfit harder — **not pursued**.
+Regime-1 needs a much larger driver-label corpus or Regime-3 perturbation labels; see
+`docs/limited_data_strategy.md`. Machine-readable: [`finetune_results.mtfbind.tsv`](finetune_results.mtfbind.tsv).

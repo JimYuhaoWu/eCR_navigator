@@ -15,7 +15,8 @@ add_repo_paths()
 
 import numpy as np
 from finetune_head import (
-    pca_transform, leave_one_gene_out_scores, gene_of_region, load_named_bed, join_values,
+    pca_transform, leave_one_gene_out_scores, transfer_scores, gene_of_region,
+    load_named_bed, join_values,
 )
 from eval_driver_claim1 import auroc
 
@@ -101,6 +102,42 @@ def test_leave_one_gene_out_is_truly_out_of_fold():
     idx, score, lab = leave_one_gene_out_scores(feats, labels, genes, np.abs(signed), seed=7)
     assert int(lab.sum()) == int(labels.sum()), (lab.sum(), labels.sum())
     assert len(idx) == len(score) == len(lab)
+
+
+def test_transfer_shared_direction_generalizes_across_panels():
+    # panel A and panel B positives share a driver direction -> a head trained on A
+    # recovers B (held out, shared regions excluded)
+    rng = np.random.default_rng(20)
+    n, dim = 8000, 40
+    signed = rng.uniform(0, 1, n)
+    shift = rng.normal(0, 1, (n, dim))
+    u = _unit(rng, dim)
+    a_pos = rng.choice(n, 400, replace=False, p=signed / signed.sum())
+    rest = np.setdiff1d(np.arange(n), a_pos)
+    b_pos = rng.choice(rest, 400, replace=False, p=signed[rest] / signed[rest].sum())
+    lab_a = np.zeros(n, bool); lab_a[a_pos] = True
+    lab_b = np.zeros(n, bool); lab_b[b_pos] = True
+    shift[a_pos] += 3.0 * u; shift[b_pos] += 3.0 * u        # shared driver direction
+    feats = np.column_stack([pca_transform(shift, 15), (signed - signed.mean()) / signed.std()])
+    _, score, lab = transfer_scores(feats, lab_a, lab_b, np.abs(signed), seed=21)
+    assert auroc(score, lab) > 0.65, auroc(score, lab)
+
+
+def test_transfer_panel_specific_direction_does_not_generalize():
+    # panel A and panel B have DIFFERENT directions -> no cross-panel transfer
+    rng = np.random.default_rng(22)
+    n, dim = 8000, 40
+    signed = rng.uniform(0, 1, n)
+    shift = rng.normal(0, 1, (n, dim))
+    a_pos = rng.choice(n, 400, replace=False, p=signed / signed.sum())
+    rest = np.setdiff1d(np.arange(n), a_pos)
+    b_pos = rng.choice(rest, 400, replace=False, p=signed[rest] / signed[rest].sum())
+    lab_a = np.zeros(n, bool); lab_a[a_pos] = True
+    lab_b = np.zeros(n, bool); lab_b[b_pos] = True
+    shift[a_pos] += 3.0 * _unit(rng, dim); shift[b_pos] += 3.0 * _unit(rng, dim)
+    feats = np.column_stack([pca_transform(shift, 15), (signed - signed.mean()) / signed.std()])
+    _, score, lab = transfer_scores(feats, lab_a, lab_b, np.abs(signed), seed=23)
+    assert auroc(score, lab) < 0.60, auroc(score, lab)
 
 
 if __name__ == "__main__":
