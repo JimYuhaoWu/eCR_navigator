@@ -9,6 +9,10 @@ answered on real transitions; 2B is specced and ready to run.
   strong clean transition.**
 - **Claim 2A — does it add over a signed-Δaccessibility baseline?** → **YES on human iN
   (strong/clean), NO on mouse MEF→mES (signed-Δ dominates).**
+- **Fine-tuning — does supervised training beat zero-shot?** → **NO** at the current
+  driver-label scale: a head-only probe underperforms the zero-shot `driver_score` on mouse
+  loci, human iN loci, and OSKMN↔JGES binding transfer ([`finetune_results.md`](finetune_results.md)).
+  Use GET **zero-shot**; scarce-label strategy in [`limited_data_strategy.md`](limited_data_strategy.md).
 - **Nomination policy** — a runnable per-transition preflight decides GET-vs-signed.
 - **Claim 2B — is the measured `direction` trustworthy where it picks an ED?** → **specced,
   not run** ([`claim2_plan.md`](claim2_plan.md) §2B). Two-sided against destination (must
