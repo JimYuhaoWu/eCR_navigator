@@ -116,7 +116,7 @@ domain — **42% of iN nominations have |direction| < 0.05** — which is
 | Claim 2 plan (2A scope; **2B spec**; Claim 3 parked) | [`claim2_plan.md`](claim2_plan.md) |
 | Claim 2A results, top-k sweeps, per-model×species confidence, nomination policy | [`claim2_results.md`](claim2_results.md) · TSV [`claim2_results.tsv`](claim2_results.tsv) |
 | Eval + preflight code | `scripts/eval_driver_claim1.py`, `scripts/eval_driver_claim2.py`, `scripts/preflight.py` (+ `tests/`) |
-| Server-side artifacts | PeiLab2 `/mnt3/wuyuhao/{claim1_work,in_clean,mtf_loci,neural_gt,jges_gse199612}/` (see `server_mirrors.md`) |
+| Server-side artifacts | PeiLab2 `/mnt3/wuyuhao/ecr_nav/` — one tree since the 2026-07-30 reorg (`eval_work/claim1_work`, `datasets/iN_clean`, `ground_truth/{mtf_loci_pluripotency,neural_iN,jges_cuttag_h3k27ac}`); see `ECR_NAV_INDEX.md` on the server + `server_mirrors.md` |
 
 ## Open items
 
@@ -130,7 +130,7 @@ domain — **42% of iN nominations have |direction| < 0.05** — which is
   ground truth).
 - Predicted-vs-measured direction (the *old* Claim 2B) — model QC, moved to
   [`alphagenome_pipeline.md`](alphagenome_pipeline.md) §Validation, gated on that model.
-- **Run bundles — the panel is regenerated as bundles** (2026-07-16), `/mnt3/wuyuhao/bundles/`.
+- **Run bundles — the panel is regenerated as bundles** (2026-07-16), `/mnt3/wuyuhao/ecr_nav/output/bundles/`.
   One `navigate.py --contract --bundle` per transition, no special-casing: **2 nominate from
   GET (iN 3,300 / C/EBPα 3,139), 1 from signed-Δ (MEF→mES 870), 3 refuse** (MyoD, iCM, ETV2 —
   0 nominations, weights still shipped). The unified output contract is

@@ -1,5 +1,10 @@
 # Claim 2A results — does `driver_score` add over signed-Δaccessibility?
 
+> **Server paths moved (2026-07-30 reorg):** the `/mnt3/wuyuhao/<name>/` paths below are now under
+> `/mnt3/wuyuhao/ecr_nav/` — `claim1_work` → `eval_work/claim1_work`, `in_clean` → `datasets/iN_clean`,
+> `neural_gt` → `ground_truth/neural_iN`, `mtf_loci` → `ground_truth/mtf_loci_pluripotency`.
+> See `ECR_NAV_INDEX.md` on PeiLab2.
+
 Ran 2026-07-15 (harness `scripts/eval_driver_claim2.py`, committed with the plan). Follows
 [`claim2_plan.md`](claim2_plan.md). No new embedding compute — re-uses the on-disk GET
 driver contracts + signed-Δ tracks built for Claim 1 (PeiLab2

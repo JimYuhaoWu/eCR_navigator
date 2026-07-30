@@ -91,7 +91,7 @@ artifact. It holds now, on the fixed universe.
 
 The whole panel is now regenerated through the production entrypoint —
 `navigate.py --contract --bundle` — as v1 run bundles ([`run_bundle_contract.md`](run_bundle_contract.md)),
-on PeiLab2 at **`/mnt3/wuyuhao/bundles/`**. This is the end-to-end test of the nomination
+on PeiLab2 at **`/mnt3/wuyuhao/ecr_nav/output/bundles/`**. This is the end-to-end test of the nomination
 policy: **no per-transition special-casing**, one command each, the verdict falls out.
 
 | Bundle | regions | nominations | PRIMARY | Gate 1 (PC1 @50k) |

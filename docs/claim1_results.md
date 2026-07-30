@@ -1,5 +1,11 @@
 # Claim 1 — is `driver_score` informative? (mm10 MEF→mES)
 
+> **Server paths moved (2026-07-30 reorg):** the `/mnt3/wuyuhao/<name>/` paths below are now
+> under `/mnt3/wuyuhao/ecr_nav/` (`eval_work/claim1_work`, `datasets/`, `ground_truth/`, `refs/`);
+> see `ECR_NAV_INDEX.md` on PeiLab2. The `MEF_mESC{,_2,_3}` layout changed: the Vierstra motifs are
+> now `ecr_nav/refs/vierstra_pkg_mm10_hg38/`; the superseded `MEF_mESC{,_2}` raw was deleted
+> (public — SRP524550 / SRP372834; provenance in `ecr_nav/archive/`), derived confound track kept.
+
 **Dates:** 2026-07-13 → 2026-07-14 · **Pair:** mm10 MEF→mES · **Channel:** `driver_score`
 (magnitude). Machine-readable copy: [`claim1_results.mm10.tsv`](claim1_results.mm10.tsv).
 Session status / handoff: [`claim1_progress.md`](claim1_progress.md).

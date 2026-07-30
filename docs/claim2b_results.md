@@ -1,7 +1,7 @@
 # Claim 2B results — is the measured `direction` trustworthy where it picks an ED?
 
 Run 2026-07-16 · harness `scripts/eval_direction_claim2b.py` · spec
-[`claim2_plan.md`](claim2_plan.md) §2B · raw output PeiLab2 `/mnt3/wuyuhao/claim2b/results.txt`.
+[`claim2_plan.md`](claim2_plan.md) §2B · raw output PeiLab2 `/mnt3/wuyuhao/ecr_nav/eval_work/claim2b/results.txt`.
 
 **Question.** `direction` (measured signed ΔaTPM) picks the effector domain — `+` → activator
 (VP64), `−` → repressor (KRAB). On the iN bundle **42% of nominations have |direction| < 0.05**.
@@ -89,17 +89,17 @@ chain (validate that replicate sign-stability predicts sign-correctness on ancho
 stability as a per-region confidence) is deferred: the cutoff already answers the contract's
 open question, and a `direction_confidence` **column** is a contract change (bundle_version
 bump), so it deserves its own decision rather than riding along here. The per-replicate
-endpoint matrices needed for it exist (`/mnt3/wuyuhao/*/endpoints.matrix.tsv`).
+endpoint matrices needed for it exist (`/mnt3/wuyuhao/ecr_nav/datasets/*/endpoints.matrix.tsv`).
 
 ## Reproduce
 
 ```bash
-# source-cell anchors (mm10 + hg38): /mnt3/wuyuhao/claim2b/build_src_anchors.py
+# source-cell anchors (mm10 + hg38): /mnt3/wuyuhao/ecr_nav/eval_work/claim2b/build_src_anchors.py
 python scripts/eval_direction_claim2b.py \
     --contract bundles/<id>/weights.tsv \
     --dest <destination master-TF promoter BED> \
-    --source /mnt3/wuyuhao/claim2b/src_anchors/<id>/promoter.bed
+    --source /mnt3/wuyuhao/ecr_nav/eval_work/claim2b/src_anchors/<id>/promoter.bed
 ```
 
-Anchors `/mnt3/wuyuhao/claim2b/src_anchors/`; destination anchors are each bundle's existing
+Anchors `/mnt3/wuyuhao/ecr_nav/eval_work/claim2b/src_anchors/`; destination anchors are each bundle's existing
 Gate-2 anchors. Tests: `tests/test_eval_claim2b.py` (7, green).
