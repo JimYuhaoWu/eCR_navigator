@@ -1,5 +1,9 @@
 # Claim 1 validation — HUMAN (hg38) progress / handoff
 
+> **Server paths moved (2026-07-30 reorg):** `/mnt3/wuyuhao/in_clean/` → `ecr_nav/datasets/iN_clean/`,
+> `/mnt3/wuyuhao/neural_gt/` → `ecr_nav/ground_truth/neural_iN/`; everything eCR is under
+> `/mnt3/wuyuhao/ecr_nav/`. See `ECR_NAV_INDEX.md` on PeiLab2.
+
 > **STATUS: historical handoff (Claim 1 complete & merged).** For the current bottom line and
 > which-score-to-trust policy, read [`validation_summary.md`](validation_summary.md). This doc
 > is kept for the full human-phase trail and reproduction paths.

@@ -1,5 +1,10 @@
 # Claim 1 validation — session progress / handoff
 
+> **Server paths moved (2026-07-30 reorg):** the `/mnt3/wuyuhao/<name>/` paths below are now
+> under `/mnt3/wuyuhao/ecr_nav/` (`eval_work/claim1_work`, `datasets/`, `ground_truth/`, `refs/`);
+> see `ECR_NAV_INDEX.md` on PeiLab2. The `MEF_mESC{,_2}` raw was deleted (public — SRP524550 /
+> SRP372834; provenance + REDOWNLOAD.md in `ecr_nav/archive/`); the derived confound track is kept.
+
 > **STATUS: historical handoff (Claim 1 complete & merged).** For the current bottom line and
 > which-score-to-trust policy, read [`validation_summary.md`](validation_summary.md). This doc
 > is kept for the mouse-phase trail and reproduction paths.

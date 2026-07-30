@@ -38,6 +38,7 @@ AlphaGenome track lists: `alphagenome_mouse_{atac,dnase}_tracks.tsv`.
 | Doc | What it is / read when |
 |---|---|
 | [`server_mirrors.md`](server_mirrors.md) | **Mirror access (ports, keys, envs) + per-model runtime notes + artifact locations.** Read when connecting to a GPU mirror or PeiLab2. |
+| [`peilab2_file_management.md`](peilab2_file_management.md) | **Rules for laying out & maintaining eCR files on PeiLab2** — the `ecr_nav/` category tree, naming, path discipline, and the public-or-keep deletion policy. Read before moving or deleting anything under `/mnt3/wuyuhao/`. |
 | [`mirror_onboarding.md`](mirror_onboarding.md) | Reusable playbook for wiring up a new model's mirror. |
 | [`model_runtime_matrix.md`](model_runtime_matrix.md) | Measured peak GPU mem + torch/CUDA/driver per model. |
 
