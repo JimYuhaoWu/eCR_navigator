@@ -77,7 +77,7 @@ data gives passengers for free: changed-in-one-route-only / route-discordant reg
 
 | Candidate | Organism / assay | Timepoints | Value / caveat | Accession |
 |---|---|---|---|---|
-| **Knaupp 2017** *Cell Stem Cell* 21:834 (PMID **29220667**) — "Transient & Permanent Reconfiguration…" | **mouse** MEF→iPSC, bulk ATAC + TF ChIP, **sorted *poised* intermediates** | 3-phase OSKM time-course | **highest-value NEW set** — a *different* OSKM trajectory that isolates reprogramming-competent intermediates (cleaner drivers than bulk) | confirm GEO (data: Mendeley `55v99jz2yy`) |
+| **Knaupp 2017** *Cell Stem Cell* 21:834 (PMID **29220667**) — "Transient & Permanent Reconfiguration…" | **mouse** MEF→iPSC, bulk ATAC (+ matched ChIP/RNA/BS-seq), **FACS-sorted *successful* intermediates** | MEF, D3/D6 SSEA1+, D9/D12 SSEA1+/cKIT+, iPSC GFP+ (2 reps) | **highest-value NEW set** — a *different* OSKM trajectory that isolates reprogramming-*competent* cells (cleaner drivers than bulk, which averages in dead-end cells) | **GSE101905** (confirmed) |
 | **GSE100345** "dynamic changes in expression & accessibility during reprogramming" | **HUMAN** BJ→iPSC, **scRNA + scATAC** (single-cell) | D0/D2/D8/D16 | single-cell → unlocks pseudobulk-subsampling aug (#3) + pseudotime. **Human → cross-species/ortholog use only, NOT the mouse route-consensus** | **GSE100345** (confirmed) |
 | GSE213225 "somatic reprogramming of transformed tumorigenic cells" | mouse, bulk ATAC | D0/D3/D6/D9/D12/D15 | dense timepoints **but transformed + genetically-modified starting cells** → off-target state; low priority | **GSE213225** (confirmed) |
 | PMC10592962 "TF stoichiometry/motif/syntax … single-cell chromatin dynamics" | fibroblast→iPSC scATAC | — | scATAC trajectory | confirm GEO |
@@ -101,6 +101,7 @@ cardiac reprogramming scATAC (PMID 34509499); chemical ESC→totipotent GSE16621
   (OSK 99.8%, JGES 98.6%); per-nomination `nom_class.tsv`.
 - **Next:** (1) **pull GSE93029 OSK-D1/D3/D5 intermediates** (already-owned trajectory, free win);
   (2) formalize the route-consensus positive set (2/3 & 3/3) + |Δ|-matched passenger negatives;
-  (3) fold in trajectory timepoints as graded shifts; (4) confirm Knaupp-2017 GEO accession and
-  acquire it (mouse) + evaluate GSE100345 for cross-species/pseudobulk use; (5) re-run the head
+  (3) fold in trajectory timepoints as graded shifts; (4) acquire Knaupp-2017
+  (**GSE101905**, mouse sorted intermediates) + evaluate GSE100345 (human) for
+  cross-species/pseudobulk use; (5) re-run the head
   probe on the augmented corpus with strict gene-grouped CV and compare to zero-shot.
