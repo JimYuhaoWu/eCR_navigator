@@ -95,12 +95,37 @@ cardiac reprogramming scATAC (PMID 34509499); chemical ESC→totipotent GSE16621
 - **Consensus threshold is a hyperparameter** (2/3 vs 3/3), tuned on held-out known genes, not on
   the CV that reports the final number.
 
+## 8. First result — OSK trajectory validates graded labels (2026-07-31)
+
+Pulled GSE93029 whole-population OSK ATAC **D0/D1/D3/D5/D7** (rep1/2; `GSE93029/GSM24426*_OSK-D*`)
+and tested whether the 870 navigator nominations change accessibility *monotonically* along the
+time-course — binary peak-overlap, union of reps (`atac_gt/trajectory_test.py`,
+`osk_trajectory/trajectory_accessibility.tsv`):
+
+| class | n | D0 | D1 | D3 | D5 | D7 | Spearman(t) |
+|---|---|---|---|---|---|---|---|
+| **openers** | 634 | 0.733 | 0.789 | 0.801 | 0.801 | **0.883** | **+1.00** |
+| **closers** | 236 | 0.987 | 0.966 | 0.958 | 0.809 | **0.847** | **−0.90** |
+
+Per-region: **83.6%** of openers non-decreasing, **89.4%** of closers non-increasing across the 5
+timepoints; endpoint D0→D7 net openers +104/−9, closers 0/−33.
+
+**Conclusion:** driver nominations change *progressively* along the reprogramming trajectory —
+intermediate timepoints are graded, informative labels, not noise → the trajectory augmentation
+(§3 #2) is **validated on real data**. **Caveats:** (1) binary peak-overlap saturates (openers are
+already 0.73 accessible at D0, closers 0.99), so population fractions *understate* per-cell graded
+change — the sharper follow-up is **bigWig continuous signal** per region across timepoints; (2)
+closers show a small non-monotone uptick D5→D7 worth checking against the GFP-sorted fractions
+(GSM2442693–2442704) that separate reprogramming-competent from dead-end cells.
+
 ## 7. Status / next
 
 - **Done:** 3 routes downloaded + peak-called; cross-route direction concordance computed
-  (OSK 99.8%, JGES 98.6%); per-nomination `nom_class.tsv`.
-- **Next:** (1) **pull GSE93029 OSK-D1/D3/D5 intermediates** (already-owned trajectory, free win);
-  (2) formalize the route-consensus positive set (2/3 & 3/3) + |Δ|-matched passenger negatives;
+  (OSK 99.8%, JGES 98.6%); per-nomination `nom_class.tsv`. **GSE93029 OSK whole-population
+  D0/D1/D3/D5/D7 ATAC pulled + trajectory test run — validates graded labels (§8).**
+- **Next:** (1) **[DONE, §8]** — next quantify the trajectory with **bigWig continuous signal**
+  (peak-overlap saturates); (2) formalize the route-consensus positive set (2/3 & 3/3) +
+  |Δ|-matched passenger negatives;
   (3) fold in trajectory timepoints as graded shifts; (4) acquire Knaupp-2017
   (**GSE101905**, mouse sorted intermediates) + evaluate GSE100345 (human) for
   cross-species/pseudobulk use; (5) re-run the head
