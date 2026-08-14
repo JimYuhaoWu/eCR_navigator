@@ -30,10 +30,13 @@ backbone is real and strong.
 |---|---|---|---|---|
 | **Chemical (CiPS)** | GSE110264 (Cao) | CiPS-A/B **D6** (early) + **D40** (late) bigWig; MEF/CiPS endpoints | `cao_chem/` (early_D6, late_D40, to_open/close); `raw/peaks` D6a/b,D40a/b | — |
 | **JGES** | GSE199609 (Wang) | J_N12_GES / JGES(K5A) **D1-3**, **D7**; MEF | `wang_jges/` (early_MEF1→late_JGESD7); `raw/peaks` JGESD7 | **98.6%** (352/357) |
-| **OSK** | GSE93029 + **Li 2017** (ARM A) | MEF, **mES-OSK-D7**, iPS, ESCs (rep1/2); Li OSKM time-course | `arm_a_results.txt` | **99.8%** (416/417) |
+| **OSK** | **GSE93029 = Li 2017** (PMID 29220666; = "ARM A") | downloaded: MEF, mES-OSK-D7, iPS, ESCs (rep1/2). **In-series but NOT yet pulled: OSK-D0/D1/D3/D5/D7 (rep1/2) full trajectory + single/pairwise-factor (O/S/K/OK/OS/SK-D1) + GFP-sorted fractions** | `arm_a_results.txt` | **99.8%** (416/417) |
 | (endpoints) | GSE201577 | clean MEF / mESC (the navigator bundle source) | `../bundle/` | — |
 
-`GSE199613` downloaded empty (placeholder — recheck or drop).
+**Note — no double-count:** "ARM A / Li 2017" and the OSK route are the *same* series
+(GSE93029, GEO superseries "Chromatin Open/Close Logic in Cellular Reprogramming"), not two
+datasets. Its **OSK-D0→D1→D3→D5→D7 trajectory is already in-series and un-downloaded** — the
+cheapest trajectory win we have. `GSE199613` downloaded empty (placeholder — recheck or drop).
 
 ## 3. Positive-set construction & augmentation (mapped to this data)
 
@@ -69,21 +72,19 @@ data gives passengers for free: changed-in-one-route-only / route-discordant reg
 
 ## 5. Additional data to acquire — trajectory-focused (search 2026-07-29)
 
-Priorities: (a) **dense bulk OSKM time-course** for more intermediate states; (b) **single-cell
-(scATAC / multiome) reprogramming trajectories** — these unlock pseudobulk-subsampling
-augmentation (#3) and pseudotime intermediates. Accessions from search snippets — **confirm on GEO
-before download**:
+**First, and free:** pull the **GSE93029 OSK-D1/D3/D5 intermediates** we already own but skipped
+(§2) — that alone gives the OSK trajectory. Then acquire new sets (GEO pages checked 2026-07-29):
 
-| Candidate | Type | Why | Accession (verify) |
-|---|---|---|---|
-| Knaupp 2017 *Cell Stem Cell* "Chromatin Accessibility Dynamics during iPSC Reprogramming" | bulk ATAC, days 0/1/3/5/7 | dense OSKM trajectory | (confirm; maybe GSE-linked to that paper) |
-| "Diversification of reprogramming trajectories" *Sci Adv* aba1190 | parallel scRNA + scATAC | single-cell trajectory → pseudobulk aug + pseudotime | (confirm GEO) |
-| "TF stoichiometry/motif affinity/syntax … single-cell chromatin dynamics" (PMC10592962) | scATAC, fibroblast→iPSC | recent dense scATAC trajectory | (confirm GEO) |
-| MEF reprogramming RNA+ATAC | bulk | extra route/timepoints | GSE213225 (verify) |
-| "OSKM factors cooperatively engage chromatin" | OSKM binding/access | early-stage engagement | GSE36570 (verify; may be pre-ATAC assay) |
+| Candidate | Organism / assay | Timepoints | Value / caveat | Accession |
+|---|---|---|---|---|
+| **Knaupp 2017** *Cell Stem Cell* 21:834 (PMID **29220667**) — "Transient & Permanent Reconfiguration…" | **mouse** MEF→iPSC, bulk ATAC + TF ChIP, **sorted *poised* intermediates** | 3-phase OSKM time-course | **highest-value NEW set** — a *different* OSKM trajectory that isolates reprogramming-competent intermediates (cleaner drivers than bulk) | confirm GEO (data: Mendeley `55v99jz2yy`) |
+| **GSE100345** "dynamic changes in expression & accessibility during reprogramming" | **HUMAN** BJ→iPSC, **scRNA + scATAC** (single-cell) | D0/D2/D8/D16 | single-cell → unlocks pseudobulk-subsampling aug (#3) + pseudotime. **Human → cross-species/ortholog use only, NOT the mouse route-consensus** | **GSE100345** (confirmed) |
+| GSE213225 "somatic reprogramming of transformed tumorigenic cells" | mouse, bulk ATAC | D0/D3/D6/D9/D12/D15 | dense timepoints **but transformed + genetically-modified starting cells** → off-target state; low priority | **GSE213225** (confirmed) |
+| PMC10592962 "TF stoichiometry/motif/syntax … single-cell chromatin dynamics" | fibroblast→iPSC scATAC | — | scATAC trajectory | confirm GEO |
+| GSE36570 "OSKM cooperatively engage chromatin" | OSKM occupancy | — | likely **pre-ATAC** (nuclease/ChIP, Soufi-era) → verify assay before use | **GSE36570** (verify assay) |
 
-Not primary (different lineage, keep for cross-transition breadth only): direct cardiac
-reprogramming scATAC (PMID 34509499); chemical ESC→totipotent GSE166216.
+Not primary (different lineage / off-target, keep only for cross-transition breadth): direct
+cardiac reprogramming scATAC (PMID 34509499); chemical ESC→totipotent GSE166216.
 
 ## 6. Guardrails (non-negotiable)
 
@@ -98,7 +99,8 @@ reprogramming scATAC (PMID 34509499); chemical ESC→totipotent GSE166216.
 
 - **Done:** 3 routes downloaded + peak-called; cross-route direction concordance computed
   (OSK 99.8%, JGES 98.6%); per-nomination `nom_class.tsv`.
-- **Next:** (1) formalize the route-consensus positive set (2/3 & 3/3) + |Δ|-matched passenger
-  negatives; (2) fold in trajectory timepoints as graded shifts; (3) confirm + acquire the §5
-  single-cell trajectories for replicate/pseudobulk augmentation; (4) re-run the head probe on the
-  augmented corpus with strict gene-grouped CV and compare to zero-shot.
+- **Next:** (1) **pull GSE93029 OSK-D1/D3/D5 intermediates** (already-owned trajectory, free win);
+  (2) formalize the route-consensus positive set (2/3 & 3/3) + |Δ|-matched passenger negatives;
+  (3) fold in trajectory timepoints as graded shifts; (4) confirm Knaupp-2017 GEO accession and
+  acquire it (mouse) + evaluate GSE100345 for cross-species/pseudobulk use; (5) re-run the head
+  probe on the augmented corpus with strict gene-grouped CV and compare to zero-shot.
