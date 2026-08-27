@@ -31,7 +31,7 @@ Arrays inside:
 | `end` | `int64` | `(N,)` | exclusive BED end |
 | `embedding` | `float32` | `(N, D)` | per-region model embedding |
 | `signal` | `float32` | `(N,)` | **optional** per-region *scalar* accessibility for this state; present only for direction-capable models |
-| `meta` | `<U…` (0-d) | `()` | JSON: `{model, cell_state, assembly, dim, source, has_signal}` |
+| `meta` | `<U…` (0-d) | `()` | JSON: `{model, cell_state, assembly, dim, source, has_signal, provenance}` |
 
 ### The optional `signal` array (direction channel)
 
@@ -65,6 +65,47 @@ the output contract — the open/close instruction. Rules:
 
 **The dtypes are load-critical.** The navigator reads with `allow_pickle=False`
 (fast, and it refuses to unpickle arbitrary objects), so `chrom` must be a unicode
+## `meta.provenance` — which runtime produced this
+
+Added 2026-08-27, when the models gained a second home (Hygon DCU alongside the
+NVIDIA A800). The two backends give slightly but systematically different
+numbers, so an artifact has to say how it was made.
+
+```json
+"provenance": {
+  "host": "instance-...-wuyuhao-77258-0",
+  "torch": "2.4.1",
+  "torch_build": "2.4.1+das.opt1.dtk25041",
+  "device": "cuda", "accelerator": "K100_AI",
+  "arch": "gfx928:sramecc+:xnack-",
+  "hip": "6.3.25211", "cuda": null,
+  "dtype": "fp16", "attn": "flash"
+}
+```
+
+Filled automatically by `scripts/ecr_runtime.py:runtime_provenance()`;
+`dtype`/`attn` are supplied by the caller because only it knows how it ran the
+forward pass. **Those two matter as much as the accelerator**: measured on
+EpiAgent, like-for-like fp32 agreement between an A800 and a K100_AI is
+~1.7e-06, whereas fp16 autocast or a different flash-attention kernel each shift
+results by ~1e-01 at the tail.
+
+`torch_build` is recorded separately because `torch.__version__` drops the local
+build tag — the DTK build reports a bare `"2.4.1"`, indistinguishable from stock
+torch.
+
+Notes:
+- **Additive and optional.** Existing readers that pull `model`/`cell_state`/…
+  are unaffected; the arrays are unchanged.
+- **Artifacts written before this date have no `provenance` key.** All of them
+  were produced on the A800 mirrors. Treat a missing key as "A800, unknown
+  dtype", not as "unknown machine".
+- `write_embedding_artifact(..., provenance=...)` overrides the auto-capture,
+  for the case where the artifact is *assembled* on a different machine than the
+  one that computed the embedding — e.g. ChromBERT, where the mirror emits hdf5
+  and `scripts/hdf5_to_artifact.py` converts it elsewhere. Auto-capture would
+  otherwise record the converting host, which is wrong.
+
 string array and `meta` a 0-d unicode-string array — an object array (e.g. a bare
 `pandas.Series.to_numpy()`) fails to load. **Do not hand-roll the `np.savez`.** Every
 model writes through the one shared helper `scripts/embedding_artifact.py`

@@ -33,6 +33,7 @@ import numpy as np
 import torch
 
 from get_regionmotif_matrix import build_matrix   # same scripts/ dir
+import ecr_paths                              # same scripts/ dir
 from embedding_artifact import write_embedding_artifact
 
 
@@ -108,7 +109,7 @@ def main() -> None:
                          "Skips the tabix build entirely — use to keep the heavy motif work "
                          "off the GPU instance; --peaks is then ignored (coords come from it).")
     ap.add_argument("--checkpoint", required=True)
-    ap.add_argument("--get-repo", default="/yutiancheng/yuhao/get_model")
+    ap.add_argument("--get-repo", default=ecr_paths.under("get_model"))
     ap.add_argument("--window", type=int, default=200)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--out", required=True)

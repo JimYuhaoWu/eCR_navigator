@@ -29,6 +29,7 @@ import argparse
 import numpy as np
 import torch
 
+import ecr_paths                              # same scripts/ dir
 from embedding_artifact import write_embedding_artifact
 
 
@@ -87,7 +88,7 @@ def main() -> None:
     ap.add_argument("--peaks", required=True, help="one state's accessible peaks BED (hg38)")
     ap.add_argument("--state", required=True, help="cell-state name (recorded in meta)")
     ap.add_argument("--assembly", default="hg38", help="recorded in meta; model is hg38-only")
-    ap.add_argument("--model-dir", default="/yutiancheng/yuhao/models/atacformer")
+    ap.add_argument("--model-dir", default=ecr_paths.model("atacformer"))
     ap.add_argument("--window", type=int, default=2048,
                     help="tokens per encoder chunk (<= max_position_embeddings)")
     ap.add_argument("--device", default="cuda")

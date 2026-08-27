@@ -31,6 +31,7 @@ import sys
 import numpy as np
 import torch
 
+import ecr_paths                              # same scripts/ dir
 from embedding_artifact import write_embedding_artifact
 
 
@@ -38,7 +39,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--h5ad", required=True, help="input built by chromfound_build_input.py")
     ap.add_argument("--repo", default="/root/ChromFound")
-    ap.add_argument("--ckpt-dir", default="/yutiancheng/yuhao/models/chromFound")
+    ap.add_argument("--ckpt-dir", default=ecr_paths.model("chromFound"))
     ap.add_argument("--model-file", default="model.pt")
     ap.add_argument("--config-file", default="chromfd_pretrain.yaml")
     ap.add_argument("--assembly", default="hg38", help="recorded in meta (model is hg38)")

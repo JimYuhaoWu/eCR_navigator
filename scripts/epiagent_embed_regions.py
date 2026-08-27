@@ -48,6 +48,7 @@ import json
 import numpy as np
 import torch
 
+from ecr_runtime import detect_flash_attn
 from embedding_artifact import write_embedding_artifact
 
 CLS, SEP = 1, 2          # EpiAgent special token ids ([CLS], [SEP])
@@ -89,9 +90,8 @@ def main() -> None:
     import scanpy as sc
 
     if args.use_flash_attn == "auto":
-        cap = torch.cuda.get_device_capability()
-        use_flash = cap[0] >= 8          # Ampere (A100 sm_80) or newer
-        print(f">> GPU sm_{cap[0]}{cap[1]}: use_flash_attn={use_flash}")
+        use_flash, why = detect_flash_attn()
+        print(f">> use_flash_attn={use_flash} ({why})")
     else:
         use_flash = args.use_flash_attn == "yes"
 
