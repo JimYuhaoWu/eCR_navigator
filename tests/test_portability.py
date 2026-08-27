@@ -17,13 +17,16 @@ import types
 
 import numpy as np
 
+TAB = chr(9)
+NL = chr(10)
+
 from _runner import add_repo_paths, run
 
 add_repo_paths()
 
 import ecr_paths                                             # noqa: E402  (scripts/)
-from ecr_runtime import (flash_attn_supported,               # noqa: E402
-                          runtime_provenance)
+from ecr_runtime import (dtype_tag,                           # noqa: E402
+                          flash_attn_supported, runtime_provenance)
 from embedding_artifact import write_embedding_artifact      # noqa: E402
 
 
@@ -228,6 +231,91 @@ def test_caller_supplied_provenance_is_not_mutated():
     assert given == {"host": "elsewhere"}          # no in-place surprise
     prov = json.loads(str(np.load(out)["meta"]))["provenance"]
     assert prov["host"] == "elsewhere" and prov["dtype"] == "fp32"
+
+
+# --------------------------------------------------------------- dtype tags
+
+class _FakeTensor:
+    def __init__(self, dtype):
+        self.dtype = dtype
+
+
+def test_dtype_tag_maps_the_common_dtypes():
+    assert dtype_tag(_FakeTensor("torch.float32")) == "fp32"
+    assert dtype_tag(_FakeTensor("torch.float16")) == "fp16"
+    assert dtype_tag(_FakeTensor("torch.bfloat16")) == "bf16"
+    assert dtype_tag(_FakeTensor("torch.float64")) == "fp64"
+
+
+def test_dtype_tag_passes_through_the_unexpected():
+    """An unmapped dtype must still produce something legible, not crash."""
+    assert dtype_tag(_FakeTensor("torch.int8")) == "int8"
+
+
+# ------------------------------------- ChromBERT: provenance through the hdf5
+
+def _fake_chrombert_hdf5(path, provenance=None):
+    """Minimal stand-in for chrombert_get_region_emb output."""
+    import h5py
+    with h5py.File(path, "w") as f:
+        f.create_dataset("emb", data=np.zeros((3, 4), dtype=np.float16))
+        f.create_dataset("region", data=np.array(
+            [[0, 0, 1000, 0], [0, 1000, 2000, 1], [0, 2000, 3000, 2]], dtype=np.int64))
+        if provenance is not None:
+            f.attrs["ecr_provenance"] = json.dumps(provenance)
+    return path
+
+
+def _run_hdf5_to_artifact(tmp, provenance):
+    """Drive hdf5_to_artifact.main() the way run_chrombert_region_emb.sh does."""
+    import sys
+    import hdf5_to_artifact
+    h5 = _fake_chrombert_hdf5(os.path.join(tmp, "emb.hdf5"), provenance)
+    tsv = os.path.join(tmp, "dataset.tsv")
+    header = ["chrom", "start", "end", "build_region_index", "label"]
+    rows = [["chr1", str(i * 1000), str((i + 1) * 1000), str(i), "1"]
+            for i in range(3)]
+    with open(tsv, "w") as fh:
+        fh.write(TAB.join(header) + NL)
+        for r in rows:
+            fh.write(TAB.join(r) + NL)
+    out = os.path.join(tmp, "a.npz")
+    argv = sys.argv
+    sys.argv = ["hdf5_to_artifact.py", "--hdf5", h5, "--dataset", tsv,
+                "--genome", "hg38", "--cell-state", "MEF", "--out", out]
+    try:
+        hdf5_to_artifact.main()
+    finally:
+        sys.argv = argv
+    return json.loads(str(np.load(out)["meta"]))
+
+
+def test_chrombert_provenance_survives_the_hdf5_hop():
+    """The GPU box stamps the hdf5; the converting host must pass it through
+    unchanged rather than describing itself."""
+    gpu = {"host": "gpu-box-01", "accelerator": "NVIDIA A800-SXM4-80GB",
+           "arch": "sm_80", "cuda": "12.4", "hip": None}
+    meta = _run_hdf5_to_artifact(tempfile.mkdtemp(), gpu)
+    prov = meta["provenance"]
+    assert prov["host"] == "gpu-box-01"          # NOT this machine
+    assert prov["accelerator"] == "NVIDIA A800-SXM4-80GB"
+    assert prov["arch"] == "sm_80"
+
+
+def test_chrombert_records_fp16_not_the_cast():
+    """emb is stored fp16 and cast to fp32 on read; the tag must say fp16."""
+    meta = _run_hdf5_to_artifact(tempfile.mkdtemp(), {"host": "gpu-box-01"})
+    assert meta["provenance"]["dtype"] == "fp16"
+    assert meta["provenance"]["attn"] == "eager"
+
+
+def test_chrombert_hdf5_without_provenance_does_not_fabricate_one():
+    """Files written before this existed must not be stamped with the
+    converting host, which would be a lie about where they came from."""
+    meta = _run_hdf5_to_artifact(tempfile.mkdtemp(), None)
+    prov = meta["provenance"]
+    assert prov.get("accelerator") is None
+    assert prov.get("dtype") == "fp16"
 
 
 if __name__ == "__main__":

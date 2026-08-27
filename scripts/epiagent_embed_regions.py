@@ -48,7 +48,7 @@ import json
 import numpy as np
 import torch
 
-from ecr_runtime import detect_flash_attn
+from ecr_runtime import detect_flash_attn, dtype_tag
 from embedding_artifact import write_embedding_artifact
 
 CLS, SEP = 1, 2          # EpiAgent special token ids ([CLS], [SEP])
@@ -117,6 +117,7 @@ def main() -> None:
         # not a navigator-invented direction. sigmoid -> P(accessible) in [0,1].
         signal_all = torch.sigmoid(model.signal_decoder(cls.float()))[0].cpu().numpy()
     # positions 1..L are the cCRE tokens (0 is CLS, L+1 is SEP)
+    emb_dtype = dtype_tag(out["transformer_outputs"])   # before the .float() cast
     emb = out["transformer_outputs"][0, 1:1 + len(tokens), :].float().cpu().numpy()
 
     # map each cCRE token back to its universe coordinate (var row = token - 4)
@@ -130,7 +131,8 @@ def main() -> None:
     n, d = write_embedding_artifact(
         args.out, chrom, start, end, emb,
         model="epiagent", cell_state=args.state, assembly=args.assembly,
-        source="epiagent_embed_regions.py", signal=signal)
+        source="epiagent_embed_regions.py", signal=signal,
+        dtype=emb_dtype, attn="flash" if use_flash else "eager")
     print(f"wrote {args.out}: {n} cCREs x {d} dims ({args.state}, {args.assembly}); "
           f"signal range [{signal.min():.3f}, {signal.max():.3f}]")
 

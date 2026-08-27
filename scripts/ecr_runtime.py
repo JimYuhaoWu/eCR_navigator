@@ -14,6 +14,23 @@ from __future__ import annotations
 import platform
 
 
+_DTYPE_TAGS = {
+    "torch.float32": "fp32", "torch.float64": "fp64",
+    "torch.float16": "fp16", "torch.bfloat16": "bf16",
+}
+
+
+def dtype_tag(t):
+    """Short tag for the dtype a tensor was actually computed in.
+
+    Observed, not asserted: under autocast a model's output can be fp16 while
+    its parameters are fp32, and every embed script casts with `.float()` before
+    going to numpy — so this must be read from the raw tensor, before that cast,
+    or it records a fiction.
+    """
+    return _DTYPE_TAGS.get(str(t.dtype), str(t.dtype).replace("torch.", ""))
+
+
 def flash_attn_supported(has_flash_attn: bool, hip_version, capability):
     """Decide whether to take the flash-attention path.
 

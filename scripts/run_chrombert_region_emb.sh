@@ -27,6 +27,9 @@ base="$(basename "$PEAKS")"
 echo ">> uploading $PEAKS -> mirror:$REMOTE/"
 $SSH "mkdir -p $REMOTE"
 $SCP_BASE "$PEAKS" "${MIRROR_USER}@${MIRROR_IP}:$REMOTE/$base"
+# ecr_runtime.py goes with it so the GPU box can describe itself, rather than us
+# duplicating that logic in a shell one-liner.
+$SCP_BASE "$(dirname "$0")/ecr_runtime.py" "${MIRROR_USER}@${MIRROR_IP}:$REMOTE/ecr_runtime.py"
 
 # The CLI's mask auto-inference is genome-blind (defaults to hg38's 6391-regulator
 # mask), so mm10 fails with a matmul dim mismatch. Pass the mask explicitly.
@@ -40,6 +43,18 @@ echo ">> make_dataset ($GENOME) + get_region_emb on mirror (GPU)"
 mirror_py "cd $REMOTE && \
   python -m chrombert.scripts.chrombert_make_dataset $base -g $GENOME -o dataset.tsv && \
   python -m chrombert.scripts.chrombert_get_region_emb dataset.tsv -g $GENOME --mask $MASK -o emb.hdf5"
+
+# Stamp the GPU's provenance INTO the hdf5, so it travels with the data it
+# describes. hdf5_to_artifact.py runs elsewhere and cannot observe this machine.
+echo ">> recording GPU provenance into emb.hdf5"
+mirror_py "cd $REMOTE && python -c \"
+import json, sys, h5py
+sys.path.insert(0, '.')
+from ecr_runtime import runtime_provenance
+with h5py.File('emb.hdf5', 'a') as f:
+    f.attrs['ecr_provenance'] = json.dumps(runtime_provenance())
+print('  provenance:', json.dumps(runtime_provenance()))
+\""
 
 echo ">> fetching results"
 mkdir -p "$(dirname "$OUT")"

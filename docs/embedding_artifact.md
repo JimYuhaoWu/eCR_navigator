@@ -102,9 +102,43 @@ Notes:
   dtype", not as "unknown machine".
 - `write_embedding_artifact(..., provenance=...)` overrides the auto-capture,
   for the case where the artifact is *assembled* on a different machine than the
-  one that computed the embedding — e.g. ChromBERT, where the mirror emits hdf5
-  and `scripts/hdf5_to_artifact.py` converts it elsewhere. Auto-capture would
-  otherwise record the converting host, which is wrong.
+  one that computed the embedding — see ChromBERT below.
+
+### What each model records
+
+`dtype` is **observed** from the raw tensor; `attn` is **declared**, because it
+is a property of how the model was built, not something a tensor reveals. Note
+every embed script casts with `.float()` before going to numpy, so the dtype has
+to be read *before* that cast or it records a fiction.
+
+| Model | `dtype` | `attn` | |
+|---|---|---|---|
+| GET | fp32 | `eager` | |
+| ATACformer | fp32 | `sdpa` | the DCU build lacks the memory-efficient kernel and falls back to a different SDPA backend than the A800 — worth having on the record |
+| ChromFound | fp16 | `flash` | its wpsa block calls `flash_attn_func`, which is why it diverges more than GET/ATACformer |
+| EpiAgent | fp16 (autocast) | **runtime** | `flash` or `eager`, from `detect_flash_attn()` |
+| ChromBERT | fp16 | `eager` | |
+
+### ChromBERT: provenance travels inside the hdf5
+
+ChromBERT's pipeline splits across machines — the GPU box runs
+`chrombert_get_region_emb` and emits an hdf5; `hdf5_to_artifact.py` converts it
+somewhere else. Auto-capture on the converting host would record the wrong
+machine entirely.
+
+So `run_chrombert_region_emb.sh` ships `ecr_runtime.py` to the GPU box alongside
+the peaks and, after the embedding step, writes the GPU's own provenance into
+the hdf5 as an `ecr_provenance` attribute. `hdf5_to_artifact.py` reads that
+attribute and passes it through unchanged. The provenance travels with the data
+it describes, so there is no sidecar file to lose.
+
+Verified end-to-end on a real ChromBERT hdf5: an artifact converted on one host
+correctly records `accelerator: K100_AI`, `arch: gfx928:sramecc+:xnack-`,
+`dtype: fp16`.
+
+An hdf5 written before this existed has no attribute; the converter says so on
+stderr and leaves the accelerator fields null rather than stamping the
+converting host.
 
 string array and `meta` a 0-d unicode-string array — an object array (e.g. a bare
 `pandas.Series.to_numpy()`) fails to load. **Do not hand-roll the `np.savez`.** Every

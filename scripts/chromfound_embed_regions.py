@@ -32,6 +32,7 @@ import numpy as np
 import torch
 
 import ecr_paths                              # same scripts/ dir
+from ecr_runtime import dtype_tag
 from embedding_artifact import write_embedding_artifact
 
 
@@ -90,6 +91,7 @@ def main() -> None:
             value, chromosome, ps, pe, _ = ds[i]
             out = model(value[None].to(device), chromosome[None].to(device),
                         ps[None].to(device), pe[None].to(device))   # (1, n_OCR, 128)
+            emb_dtype = dtype_tag(out[0])    # before the .float() cast
             e = out[0].float().cpu().numpy()
             if e.shape[0] != n_ocr and e.shape[1] == n_ocr:         # orient to (n_OCR, dim)
                 e = e.T
@@ -105,7 +107,11 @@ def main() -> None:
             n, d = write_embedding_artifact(
                 outp, chrom, start, end, emb,
                 model="chromfound", cell_state=st, assembly=args.assembly,
-                source="chromfound_embed_regions.py", signal=signal)
+                source="chromfound_embed_regions.py", signal=signal,
+                # ChromFound's wpsa block calls flash_attn_func, which requires
+                # half precision - this is the path behind its larger A800-vs-DCU
+                # divergence relative to GET/ATACformer.
+                dtype=emb_dtype, attn="flash")
             print(f"wrote {outp}: {n} OCRs x {d} dims ({st})")
 
 
