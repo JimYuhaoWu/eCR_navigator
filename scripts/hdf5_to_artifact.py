@@ -17,6 +17,8 @@ import argparse
 import h5py
 import numpy as np
 
+import json
+
 from embedding_artifact import write_embedding_artifact
 
 
@@ -45,7 +47,20 @@ def main() -> None:
     tsv = load_tsv_index(args.dataset)
     with h5py.File(args.hdf5, "r") as f:
         region = f["region"][:]           # (N,4) int64
+        # dtype BEFORE the cast: ChromBERT stores fp16, and that is the number
+        # that explains its A800-vs-DCU divergence.
+        emb_dtype = "fp16" if f["emb"].dtype == np.float16 else str(f["emb"].dtype)
         emb = f["emb"][:].astype(np.float32)  # (N,768)
+        # This script runs on whatever machine does the conversion, NOT the GPU
+        # that computed the embedding, so auto-capture would stamp the wrong
+        # host. run_chrombert_region_emb.sh attaches the GPU's own provenance to
+        # the hdf5 as an attribute; carry it through unchanged.
+        prov = f.attrs.get("ecr_provenance")
+    provenance = json.loads(prov) if prov else None
+    if provenance is None:
+        print("NOTE: hdf5 carries no ecr_provenance attribute (written before "
+              "this was added, or produced outside run_chrombert_region_emb.sh); "
+              "the GPU that produced it is unrecorded.")
     build_idx = region[:, 3]
 
     chrom, start, end = [], [], []
@@ -56,7 +71,8 @@ def main() -> None:
     n, d = write_embedding_artifact(
         args.out, chrom, start, end, emb,
         model="chrombert", cell_state=args.cell_state, assembly=args.genome,
-        source="chrombert_get_region_emb -> hdf5_to_artifact.py")
+        source="chrombert_get_region_emb -> hdf5_to_artifact.py",
+        dtype=emb_dtype, attn="eager", provenance=provenance)
     print("wrote %s : %d regions x %d dims (%s, %s)"
           % (args.out, n, d, args.cell_state, args.genome))
 

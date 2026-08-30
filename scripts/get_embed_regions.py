@@ -33,6 +33,8 @@ import numpy as np
 import torch
 
 from get_regionmotif_matrix import build_matrix   # same scripts/ dir
+import ecr_paths                              # same scripts/ dir
+from ecr_runtime import dtype_tag
 from embedding_artifact import write_embedding_artifact
 
 
@@ -59,8 +61,12 @@ def load_get_model(checkpoint: str, get_repo: str):
     return model.eval()
 
 
-def embed(model, region_motif: np.ndarray, window: int, device: str) -> np.ndarray:
-    """Tile regions into windows, return per-region 768-d encoder embedding (N,768)."""
+def embed(model, region_motif: np.ndarray, window: int, device: str):
+    """Tile regions into windows, return (per-region 768-d embedding (N,768), dtype tag).
+
+    The dtype tag comes from the encoder tensor before the `.float()` cast, so it
+    records what the forward pass actually ran in.
+    """
     store = {}
 
     def hook(_m, _i, o):
@@ -81,8 +87,11 @@ def embed(model, region_motif: np.ndarray, window: int, device: str) -> np.ndarr
                 pass
             enc = store["enc"]          # (1, w+1, 768), index 0 = cls
             out[s:e] = enc[0, 1:(e - s) + 1].float().cpu().numpy()
+    # store is empty only when there were no regions to tile; keep that path
+    # returning an empty array rather than raising on a missing dtype.
+    tag = dtype_tag(store["enc"]) if "enc" in store else None
     handle.remove()
-    return out
+    return out, tag
 
 
 def load_peaks(bed: str):
@@ -108,7 +117,7 @@ def main() -> None:
                          "Skips the tabix build entirely — use to keep the heavy motif work "
                          "off the GPU instance; --peaks is then ignored (coords come from it).")
     ap.add_argument("--checkpoint", required=True)
-    ap.add_argument("--get-repo", default="/yutiancheng/yuhao/get_model")
+    ap.add_argument("--get-repo", default=ecr_paths.under("get_model"))
     ap.add_argument("--window", type=int, default=200)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--out", required=True)
@@ -163,12 +172,13 @@ def main() -> None:
 
     # 3. embed
     model = load_get_model(args.checkpoint, args.get_repo)
-    emb = embed(model, region_motif, args.window, args.device)
+    emb, emb_dtype = embed(model, region_motif, args.window, args.device)
 
     n, d = write_embedding_artifact(
         args.out, peaks["chrom"], peaks["start"], peaks["end"], emb,
         model="get", cell_state=args.state, assembly=args.assembly,
-        source="get_embed_regions.py", signal=signal)
+        source="get_embed_regions.py", signal=signal,
+        dtype=emb_dtype, attn="eager")
     print(f"wrote {args.out}: {n} regions x {d} dims ({args.state}, {args.assembly})")
 
 

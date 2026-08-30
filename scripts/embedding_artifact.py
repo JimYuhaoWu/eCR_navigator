@@ -23,10 +23,14 @@ import json
 
 import numpy as np
 
+from ecr_runtime import runtime_provenance   # re-exported: callers import it from here
+
 
 def write_embedding_artifact(out, chrom, start, end, embedding, *,
                              model: str, cell_state: str, assembly: str,
-                             source: str, signal=None) -> tuple[int, int]:
+                             source: str, signal=None, dtype: str | None = None,
+                             attn: str | None = None,
+                             provenance: dict | None = None) -> tuple[int, int]:
     """Write one embedding artifact, enforcing the contract dtypes.
 
     chrom/start/end/embedding may be any array-like (list, pandas Series, ndarray);
@@ -54,8 +58,14 @@ def write_embedding_artifact(out, chrom, start, end, embedding, *,
         if len(signal) != n:
             raise ValueError(f"signal length {len(signal)} != {n} regions")
         arrays["signal"] = signal
+    prov = runtime_provenance() if provenance is None else dict(provenance)
+    if dtype is not None:
+        prov["dtype"] = dtype
+    if attn is not None:
+        prov["attn"] = attn
     meta = json.dumps({"model": model, "cell_state": cell_state,
                        "assembly": assembly, "dim": int(d), "source": source,
-                       "has_signal": signal is not None})
+                       "has_signal": signal is not None,
+                       "provenance": prov})
     np.savez_compressed(out, meta=np.array(meta), **arrays)
     return n, d

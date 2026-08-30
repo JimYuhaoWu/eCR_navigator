@@ -29,6 +29,8 @@ import argparse
 import numpy as np
 import torch
 
+import ecr_paths                              # same scripts/ dir
+from ecr_runtime import dtype_tag
 from embedding_artifact import write_embedding_artifact
 
 
@@ -61,8 +63,9 @@ def tokens_for_peaks(tok, peaks_bed: str):
     return regs, tok_ids
 
 
-def embed(model, token_ids: list[int], window: int, device: str) -> np.ndarray:
-    """Per-region encoder embedding (N, hidden). Chunked into <=window blocks."""
+def embed(model, token_ids: list[int], window: int, device: str):
+    """Per-region encoder embedding (N, hidden) and its dtype tag. Chunked into
+    <=window blocks. The tag is read before the `.float()` cast."""
     dim = model.config.hidden_size
     N = len(token_ids)
     out = np.zeros((N, dim), dtype=np.float32)
@@ -73,7 +76,7 @@ def embed(model, token_ids: list[int], window: int, device: str) -> np.ndarray:
             ids = torch.tensor([token_ids[s:e]], dtype=torch.long, device=device)
             h = model(ids)                     # (1, e-s, hidden)
             out[s:e] = h[0].float().cpu().numpy()
-    return out
+    return out, dtype_tag(h[0])
 
 
 def parse_region(r: str):
@@ -87,7 +90,7 @@ def main() -> None:
     ap.add_argument("--peaks", required=True, help="one state's accessible peaks BED (hg38)")
     ap.add_argument("--state", required=True, help="cell-state name (recorded in meta)")
     ap.add_argument("--assembly", default="hg38", help="recorded in meta; model is hg38-only")
-    ap.add_argument("--model-dir", default="/yutiancheng/yuhao/models/atacformer")
+    ap.add_argument("--model-dir", default=ecr_paths.model("atacformer"))
     ap.add_argument("--window", type=int, default=2048,
                     help="tokens per encoder chunk (<= max_position_embeddings)")
     ap.add_argument("--device", default="cuda")
@@ -99,7 +102,7 @@ def main() -> None:
     if not regs:
         raise SystemExit(f"no peaks in {args.peaks} snap to the hg38 universe "
                          f"(is the BED hg38? mm10 must be lifted first)")
-    emb = embed(model, ids, args.window, args.device)
+    emb, emb_dtype = embed(model, ids, args.window, args.device)
 
     coords = [parse_region(r) for r in regs]
     chrom = [c for c, _, _ in coords]
@@ -109,7 +112,11 @@ def main() -> None:
     n, d = write_embedding_artifact(
         args.out, chrom, start, end, emb,
         model="atacformer", cell_state=args.state, assembly=args.assembly,
-        source="atac_embed_regions.py")
+        source="atac_embed_regions.py",
+        # torch's TransformerEncoder -> SDPA. Worth recording: the DCU build
+        # lacks the memory-efficient kernel and falls back to a different SDPA
+        # backend than the A800.
+        dtype=emb_dtype, attn="sdpa")
     print(f"wrote {args.out}: {n} regions x {d} dims ({args.state}, {args.assembly})")
 
 
