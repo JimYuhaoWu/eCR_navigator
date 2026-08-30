@@ -136,7 +136,7 @@ sourcing candidates:
 
 | Candidate | Master TF(s) | GEO (ATAC) | Species / asm | States assayed | Reps | Verdict |
 |---|---|---|---|---|---|---|
-| **C/EBPα pre-B→macrophage** | Cebpa | **GSE151748** | mouse / mm10 | 0,1,3,6,18,120 hpi (endpoints 0 h pre-B, 120 h macrophage) | **N=2**/tp | ✅ **PASS** — clean, dense time course (use WT arm, not the R35A Carm1 mutant) |
+| **C/EBPα pre-B→macrophage** | Cebpa | **GSE204742** | mouse / mm10 | 0,1,3,6,18,120 hpi (endpoints 0 h pre-B, 120 h macrophage) | **N=2**/tp | ✅ **PASS** — clean, dense time course (use WT arm, not the R35A Carm1 mutant) |
 | **MyoD fib→iMPC** | Myod1 (+F/R/C small molecules) | **GSE186271** (ATAC sub-series, 8 samples) | mouse / mm10 | MEF, MyoD-d2, MyoD+FRC-d2, iMPC | **N=2**/group | ✅ **PASS** — endpoints MEF & iMPC. Note: iMPC (progenitor) is the *stable* end; pure myotube is unstable |
 | fib→iNSC (Ptf1a) | Ptf1a | SRP136063 | mouse | MEF, miNSC10, control NSC | **~N=1** | ⚠️ **LIKELY FAIL** — appears single-replicate; neuro slot already covered by iN. Skip unless GEO shows reps |
 | fib→hepatocyte (iHep) | Foxa3/Gata4/Hnf1a/Hnf4a | — | — | — | — | ❌ **FAIL (v2)** — no bulk ATAC with reps found; the field is RNA-seq / methylation / scATAC |
@@ -147,7 +147,7 @@ sourcing candidates:
 | # | Transition | Role | Species | Source |
 |---|---|---|---|---|
 | 1 | fib→iN (Ascl1) | strong / model-positive | human | GSE299923 (have) |
-| 2 | **pre-B→macrophage (C/EBPα)** | strong (new) | mouse | GSE151748 |
+| 2 | **pre-B→macrophage (C/EBPα)** | strong (new) | mouse | GSE204742 |
 | 3 | **MEF→iMPC (MyoD)** | strong (new) | mouse | GSE186271 |
 | 4 | MEF→mES | clean-but-**null** control (Claim-2 signed-Δ-primary) | mouse | GSE201577 (have) |
 | 5 | MEF→iCM | weak / partial (Gate-1 stress / reject candidate) | human | GSE179011 (have) |
@@ -160,5 +160,5 @@ state pair (C/EBPα: 0 h pre-B / 120 h macrophage; MyoD: MEF / iMPC) and ignore 
 timepoints for scoring (endpoint-only principle).
 
 **Next: assemble each bundle** (endpoints matrix + signed-Δ + target-cell master-TF anchor BEDs
-+ Gate-1 label) per the layout above, starting with the two new native-mm10 sets (GSE151748,
++ Gate-1 label) per the layout above, starting with the two new native-mm10 sets (GSE204742,
 GSE186271) — no liftOver needed.
