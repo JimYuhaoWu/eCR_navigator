@@ -87,7 +87,9 @@ def embed(model, region_motif: np.ndarray, window: int, device: str):
                 pass
             enc = store["enc"]          # (1, w+1, 768), index 0 = cls
             out[s:e] = enc[0, 1:(e - s) + 1].float().cpu().numpy()
-    tag = dtype_tag(store["enc"])
+    # store is empty only when there were no regions to tile; keep that path
+    # returning an empty array rather than raising on a missing dtype.
+    tag = dtype_tag(store["enc"]) if "enc" in store else None
     handle.remove()
     return out, tag
 
