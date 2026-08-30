@@ -97,11 +97,17 @@ policy: **no per-transition special-casing**, one command each, the verdict fall
 | Bundle | regions | nominations | PRIMARY | Gate 1 (PC1 @50k) |
 |---|---|---|---|---|
 | `in_gse299923` | 329,983 | **3,300** | **GET** | admit 0.919 |
-| `cebpa_gse151748` | 313,838 | **3,139** | **GET** | admit 0.963 |
+| `cebpa_gse204742` | 313,838 | **3,139** | **GET** | admit 0.963 |
 | `mef_mes_gse201577` | 86,956 | **870** | **signed-Δ** | admit 0.933 |
 | `myod_gse186271` | 232,788 | **0** | *(refused)* | REJECT 0.785 |
 | `icm_gse179011` | 233,342 | **0** | *(refused)* | REJECT 0.707 (coherence −0.059) |
 | `etv2_gse168636` | 63,562 | **0** | *(refused)* | REJECT 0.561 |
+
+> **Renamed 2026-08-26:** this bundle was previously `cebpa_gse151748`. That slug was wrong —
+> GSE151748 is an unrelated Rbfox2 liver RNA-seq study. The correct accession is **GSE204742**
+> (*"Arginine methylation of C/EBPα controls the speed of immune cell transdifferentiation
+> (ATAC-Seq)"*, PRJNA842064), confirmed from the bundle's own SRA runs (SRR19387553 = ATAC-Seq
+> WT_0h_rep1). Directories, scripts and configs were renamed together; results are unchanged.
 
 **2 nominate from GET, 1 from signed-Δ, 3 refuse — exactly the predicted split.** All six
 pass the structural checks: three parts present, `nominations.tsv` a strict subset of

@@ -21,7 +21,7 @@ Inside `ecr_nav/`, every item goes in exactly one category:
 | `ground_truth/` | anchors / ChIP / master-TF loci used to *score*, not the transition data | `neural_iN/`, `chipatlas_OSKM_mm10/` |
 | `refs/` | genome-wide references shared across runs | `hg38_cCRE_motif/`, `vierstra_pkg_mm10_hg38/` |
 | `eval_work/` | analysis code + its outputs, one dir per claim/study | `claim1_work/`, `claim2b/` |
-| `benchmark/` | the frozen benchmark panel (bundles + build tooling) | `benchmark/cebpa_gse151748/` |
+| `benchmark/` | the frozen benchmark panel (bundles + build tooling) | `benchmark/cebpa_gse204742/` |
 | `output/` | deliverables consumed downstream | `bundles/`, `fixtures/` |
 | `code/` | shared, path-agnostic tooling not tied to one study | `get_regionmotif_matrix.py`, `nav_code/` |
 | `archive/` | provenance stubs for **deleted** data (see §4) | `MEF_mESC_SRP524550/` |
