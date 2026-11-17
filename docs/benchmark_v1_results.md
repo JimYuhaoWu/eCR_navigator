@@ -13,6 +13,8 @@ new mouse bundles); the 3 hg38-only models are omitted on mouse (liftOver-sparse
 **GET's `driver_score` recovers master-TF loci and beats the signed-Δ baseline on the strong,
 clean transitions — now shown on TWO independent lineages (neuron + macrophage), not just iN —
 and fails on every weak/Gate-1-reject transition. Gate-1 cleanly separates the two regimes.**
+(A third lineage, pancreatic β, was added after v1 and is outside this frozen panel — see the
+fib→β section below.)
 
 ## Scorecard
 
@@ -132,6 +134,79 @@ Three things this exercised for the first time:
 The pipeline reproduces the committed `examples/run_bundle/in_gse299923/nominations.tsv`
 **byte-identically**, so the shipped fixture and the production path agree.
 
+## A seventh transition, run after v1 — fib→β, and a third GET win (2026-09-02)
+
+Not part of the frozen v1 panel, but it belongs on the record: **BJ→β and
+IMR-90→β** (human, hg38), on PeiLab2 at `ecr_nav/datasets/fib_beta/`. All 11
+samples reprocessed from raw FASTQ through one identical pipeline — the point of
+the run was that an earlier attempt on the same β endpoint (GSE245479, scored
+against a UEC source in the `grant` project) **rejected at PC1 0.621** on a
+matrix that mixed four studies' *processed* files, so the batch term plausibly
+outranked the transition axis. One caveat on that reading: the original project
+recorded evidence against the simplest form of it — `grant/phase1_progress.md:52`
+notes that quantile-harmonizing did **not** rescue PC1 (0.61), i.e. it was not
+mere scale/distribution batch. Reprocessing from raw fixed it; exactly which
+component of the batch term it removed is not established.
+
+| pair | Gate 1 | coherence | PC1 | Gate 2 PRIMARY | ΔAUROC | LR p | top-5% fold | nominations |
+|---|---|---|---|---|---|---|---|---|
+| **BJ→β** | ✅ admit | +0.646 | **0.820** | **GET** ✅ | **+0.182** [+0.103,+0.261] | 0.001 | **3.87×** | 2,311 / 231,002 |
+| **IMR-90→β** | ✅ admit | +0.612 | **0.819** | **GET** ✅ | **+0.217** [+0.140,+0.296] | 0.001 | **4.84×** | 2,311 / 231,002 |
+
+**The IMR-90 arm's +0.217 is the largest ΔAUROC of any transition run** — above
+BJ→β (+0.182), iN (+0.170) and C/EBPα (+0.106); its incremental-LR driver
+coefficient is +0.89 against BJ's +0.71. Anchor set `beta.neighborhood.bed`,
+124 anchors; `models_run: [get]`.
+
+**Read that superlative with the positive-set caveat**: both β margins are
+*neighborhood* positives, while iN's +0.170 is a *promoter* margin (iN's own
+neighborhood margin is +0.057). The comparison is across different positive
+definitions, so "largest" is true of the number as recorded, not of a like-for-like
+contest.
+
+So the Claim-1/2 finding now holds on a **third** strong system, across three
+lineages and two species. **Treat the two arms as one replication, not two:**
+they share the identical β endpoint libraries, region universe (231,002) and
+anchor set — only the fibroblast arm differs, so this is a weaker form of
+independence than two separate transitions.
+
+PC1 tracks state, not depth (`results/pc1_depth_check.txt`): |corr(PC1, state)|
+0.987 / 0.983 against |corr(PC1, log depth)| 0.745 / 0.298. The BJ arm's depth
+correlation is high only because BJ is both the fibroblast state and the two
+deepest libraries (150.3 M and 136.5 M, ranks 1–2 of 9); the IMR-90 arm sits
+mid-range among the β donors (57.4 M and 41.9 M, ranks 3 and 6) and drops to
+0.298 at an unchanged PC1. Two caveats: no subsampling decision is recorded in
+that file or in `qc.tsv`/`logs/`, so "depth was not corrected for" is an
+inference from the raw unequal fragment counts, not a finding of the cited file;
+and `pc1_depth_check.txt` reports its own PC1 variance fractions as 0.755/0.757
+against `gate1.txt`'s 0.820/0.819 — a different universe, nowhere reconciled on
+the server.
+
+The run also carries the first full design pass off a navigator bundle —
+`design/ecr_final_v2.tsv`, 8 eCRs on **extracted DBDs** with GS-flex linkers,
+AF3 structures, FoldX fusion ΔΔG, off-target counts and developability scores.
+It is a two-effector set, not an opener-only one: **4 openers on SS18-N70**
+(HNF1A 81–285, EGR3 269–361, ZNF850, ZNF793) and **4 closers on SALL1-N12**
+(ZNF540, HINFP, ZNF444, HINFP). It is also the run that exposed the
+full-length-TF fusion bug and motivated `eCR_mod_lib`'s DBD extraction.
+
+Naming drift to watch if those figures are ever regenerated: the `effector`
+column says `SALL1-N12` while the matching `af3_cif` filenames say `sall1-sds3`
+(e.g. `znf540__gs-flex__sall1-sds3_model.cif`). The column is authoritative.
+
+**Caveat on its place in the paper:** in-house validation of a β endpoint is
+blocked (no mature GSIS protocol — `endpoint_selection/ENDPOINT_SELECTION.md`
+ruled the endpoint out on exactly that ground before this run went ahead). So the
+strongest computational transition is the one that cannot be validated here,
+which is why the wet-lab arm runs on MEF→mES.
+
+**Open:** `datasets/fib_beta/gate2/` holds only `inputs/` — the Gate-2 verdict is
+recorded in each bundle's `manifest.json`, but the score artifacts behind it are
+not in that directory (presumably left on the SH DCU cluster). `results/` is
+likewise incomplete: it holds `gate1.txt`, `pc1_depth_check.txt` and `qc.tsv`,
+but **not** `results/claim1_by_model.tsv`, which `INDEX.md` cites for the model
+stratification. Locate both before these numbers go into a figure.
+
 ## Data-engineering notes (for reproduction)
 
 - **Region universe:** dataset-specific peaks per transition (macs from CDesk, or my own
@@ -154,6 +229,9 @@ The pipeline reproduces the committed `examples/run_bundle/in_gse299923/nominati
   peak count); a cleaner endothelial dataset (or better replicates) would restore a 3rd strong.
 - Thresholds (PC1≥0.80 etc.) calibrated on **6** transitions, up from 2 — the admit/reject
   split holds on all six **once Gate 1 uses the fixed 50k universe** (see the correction
-  above; on the raw universes it did not, and iN rejected).
+  above; on the raw universes it did not, and iN rejected). A seventh transition
+  (fib→β, 2026-09-02) has since admitted at PC1 0.820/0.819 and nominated from
+  GET — see the section above; it is outside the frozen panel and did not
+  re-calibrate the thresholds.
 - Optional follow-ups: redo C/EBPα on dataset peaks (used cCRE fallback); source a cleaner
   endothelial dataset for a 3rd strong; add the 3 hg38 models when a human bundle is added.

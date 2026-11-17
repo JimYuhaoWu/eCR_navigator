@@ -1,2 +1,5 @@
 * text=auto
 *.sh text eol=lf
+
+# Hash-frozen pre-registration artifact: byte-exact, no EOL conversion
+artifacts/prereg_nanog_readout/*.tsv -text
