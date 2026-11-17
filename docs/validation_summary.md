@@ -8,7 +8,8 @@ answered on real transitions; 2B is specced and ready to run.
   change-magnitude-matched background) → **YES, for GET, on the master-TF *loci* reframe, on a
   strong clean transition.**
 - **Claim 2A — does it add over a signed-Δaccessibility baseline?** → **YES on human iN
-  (strong/clean), NO on mouse MEF→mES (signed-Δ dominates).**
+  (strong/clean) and on human fib→β (the largest margin yet — ΔAUROC +0.217 on
+  the IMR-90 arm, +0.182 on BJ), NO on mouse MEF→mES (signed-Δ dominates).**
 - **Fine-tuning — does supervised training beat zero-shot?** → **NO** at the current
   driver-label scale: a head-only probe underperforms the zero-shot `driver_score` on mouse
   loci, human iN loci, and OSKMN↔JGES binding transfer ([`finetune_results.md`](finetune_results.md)).
@@ -49,6 +50,8 @@ incremental logistic-LR (does driver improve `label ~ signed`?).
 
 | System | positive | AUROC driver / signed | ΔAUROC [CI] | incr. LR | verdict |
 |---|---|---|---|---|---|
+| **human IMR-90→β** | **neighborhood** | **0.712 / 0.495** | **+0.217 [+0.140,+0.296]** | p=0.001 | ✅ beats + adds (largest margin; top-5% fold 4.84×) |
+| **human BJ→β** | **neighborhood** | **0.682 / 0.500** | **+0.182 [+0.103,+0.261]** | p=0.001 | ✅ beats + adds (top-5% fold 3.87×) |
 | **human iN** | **promoter** | **0.664 / 0.494** | **+0.170 [+0.081,+0.264]** | p=0.001 | ✅ beats + adds |
 | human iN | neighborhood | 0.557 / 0.499 | +0.057 [+0.012,+0.103] | p=0.002 | ✅ beats + adds |
 | human iN | promoter (all-regions) | 0.668 / 0.599 | +0.069 [−0.009,+0.151] | p=0.001 | ⚠️ AUROC wash, LR sig |
@@ -146,3 +149,20 @@ domain — **42% of iN nominations have |direction| < 0.05** — which is
   **Gate-1 separated admit/reject cleanly on all six**, so the preflight thresholds are now
   calibrated on n=6 rather than n=2. Results: [`benchmark_v1_results.md`](benchmark_v1_results.md);
   design + v2 backlog: [`benchmark_spec.md`](benchmark_spec.md).
+- **A third GET win, outside the v1 panel** (2026-09-02): **fib→β** (BJ→β and
+  IMR-90→β, human hg38, reprocessed from raw FASTQ) admits at PC1 0.820/0.819 and
+  nominates from **GET** on both arms: **IMR-90→β ΔAUROC +0.217
+  [+0.140,+0.296]**, LR p=0.001, top-5% fold 4.84× — **the largest margin of any
+  transition run** — and BJ→β +0.182 [+0.103,+0.261], p=0.001, 3.87×. Both β
+  rows are *neighborhood* positives, so they are not directly comparable to the
+  promoter margins below them in the table (iN's own neighborhood margin is
+  +0.057). The two arms share the same β libraries, universe and anchors, so
+  count them as **one** strong system, not two. It also carries the first design
+  pass off a navigator bundle (4 SS18-N70 openers + 4 SALL1-N12 closers on
+  extracted DBDs, AF3 + FoldX). In-house validation of a β endpoint is blocked
+  (no GSIS protocol), which is why the wet-lab arm runs on MEF→mES.
+  Detail in [`benchmark_v1_results.md`](benchmark_v1_results.md).
+- **Prospective readout pre-registration** —
+  [`prereg_nanog_readout.md`](prereg_nanog_readout.md): MEF→mES nominations frozen
+  (both GET and signed-Δ rankings, which overlap in only 39 of 870 regions) to be
+  tested against construct ATAC. Not frozen yet; two items outstanding.
