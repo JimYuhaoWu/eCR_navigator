@@ -1,8 +1,8 @@
 # Validation summary — is `driver_score` informative, and which score to trust?
 
 **Canonical, current-state summary. Read this first; the deep per-phase docs (linked at the
-bottom) hold the full trail, effect sizes, and honest negatives.** Two questions have been
-answered on real transitions; 2B is specced and ready to run.
+bottom) hold the full trail, effect sizes, and honest negatives.** All three questions —
+Claims 1, 2A and 2B — have been answered on real transitions. Claim 3 remains parked.
 
 - **Claim 1 — is `driver_score` informative?** (recovers true drivers vs a
   change-magnitude-matched background) → **YES, for GET, on the master-TF *loci* reframe, on a
@@ -15,9 +15,12 @@ answered on real transitions; 2B is specced and ready to run.
   loci, human iN loci, and OSKMN↔JGES binding transfer ([`finetune_results.md`](finetune_results.md)).
   Use GET **zero-shot**; scarce-label strategy in [`limited_data_strategy.md`](limited_data_strategy.md).
 - **Nomination policy** — a runnable per-transition preflight decides GET-vs-signed.
-- **Claim 2B — is the measured `direction` trustworthy where it picks an ED?** → **specced,
-  not run** ([`claim2_plan.md`](claim2_plan.md) §2B). Two-sided against destination (must
-  open) and source-cell (must close) master-TF anchors; no GPU.
+- **Claim 2B — is the measured `direction` trustworthy where it picks an ED?** → **YES above
+  |direction| ≥ 0.05** (run 2026-07-16, [`claim2b_results.md`](claim2b_results.md)):
+  sign-accuracy sits at the opening-rate baseline below that cutoff and 0.80–0.95 above it,
+  consistent on 3 admit transitions, with no threshold on the Gate-1-reject control. Below
+  0.05 `fuse.py` must not pick activator-vs-repressor — eCR_predictor's `target.py` labels
+  those rows `ed_class=ambiguous`. See Open items for the two-sided source arm.
 
 Method throughout: matched-background AUROC (control for |Δaccessibility|) + bootstrap CI +
 top-k fold, on clean verified endpoints. Report AUROC/CI/fold, **not** permutation-p (n large).
@@ -121,6 +124,7 @@ domain — **42% of iN nominations have |direction| < 0.05** — which is
 | Claim 1 session handoff / reproduction paths | [`claim1_progress.md`](claim1_progress.md) |
 | Cross-model magnitude (non-)consistency | [`cross_model_consistency.md`](cross_model_consistency.md) · TSV [`cross_model_consistency.mm10.tsv`](cross_model_consistency.mm10.tsv) |
 | Claim 2 plan (2A scope; **2B spec**; Claim 3 parked) | [`claim2_plan.md`](claim2_plan.md) |
+| Claim 2B results (direction-trust cutoff, source arm, Gate-1 control) | [`claim2b_results.md`](claim2b_results.md) |
 | Claim 2A results, top-k sweeps, per-model×species confidence, nomination policy | [`claim2_results.md`](claim2_results.md) · TSV [`claim2_results.tsv`](claim2_results.tsv) |
 | Eval + preflight code | `scripts/eval_driver_claim1.py`, `scripts/eval_driver_claim2.py`, `scripts/preflight.py` (+ `tests/`) |
 | Server-side artifacts | PeiLab2 `/mnt3/wuyuhao/ecr_nav/` — one tree since the 2026-07-30 reorg (`eval_work/claim1_work`, `datasets/iN_clean`, `ground_truth/{mtf_loci_pluripotency,neural_iN,jges_cuttag_h3k27ac}`); see `ECR_NAV_INDEX.md` on the server + `server_mirrors.md` |
@@ -165,4 +169,7 @@ domain — **42% of iN nominations have |direction| < 0.05** — which is
 - **Prospective readout pre-registration** —
   [`prereg_nanog_readout.md`](prereg_nanog_readout.md): MEF→mES nominations frozen
   (both GET and signed-Δ rankings, which overlap in only 39 of 870 regions) to be
-  tested against construct ATAC. Not frozen yet; two items outstanding.
+  tested against construct ATAC. Not frozen yet: of its §7 checklist, 4 of 10 items are
+  checked and **6 are outstanding** — the "Nanog-bound" definition, the mouse Gate-2
+  reconciliation, the control set D sha256, the frozen universe BED, the freeze commit hash,
+  and the no-construct-ATAC-yet confirmation.
